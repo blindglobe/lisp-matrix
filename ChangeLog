@@ -1,5 +1,14 @@
 2008-04-24  Evan Monroig  <evan.monroig@gmail.com>
 
+	* tests.lisp (test-matrix-size): helper function
+	(make-matrix-double-1, make-matrix-double-2)
+	(make-matrix-double-3, transpose-double): added basic tests
+
+	* lisp-matrix.asd (lisp-matrix): add dependency on fiveam
+
+	* package.lisp (:lisp-matrix): remove dependency on ASDF
+	(:lisp-matrix): add dependency on FIVEAM
+
 	* fnv-vector.lisp (make-vector): don't use argument
 	INITIAL-ELEMENT-P
 

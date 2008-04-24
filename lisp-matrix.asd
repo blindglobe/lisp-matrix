@@ -11,7 +11,9 @@
     :description "linear algebra library"
     :long-description "Linear algebra library for ANSI Common Lisp; implemented at the lowest level using CFFI to call the BLAS and LAPACK.  Should run on any ANSI CL implementation that supports CFFI."
     :serial t  ;; the dependencies are linear
-    :depends-on ("cffi" "org.middleangle.foreign-numeric-vector")
+    :depends-on ("cffi"
+		 "org.middleangle.foreign-numeric-vector"
+		 "fiveam")
     :components ((:file "package")
 		 (:file "macros" :depends-on ("package"))
 		 (:file "fnv-matrix" :depends-on ("package" "macros"))

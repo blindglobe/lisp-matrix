@@ -3,9 +3,9 @@
 
 (defpackage :lisp-matrix
   (:use :cl
-        :asdf
         :cffi
-        :org.middleangle.foreign-numeric-vector)
+        :org.middleangle.foreign-numeric-vector
+	:fiveam)
   
   (:import-from :fnv
                 :ncat))

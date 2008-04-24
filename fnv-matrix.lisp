@@ -2,7 +2,7 @@
 
 ;; FIXME: defmethod does not accept a docstring (a string at this
 ;; position is just ignored) -> the proper place do add this is to
-;; define generic functions with defgeneric
+;; define generic functions with defgeneric -- Evan 2008.04.24
 
 (defun valid-orientation-p (x)
   (or (eq x :column) (eq x :row)))
