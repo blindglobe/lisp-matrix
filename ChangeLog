@@ -1,0 +1,52 @@
+2008-04-24  Evan Monroig  <evan.monroig@gmail.com>
+
+	* fnv-vector.lisp (make-vector): don't use argument
+	INITIAL-ELEMENT-P
+
+	* fnv-matrix.lisp (make-matrix): don't use argument
+	INITIAL-ELEMENT-P
+
+	* fnv-vector.lisp (initialize-instance): remove call to next
+	method
+
+	* fnv-matrix.lisp (initialize-instance): remove call to next
+	method
+
+	* macros.lisp (define-abstract-class): use EQL with TYPE-OF
+	instead of TYPEP which is too inclusive
+
+	* fnv-matrix.lisp (matrix-like, matview): modify readers, order of
+	slots and options as for vector types
+	(matrix-like): nrows and ncols should be accessors as we modify
+	them in other parts of the code
+	(make-typed-matrix): similar changes to the vector types
+	(strides, window): key arguments should be symbols not keywords
+	(make-typed-matrix -> initialize-instance :after): remove the
+	call to the next method
+
+	* fnv-vector.lisp (vector-like, vecview): replace these classes
+	and others so that slots and options are in correct order	
+	(double, float, complex-double, complex-float): when calling
+	MAKE-TYPED-VECTOR, the type should not be quoted
+	(make-typed-vector): re-establish the quoting of the fnv-type
+	argument when it is necessary
+	(vector-like, vecview): fixed reader functions which should be
+	symbols not keywords
+	(slice): parent is X
+
+	* macros.lisp (define-abstract-class): modify INITIALIZE-INSTANCE
+	method to quote the class name
+
+	* package.lisp (:lisp-matrix): import function NCAT which was an
+	internal symbol from the package FNV -- actually I would like to
+	remove dependence on this function since it pollutes the
+	LISP-MATRIX package with unused symbols
+
+	* fnv-vector.lisp (make-vector): see MAKE-MATRIX below
+	
+	* fnv-matrix.lisp (make-matrix): replaced by a generic function as
+	there is no simple way to define local setf methods -- labels
+	won't work, macrolet doesn't capture local variable when the
+	expansion is generated, symbol-macrolet doesn't work eigher
+	although I'm not sure to understand why
+

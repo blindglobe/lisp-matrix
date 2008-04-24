@@ -1,31 +1,34 @@
 (in-package :lisp-matrix)
 
+;; FIXME: defmethod does not accept a docstring (a string at this
+;; position is just ignored) -> the proper place do add this is to
+;; define generic functions with defgeneric
 
 (defun valid-orientation-p (x)
   (or (eq x :column) (eq x :row)))
+
 (defun opposite-orientation (x)
   (cond ((eq x :column) :row)
 	((eq x :row) :column)
 	(t (error "Invalid orientation ~A" x))))
 
-
 (define-abstract-class matrix-like ()
-  (:documentation "Abstract base class for 2-D matrices and matrix views.  
-                   We assume for now that matrices are stored in column 
-                   order (Fortran style), for BLAS and LAPACK compatibility.")
-  ((nrows :initarg :nrows :initform 0 :reader nrows
+  ((nrows :initarg :nrows :initform 0 :accessor nrows
 	  :documentation "Number of rows in the matrix (view)")
-   (ncols :initarg :ncols :initform 0 :reader ncols
+   (ncols :initarg :ncols :initform 0 :accessor ncols
 	  :documentation "Number of columns in the matrix (view)")
    ;; Later we'll add different storage formats, such as :general, :upper, :lower, (:banded lbw ubw), but we have some design issues to work out first.
-   ))
+   )
+  (:documentation
+   "Abstract base class for 2-D matrices and matrix views.  We assume
+   for now that matrices are stored in column order (Fortran style),
+   for BLAS and LAPACK compatibility."))
 
 (defmethod initialize-instance :after ((A matrix-like) &key)
   "Error checking for initialization of a MATRIX-LIKE object."
   (with-slots (nrows ncols) A
     (assert (>= nrows 0))
-    (assert (>= ncols 0))
-    (call-next-method)))
+    (assert (>= ncols 0))))
 
 (defmethod nelts ((x matrix-like))
   "Default method for computing the number of elements of a matrix.
@@ -37,20 +40,31 @@
   "Like ARRAY-DIMENSION for matrix-like objects."
   (cond ((= which 0) (nrows A))
 	((= which 1) (ncols A))
-	(t (error "The given matrix has only two dimensions, but you tried to access dimension ~A" (1+ which)))))
+	(t (error "The given matrix has only two dimensions, but you tried to access dimension ~A"
+                  (1+ which)))))
 
 (defmethod matrix-dimensions ((A matrix-like)) 
   "Like ARRAY-DIMENSIONS for matrix-like objects."
   (list (nrows A) (ncols A)))
 
 (define-abstract-class matview (matrix-like) 
+  ((parent :initarg :parent
+	   :reader parent
+	   :documentation "The \"parent\" object to which this matrix
+	   view relates."))
   (:documentation "An abstract class representing a \"view\" into a matrix.
                    That view may be treated as a (readable and writeable) 
-                   reference to the elements of the matrix.")
-  ((parent :initarg :parent
-	   :reader :parent
-	   :documentation "The \"parent\" object to which this matrix view relates.")))
+                   reference to the elements of the matrix."))
 
+(defgeneric make-matrix (nrows ncols fnv-type &key initial-element
+                               initial-contents)
+  (:documentation
+   "Generic method for creating a matrix, given the number of rows
+   NROWS, the number of columns NCOLS, and optionally either an
+   initial element INITIAL-ELEMENT or the initial contents
+   INITIAL-CONTENTS
+   (a 2-D array with dimensions NROWS x NCOLS), which are (deep) copied
+   into the resulting matrix."))
 
 (eval-when (:compile-toplevel :load-toplevel)
   
@@ -60,7 +74,11 @@
      hold data using FNV objects of type FNV-TYPE (which is the FNV 
      datatype suffix, such as complex-double, float, double, etc.)."
 
-    (let ((fnv-ref (ncat fnv-type '-ref))
+    ;; FIXME: by calling NCAT in this way we pollute the package with
+    ;; symbols 'FNV-, '-REF, 'WINDOW-MATVIEW-, 'TRANSPOSE-MATVIEW-,
+    ;; 'MATRIX- and 'STRIDED-MATVIEW-
+    ;; -- Evan Monroig 2008.04.24
+    (let ((fnv-ref (ncat 'fnv- fnv-type '-ref))
 	  (make-fnv (ncat 'make-fnv- fnv-type))
 	  (lisp-matrix-type-name (ncat 'matrix- fnv-type))
 	  (lisp-matrix-window-view-type-name 
@@ -72,8 +90,6 @@
 
       `(progn
 	 (defclass ,lisp-matrix-type-name (matrix-like)
-	   (:documentation 
-	    ,(format nil "Dense matrix holding elements of type ~A" fnv-type))
 	   ((data :initarg :data
 		  ;; We don't provide an initform because it's the 
 		  ;; responsibility of the MATRIX "generic" function
@@ -81,8 +97,10 @@
 		  ;; construct an element of this class directly (i.e.
 		  ;; using MAKE-INSTANCE).
 		  :documentation "The FNV object holding the elements."
-		  :reader :data)))
-
+		  :reader data))
+	   (:documentation 
+	    ,(format nil "Dense matrix holding elements of type ~A" fnv-type)))
+         
 	 (defmethod flatten-matrix-indices ((A ,lisp-matrix-type-name) i j)
 	   "Given an index pair (I,J) into the given matrix A, returns the 
             1-D index corresponding to the location in the underlying storage
@@ -100,25 +118,25 @@
 	   (declare (type fixnum i j))
 	   (,fnv-ref (data A) (flatten-matrix-indices A i j)))
 
-	 ;;; lisp-matrix objects are stored in column order.
+;;; lisp-matrix objects are stored in column order.
 	 (defmethod orientation ((A ,lisp-matrix-type-name))
 	   :column)
 	 
 	 ;; TODO: set up SETF to work with MREF.
 	 
 	 (defclass ,lisp-matrix-window-view-type-name (matview)
-	   (:documentation "A WINDOW-MATVIEW views a block of elements in the 
-              underlying matrix that is conceptually 2-D contiguous.  If the 
-              underlying matrix is column-oriented, the elements in each column 
-              of a WINDOW-MATVIEW are stored contiguously, and horizontally 
-              adjacent elements are separated by a constant stride (\"LDA\" in 
-              BLAS terms).")
 	   ((offset0 :initarg :offset0
 		     :initform 0
 		     :reader offset0)
 	    (offset1 :initarg :offset1
 		     :initform 0
-		     :reader offset1)))
+		     :reader offset1))
+	   (:documentation "A WINDOW-MATVIEW views a block of elements in the 
+              underlying matrix that is conceptually 2-D contiguous.  If the 
+              underlying matrix is column-oriented, the elements in each column 
+              of a WINDOW-MATVIEW are stored contiguously, and horizontally 
+              adjacent elements are separated by a constant stride (\"LDA\" in 
+              BLAS terms)."))
 
 	 (defmethod flatten-matrix-indices ((A ,lisp-matrix-window-view-type-name) 
 					    i j)
@@ -135,6 +153,7 @@
 	   (orientation (parent A)))
 
 	 (defclass ,lisp-matrix-transpose-view-type-name (matview)
+           nil
 	   (:documentation "A TRANSPOSE-MATVIEW views the
              transpose of a matrix.  If you want a deep copy,
              call the appropriate COPY function on the transpose
@@ -150,8 +169,7 @@
 	   "Set up the number of rows and columns correctly for a transpose view."
 	   (progn
 	     (setf (nrows A) (ncols (parent A)))
-	     (setf (ncols A) (nrows (parent A)))
-	     (call-next-method)))
+	     (setf (ncols A) (nrows (parent A)))))
 
 	 (defmethod flatten-matrix-indices ((A ,lisp-matrix-transpose-view-type-name) i j)
 	   (declare (type fixnum i j))
@@ -166,7 +184,6 @@
 	   (opposite-orientation (parent A)))
 
 	 (defclass ,lisp-matrix-strided-view-type-name (,lisp-matrix-window-view-type-name)
-	   (:documentation "A STRIDED-MATVIEW views a window of the matrix with a particular stride in each direction (the stride can be different in each direction).")
 	   ((stride0 :initarg :stride0
 		     :initform 1
 		     :reader stride0
@@ -174,7 +191,8 @@
 	    (stride1 :initarg :stride1
 		     :initform 1
 		     :reader stride1
-		     :documentation "Stride in the column direction")))
+		     :documentation "Stride in the column direction"))
+	   (:documentation "A STRIDED-MATVIEW views a window of the matrix with a particular stride in each direction (the stride can be different in each direction)."))
 
 	 (defmethod initialize-instance ((A ,lisp-matrix-strided-view-type-name) &key)
 	   ;; FIXME: add more error checking for the strides!
@@ -198,9 +216,9 @@
 	 (defmethod orientation ((A ,lisp-matrix-strided-view-type-name))
 	   (orientation (parent A)))
 
-	 ;;; Tests for "unit stride."  (The strided matrix view is the
-	 ;;; only view which causes itself and its children possibly
-	 ;;; not to have unit stride.)
+;;; Tests for "unit stride."  (The strided matrix view is the
+;;; only view which causes itself and its children possibly
+;;; not to have unit stride.)
 	 (defmethod unit-stride-p ((A ,lisp-matrix-type-name))
 	   t)
 	 (defmethod unit-stride-p ((A ,lisp-matrix-window-view-type-name))
@@ -212,91 +230,79 @@
 		(= (stride1 A) 1)
 		(unit-stride-p (parent A))))
 
-	 (defmethod fnv-type-to-matrix-type ((type (eql ,fnv-type))
-					     matrix-category)
+	 (defmethod fnv-type-to-matrix-type ((type (eql ',fnv-type))
+					     matrix-type)
 	   "Given a particular FNV type (such as 'complex-float) and a 
             keyword indicating the kind of matrix or matrix view, returns
             the corresponding specific matrix (view) type."
 	   (cond ((eq matrix-type :matrix)
-		  ,lisp-matrix-type-name)
+		  ',lisp-matrix-type-name)
 		 ((eq matrix-type :window)
-		  ,lisp-matrix-window-view-type-name)
+		  ',lisp-matrix-window-view-type-name)
 		 ((eq matrix-type :transpose)
-		  ,lisp-matrix-transpose-view-type-name)
+		  ',lisp-matrix-transpose-view-type-name)
 		 ((eq matrix-type :strided)
-		  ,lisp-matrix-strided-view-type-name)
+		  ',lisp-matrix-strided-view-type-name)
 		 (t
 		  (error "Invalid matrix type ~A" matrix-type))))
 
-	 ;;; Given a particular matrix (view) type (not an object of that 
-	 ;;; type, but the type itself), returns the corresponding FNV type.
-	 (defmethod matrix-type-to-fnv-type ((type (eql ,lisp-matrix-type-name)))
-	   ,fnv-type)
-	 (defmethod matrix-type-to-fnv-type ((type (eql ,lisp-matrix-window-view-type-name)))
-	   ,fnv-type)
-	 (defmethod matrix-type-to-fnv-type ((type (eql ,lisp-matrix-transpose-view-type-name)))
-	   ,fnv-type)
-	 (defmethod matrix-type-to-fnv-type ((type (eql ,lisp-matrix-strided-view-type-name)))
-	   ,fnv-type)
+;;; Given a particular matrix (view) type (not an object of that 
+;;; type, but the type itself), returns the corresponding FNV type.
+	 (defmethod matrix-type-to-fnv-type
+             ((type (eql ',lisp-matrix-type-name)))
+	   ',fnv-type)
+	 (defmethod matrix-type-to-fnv-type
+             ((type (eql ',lisp-matrix-window-view-type-name)))
+	   ',fnv-type)
+	 (defmethod matrix-type-to-fnv-type
+             ((type (eql ',lisp-matrix-transpose-view-type-name)))
+	   ',fnv-type)
+	 (defmethod matrix-type-to-fnv-type
+             ((type (eql ',lisp-matrix-strided-view-type-name)))
+	   ',fnv-type)
 
-	 ;;; Given an object of a particular matrix (view) type,
-	 ;;; returns the corresponding FNV type (such as 'double,
-	 ;;; 'complex-float, etc.).
+;;; Given an object of a particular matrix (view) type,
+;;; returns the corresponding FNV type (such as 'double,
+;;; 'complex-float, etc.).
 	 (defmethod fnv-type ((A ,lisp-matrix-type-name))
-	   ,fnv-type)
+	   ',fnv-type)
 	 (defmethod fnv-type ((A ,lisp-matrix-window-view-type-name))
-	   ,fnv-type)
+	   ',fnv-type)
 	 (defmethod fnv-type ((A ,lisp-matrix-transpose-view-type-name))
-	   ,fnv-type)
-	 (defmethod fnv-type ((A ,lisp-mmatrix-strided-view-type-name))
-	   ,fnv-type))))
-  )
+	   ',fnv-type)
+	 (defmethod fnv-type ((A ,lisp-matrix-strided-view-type-name))
+	   ',fnv-type)
+
+         (defmethod make-matrix (nrows ncols (fnv-type (eql ',fnv-type)) &key
+                                 (initial-element 0)
+                                 (initial-contents nil initial-contents-p))
+           ;; Logic for handling initial contents or initial element.
+           ;; Initial contents take precedence (if they are specified,
+           ;; then any supplied initial-element argument is ignored).
+           (let ((data
+                  (cond
+                    (initial-contents-p
+                     (let* ((n (* nrows ncols))
+                            (fnv (,make-fnv n)))
+                       (dotimes (i nrows fnv)
+                         (dotimes (j ncols)
+                           ;; FIXME: initial contents may be a list as
+                           ;; in MAKE-ARRAY -- Evan Monroig 2008.04.24
+                           (setf (,fnv-ref fnv (+ i (* nrows j)))
+                                 (aref initial-contents i j))))))
+                    (t
+                     (,make-fnv (* nrows ncols)
+                                :initial-value initial-element)))))
+             (make-instance ',lisp-matrix-type-name
+                            :nrows nrows
+                            :ncols ncols
+                            :data data)))))))
 
 ;;; Instantiate the classes and methods.
-(make-typed-matrix 'double)
-(make-typed-matrix 'float)
-(make-typed-matrix 'complex-double)
-(make-typed-matrix 'complex-float)
-
-
-
-(defun make-matrix (nrows ncols 
-		    &key fnv-type
-		    (initial-element 0 initial-element-provided-p)
-		    (initial-contents nil initial-contents-provided-p))
-
-  "\"Generic\" method for creating a matrix, given the number of rows
-   NROWS, the number of columns NCOLS, and optionally either an initial
-   element INITIAL-ELEMENT or the initial contents INITIAL-CONTENTS
-   (a 2-D array with dimensions NROWS x NCOLS), which are (deep) copied
-   into the resulting matrix."
-
-  ;; Logic for handling initial contents or initial element.
-  ;; Initial contents take precedence (if they are specified,
-  ;; then any supplied initial-element argument is ignored).
-  
-  (let ((data (if initial-contents-provided-p
-		  (let* ((n (* nrows ncols))
-			 (fnv (funcall (symbol-function (ncat 'make-fnv- 
-							      fnv-type)) n)))
-		    (labels ((fnv-ref (x i)
-			       (funcall (symbol-function (ncat 'fnv- fnv-type 
-							       '-ref)) 
-					x i)))
-		      (dotimes (i nrows fnv)
-			(dotimes (j ncols)
-			  (setf (fnv-ref fnv (+ i (* nrows j)))
-				(aref initial-contents i j))))))
-		  (if initial-element-provided-p
-		      (funcall (symbol-function (ncat 'make-fnv- fnv-type)) 
-			       (* nrows ncols) 
-			       :initial-element initial-element)
-		      (funcall (symbol-function (ncat 'make-fnv- fnv-type))
-			       (* nrows ncols))))))
-    (make-instance (fnv-type-to-matrix-type fnv-type :matrix)
-		   :nrows nrows
-		   :ncols ncols
-		   :data data)))
+(make-typed-matrix double)
+(make-typed-matrix float)
+(make-typed-matrix complex-double)
+(make-typed-matrix complex-float)
 
 	       
 
@@ -306,10 +312,10 @@
 ;;; "Generic" methods for creating views.
 
 (defmethod window ((parent matrix-like) 
-		   &key (:nrows (nrows parent))
-		   (:ncols (ncols parent))
-		   (:offset0 0)
-		   (:offset1 0))
+		   &key (nrows (nrows parent))
+		   (ncols (ncols parent))
+		   (offset0 0)
+		   (offset1 0))
   "Creates a window view of the given matrix-like object PARENT.
    Note that window views always have the same orientation as their
    parents."
@@ -327,12 +333,12 @@
 
 (defmethod strides ((parent matrix-like)
 		    &key 
-		    (:nrows (nrows parent))
-		    (:ncols (ncols parent))
-		    (:offset0 0)
-		    (:offset1 0)
-		    (:stride0 1)
-		    (:stride1 1))
+		    (nrows (nrows parent))
+		    (ncols (ncols parent))
+		    (offset0 0)
+		    (offset1 0)
+		    (stride0 1)
+		    (stride1 1))
   "Creates a strided view of the given matrix-like object PARENT."
   (make-instance (fnv-type-to-matrix-type (fnv-type parent) :strided)
 		 :parent parent

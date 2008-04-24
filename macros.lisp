@@ -11,7 +11,8 @@
      ;; (or even check the optimization options and remove it if
      ;; SAFETY is set low enough).
      (defmethod initialize-instance :before ((x ,classname) &key)
-       (if (typep x ,classname)
-	   (error "~A is an abstract base class and not to be instantiated." (quote ,classname))))))
+       (if (eql (type-of x) ',classname)
+	   (warn "~A is an abstract base class and not to be instantiated." 
+                 (quote ',classname))))))
 
 
