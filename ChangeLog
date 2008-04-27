@@ -1,5 +1,11 @@
 2008-04-27  Evan Monroig  <evan.monroig@gmail.com>
 
+	* tests.lisp (test-matrix-size): add test for spurious argument to
+	MATRIX-DIMENSION
+	(make-matrix-double-3, transpose-double, random-array): factor out
+	common code into RANDOM-ARRAY
+	(window-double): add test for windowed matrices
+
 	* fnv-matrix.lisp (matrix-type-to-fnv-type): add documentation
 
 	* fnv-vector.lisp (vector-dimension, vref)

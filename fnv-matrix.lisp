@@ -326,6 +326,8 @@
 
 ;;; "Generic" methods for creating views.
 
+;; FIXME: OFFSET0 and OFFSET1 should be changed to make more obvious
+;; that is is for rows and columns
 (defgeneric window (parent &key nrows ncols offset0 offset1)
   (:documentation "Creates a window view of the given matrix-like
   object PARENT.  Note that window views always have the same
