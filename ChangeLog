@@ -1,5 +1,9 @@
 2008-04-27  Evan Monroig  <evan.monroig@gmail.com>
 
+	* fnv-matrix.lisp (matrix-dimension, matrix-dimensions)
+	(flatten-matrix-indices, mref, orientation)
+	(fnv-type-to-matrix-type): move docstring to a DEFGENERIC form
+
 	* lisp-matrix.asd (lisp-matrix, operation-done-p): automatically
 	run tests when calling (ASDF:OOS 'ASDF:TEST-OP 'LISP-MATRIX)
 

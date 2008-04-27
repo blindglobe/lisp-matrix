@@ -36,16 +36,18 @@
    implement sparse matrices."
   (* (nrows x) (ncols x)))
 
-(defmethod matrix-dimension ((A matrix-like) which)
-  "Like ARRAY-DIMENSION for matrix-like objects."
-  (cond ((= which 0) (nrows A))
-	((= which 1) (ncols A))
-	(t (error "The given matrix has only two dimensions, but you tried to access dimension ~A"
-                  (1+ which)))))
+(defgeneric matrix-dimension (a which)
+  (:documentation "Like ARRAY-DIMENSION for matrix-like objects.")
+  (:method ((A matrix-like) which)
+    (cond ((= which 0) (nrows A))
+          ((= which 1) (ncols A))
+          (t (error "The given matrix has only two dimensions, but you tried to access dimension ~A"
+                    (1+ which))))))
 
-(defmethod matrix-dimensions ((A matrix-like)) 
-  "Like ARRAY-DIMENSIONS for matrix-like objects."
-  (list (nrows A) (ncols A)))
+(defgeneric matrix-dimensions (a)
+  (:documentation "Like ARRAY-DIMENSIONS for matrix-like objects.")
+  (:method ((A matrix-like)) 
+    (list (nrows A) (ncols A))))
 
 (define-abstract-class matview (matrix-like) 
   ((parent :initarg :parent
@@ -58,13 +60,30 @@
 
 (defgeneric make-matrix (nrows ncols fnv-type &key initial-element
                                initial-contents)
-  (:documentation
-   "Generic method for creating a matrix, given the number of rows
-   NROWS, the number of columns NCOLS, and optionally either an
-   initial element INITIAL-ELEMENT or the initial contents
-   INITIAL-CONTENTS
-   (a 2-D array with dimensions NROWS x NCOLS), which are (deep) copied
-   into the resulting matrix."))
+  (:documentation "Generic method for creating a matrix, given the
+  number of rows NROWS, the number of columns NCOLS, and optionally
+  either an initial element INITIAL-ELEMENT or the initial contents
+  INITIAL-CONTENTS (a 2-D array with dimensions NROWS x NCOLS), which
+  are (deep) copied into the resulting matrix."))
+
+(defgeneric flatten-matrix-indices (a i j)
+  (:documentation "Given an index pair (I,J) into the given matrix A,
+  returns the 1-D index corresponding to the location in the
+  underlying storage in which the element A(i,j) is stored."))
+
+(defgeneric mref (a i j)
+  (:documentation "(MREF A i j) gives you the (i,j)-th element of the
+  matrix A. This method is slow (as it requires CLOS method dispatch
+  and index calculation(s)) and is thus to be replaced with vectorized
+  or block operations whenever possible."))
+
+(defgeneric orientation (a))
+
+(defgeneric fnv-type-to-matrix-type (type matrix-type)
+  (:documentation "Given a particular FNV type (such as
+  'complex-float) and a keyword indicating the kind of matrix or
+  matrix view, returns the corresponding specific matrix (view)
+  type."))
 
 (eval-when (:compile-toplevel :load-toplevel)
   
@@ -97,20 +116,13 @@
 	    ,(format nil "Dense matrix holding elements of type ~A" fnv-type)))
          
 	 (defmethod flatten-matrix-indices ((A ,lisp-matrix-type-name) i j)
-	   "Given an index pair (I,J) into the given matrix A, returns the 
-            1-D index corresponding to the location in the underlying storage
-            in which the element A(i,j) is stored."
-	   (declare (type fixnum i j))
+           (declare (type fixnum i j))
 	   ;; Note that storage is column-oriented, for compatibility
 	   ;; with the BLAS and LAPACK (which are Fortran-based).
 	   (+ (* (nrows A) j) i))
 
 	 (defmethod mref ((A ,lisp-matrix-type-name) i j)
-	   "(MREF A i j) gives you the (i,j)-th element of the matrix A.
-            This method is slow (as it requires CLOS method dispatch and
-            index calculation(s)) and is thus to be replaced with
-            vectorized or block operations whenever possible."
-	   (declare (type fixnum i j))
+           (declare (type fixnum i j))
 	   (,fnv-ref (data A) (flatten-matrix-indices A i j)))
 
 ;;; lisp-matrix objects are stored in column order.
@@ -227,10 +239,7 @@
 
 	 (defmethod fnv-type-to-matrix-type ((type (eql ',fnv-type))
 					     matrix-type)
-	   "Given a particular FNV type (such as 'complex-float) and a 
-            keyword indicating the kind of matrix or matrix view, returns
-            the corresponding specific matrix (view) type."
-	   (cond ((eq matrix-type :matrix)
+           (cond ((eq matrix-type :matrix)
 		  ',lisp-matrix-type-name)
 		 ((eq matrix-type :window)
 		  ',lisp-matrix-window-view-type-name)
@@ -307,19 +316,19 @@
 ;;; "Generic" methods for creating views.
 
 (defmethod window ((parent matrix-like) 
-		   &key (nrows (nrows parent))
-		   (ncols (ncols parent))
-		   (offset0 0)
-		   (offset1 0))
-  "Creates a window view of the given matrix-like object PARENT.
+                    &key (nrows (nrows parent))
+                    (ncols (ncols parent))
+                    (offset0 0)
+                    (offset1 0))
+   "Creates a window view of the given matrix-like object PARENT.
    Note that window views always have the same orientation as their
    parents."
-  (make-instance (fnv-type-to-matrix-type (fnv-type parent) :window)
-		 :parent parent
-		 :nrows nrows
-		 :ncols ncols
-		 :offset0 offset0
-		 :offset1 offset1))
+   (make-instance (fnv-type-to-matrix-type (fnv-type parent) :window)
+                  :parent parent
+                  :nrows nrows
+                  :ncols ncols
+                  :offset0 offset0
+                  :offset1 offset1))
 
 (defmethod transpose ((parent matrix-like))
   "Creates a transpose view of the given matrix-like object PARENT."
