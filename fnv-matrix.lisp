@@ -1,9 +1,5 @@
 (in-package :lisp-matrix)
 
-;; FIXME: defmethod does not accept a docstring (a string at this
-;; position is just ignored) -> the proper place do add this is to
-;; define generic functions with defgeneric -- Evan 2008.04.24
-
 (defun valid-orientation-p (x)
   (or (eq x :column) (eq x :row)))
 
@@ -30,11 +26,12 @@
     (assert (>= nrows 0))
     (assert (>= ncols 0))))
 
-(defmethod nelts ((x matrix-like))
-  "Default method for computing the number of elements of a matrix.
-   For obvious reasons, this will be overridden for subclasses that
-   implement sparse matrices."
-  (* (nrows x) (ncols x)))
+(defgeneric nelts (x)
+  (:documentation "Default method for computing the number of elements
+  of a matrix.  For obvious reasons, this will be overridden for
+  subclasses that implement sparse matrices.")
+  (:method ((x matrix-like))
+    (* (nrows x) (ncols x))))
 
 (defgeneric matrix-dimension (a which)
   (:documentation "Like ARRAY-DIMENSION for matrix-like objects.")
@@ -77,7 +74,10 @@
   and index calculation(s)) and is thus to be replaced with vectorized
   or block operations whenever possible."))
 
-(defgeneric orientation (a))
+(defgeneric orientation (a)
+  (:documentation "lisp-matrix objects are stored in column order."))
+
+;;; internal generic functions
 
 (defgeneric fnv-type-to-matrix-type (type matrix-type)
   (:documentation "Given a particular FNV type (such as
@@ -85,10 +85,23 @@
   matrix view, returns the corresponding specific matrix (view)
   type."))
 
+(defgeneric matrix-type-to-fnv-type (type))
+
+(defgeneric unit-stride-p (a)
+  (:documentation "Tests for \"unit stride.\" (The strided matrix view
+  is the only view which causes itself and its children possibly not
+  to have unit stride.)"))
+
+(defgeneric fnv-type (a)
+  (:documentation "Given an object of a particular matrix (view) type,
+  returns the corresponding FNV type (such as 'double, 'complex-float,
+  etc.)."))
+
+;;; Macro to make the actual matrix classes
+
 (eval-when (:compile-toplevel :load-toplevel)
   
   (defmacro make-typed-matrix (fnv-type)
-
     "Template constructor macro for MATRIX and other object types that 
      hold data using FNV objects of type FNV-TYPE (which is the FNV 
      datatype suffix, such as complex-double, float, double, etc.)."
@@ -96,11 +109,11 @@
 	  (make-fnv (make-symbol* "MAKE-FNV-" fnv-type))
 	  (lisp-matrix-type-name (make-symbol* "MATRIX-" fnv-type))
 	  (lisp-matrix-window-view-type-name 
-	   (make-symbol* "window-matview-" fnv-type))
+	   (make-symbol* "WINDOW-MATVIEW-" fnv-type))
 	  (lisp-matrix-transpose-view-type-name
-	   (make-symbol* "transpose-matview-" fnv-type))
+	   (make-symbol* "TRANSPOSE-MATVIEW-" fnv-type))
 	  (lisp-matrix-strided-view-type-name
-	   (make-symbol* "strided-matview-" fnv-type)))
+	   (make-symbol* "STRIDED-MATVIEW-" fnv-type)))
 
       `(progn
 	 (defclass ,lisp-matrix-type-name (matrix-like)
@@ -125,7 +138,6 @@
            (declare (type fixnum i j))
 	   (,fnv-ref (data A) (flatten-matrix-indices A i j)))
 
-;;; lisp-matrix objects are stored in column order.
 	 (defmethod orientation ((A ,lisp-matrix-type-name))
 	   :column)
 	 
@@ -199,7 +211,9 @@
 		     :initform 1
 		     :reader stride1
 		     :documentation "Stride in the column direction"))
-	   (:documentation "A STRIDED-MATVIEW views a window of the matrix with a particular stride in each direction (the stride can be different in each direction)."))
+	   (:documentation "A STRIDED-MATVIEW views a window of the
+	   matrix with a particular stride in each direction (the
+	   stride can be different in each direction)."))
 
 	 (defmethod initialize-instance ((A ,lisp-matrix-strided-view-type-name) &key)
 	   ;; FIXME: add more error checking for the strides!
@@ -223,9 +237,6 @@
 	 (defmethod orientation ((A ,lisp-matrix-strided-view-type-name))
 	   (orientation (parent A)))
 
-;;; Tests for "unit stride."  (The strided matrix view is the
-;;; only view which causes itself and its children possibly
-;;; not to have unit stride.)
 	 (defmethod unit-stride-p ((A ,lisp-matrix-type-name))
 	   t)
 	 (defmethod unit-stride-p ((A ,lisp-matrix-window-view-type-name))
@@ -250,8 +261,6 @@
 		 (t
 		  (error "Invalid matrix type ~A" matrix-type))))
 
-;;; Given a particular matrix (view) type (not an object of that 
-;;; type, but the type itself), returns the corresponding FNV type.
 	 (defmethod matrix-type-to-fnv-type
              ((type (eql ',lisp-matrix-type-name)))
 	   ',fnv-type)
@@ -265,9 +274,6 @@
              ((type (eql ',lisp-matrix-strided-view-type-name)))
 	   ',fnv-type)
 
-;;; Given an object of a particular matrix (view) type,
-;;; returns the corresponding FNV type (such as 'double,
-;;; 'complex-float, etc.).
 	 (defmethod fnv-type ((A ,lisp-matrix-type-name))
 	   ',fnv-type)
 	 (defmethod fnv-type ((A ,lisp-matrix-window-view-type-name))
@@ -315,43 +321,49 @@
 
 ;;; "Generic" methods for creating views.
 
-(defmethod window ((parent matrix-like) 
-                    &key (nrows (nrows parent))
-                    (ncols (ncols parent))
-                    (offset0 0)
-                    (offset1 0))
-   "Creates a window view of the given matrix-like object PARENT.
-   Note that window views always have the same orientation as their
-   parents."
-   (make-instance (fnv-type-to-matrix-type (fnv-type parent) :window)
-                  :parent parent
-                  :nrows nrows
-                  :ncols ncols
-                  :offset0 offset0
-                  :offset1 offset1))
+(defgeneric window (parent &key nrows ncols offset0 offset1)
+  (:documentation "Creates a window view of the given matrix-like
+  object PARENT.  Note that window views always have the same
+  orientation as their parents.")
+  (:method ((parent matrix-like) 
+            &key (nrows (nrows parent))
+            (ncols (ncols parent))
+            (offset0 0)
+            (offset1 0))
+    (make-instance (fnv-type-to-matrix-type (fnv-type parent) :window)
+                   :parent parent
+                   :nrows nrows
+                   :ncols ncols
+                   :offset0 offset0
+                   :offset1 offset1)))
 
-(defmethod transpose ((parent matrix-like))
-  "Creates a transpose view of the given matrix-like object PARENT."
-  (make-instance (fnv-type-to-matrix-type (fnv-type parent) :transpose)
-		 :parent parent))
+(defgeneric transpose (parent)
+  (:documentation "Creates a transpose view of the given matrix-like
+  object PARENT.")
+  (:method ((parent matrix-like))
+    (make-instance (fnv-type-to-matrix-type (fnv-type parent) :transpose)
+                   :parent parent)))
 
-(defmethod strides ((parent matrix-like)
-		    &key 
-		    (nrows (nrows parent))
-		    (ncols (ncols parent))
-		    (offset0 0)
-		    (offset1 0)
-		    (stride0 1)
-		    (stride1 1))
-  "Creates a strided view of the given matrix-like object PARENT."
-  (make-instance (fnv-type-to-matrix-type (fnv-type parent) :strided)
-		 :parent parent
-		 :nrows nrows
-		 :ncols ncols
-		 :offset0 offset0
-		 :offset1 offset1
-		 :stride0 stride0
-		 :stride1 stride1))
+(defgeneric strides (parent &key nrows ncols offset0 offset1 stride0
+                            stride1)
+  (:documentation "Creates a strided view of the given matrix-like
+  object PARENT.")
+  (:method ((parent matrix-like)
+            &key 
+            (nrows (nrows parent))
+            (ncols (ncols parent))
+            (offset0 0)
+            (offset1 0)
+            (stride0 1)
+            (stride1 1))
+    (make-instance (fnv-type-to-matrix-type (fnv-type parent) :strided)
+                   :parent parent
+                   :nrows nrows
+                   :ncols ncols
+                   :offset0 offset0
+                   :offset1 offset1
+                   :stride0 stride0
+                   :stride1 stride1)))
 
 
 ;;; Export the symbols that we want to export.

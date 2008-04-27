@@ -3,6 +3,11 @@
 	* fnv-matrix.lisp (matrix-dimension, matrix-dimensions)
 	(flatten-matrix-indices, mref, orientation)
 	(fnv-type-to-matrix-type): move docstring to a DEFGENERIC form
+	(window, transpose, strides): move docstring to a DEFGENERIC form
+	(nelts, matrix-type-to-fnv-type, unit-stride-p, fnv-type): move
+	docstring to a DEFGENERIC form
+	(make-typed-matrix): fixed calls to MAKE-SYMBOL*
+	(orientation): add documentation
 
 	* lisp-matrix.asd (lisp-matrix, operation-done-p): automatically
 	run tests when calling (ASDF:OOS 'ASDF:TEST-OP 'LISP-MATRIX)
