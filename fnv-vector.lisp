@@ -44,14 +44,10 @@
     "Template constructor macro for VECTOR and related object types that
      hold data using FNV objects of type FNV-TYPE (which is the FNV datatype
      suffix, such as complex-double, float, double, etc.)."
-
-    ;; FIXME: by calling NCAT in this way we pollute the package with
-    ;; symbols 'FNV-, '-REF, 'MAKE-FNV-, 'VECTOR-, and 'VECTOR-SLICE-
-    ;; -- Evan Monroig 2008.04.24
-    (let ((fnv-ref (ncat 'fnv- fnv-type '-ref))
-	  (make-fnv (ncat 'make-fnv- fnv-type))
-	  (vector-type-name (ncat 'vector- fnv-type))
-	  (vector-slice-type-name (ncat 'vector-slice- fnv-type)))
+    (let ((fnv-ref (make-symbol* "FNV-" fnv-type "-REF"))
+	  (make-fnv (make-symbol* "MAKE-FNV-" fnv-type))
+	  (vector-type-name (make-symbol* "VECTOR-" fnv-type))
+	  (vector-slice-type-name (make-symbol* "VECTOR-SLICE-" fnv-type)))
 
       `(progn
 	 (defclass ,vector-type-name (vector-like)

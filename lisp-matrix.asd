@@ -14,8 +14,20 @@
     :depends-on ("cffi"
 		 "org.middleangle.foreign-numeric-vector"
 		 "fiveam")
-    :components ((:file "package")
-		 (:file "macros" :depends-on ("package"))
-		 (:file "fnv-matrix" :depends-on ("package" "macros"))
-		 (:file "fnv-vector" :depends-on ("package" "macros"))))
+    :components
+    ((:file "package")
+     (:file "utils" :depends-on ("package"))
+     (:file "macros" :depends-on ("package"))
+     (:file "fnv-matrix" :depends-on ("package" "macros" "utils"))
+     (:file "fnv-vector" :depends-on ("package" "macros" "utils"))
+     (:file "tests" :depends-on ("fnv-matrix" "fnv-vector")))
+    :in-order-to ((test-op (load-op lisp-matrix)))
+    :perform (test-op :after (op c)
+                      (funcall (intern "RUN!" 'fiveam)
+                               (intern "TESTS" 'lisp-matrix))))
 
+;; keep ASDF thinking that the test operation hasn't been done
+(defmethod operation-done-p 
+           ((o test-op)
+            (c (eql (find-system 'lisp-matrix))))
+  (values nil))

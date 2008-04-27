@@ -1,6 +1,20 @@
 (in-package :lisp-matrix)
 
-(def-suite matrix-double
+;; You can run the unit tests by calling
+
+#+nil
+(run! 'tests)
+
+;; or
+
+#+nil
+(asdf:oos 'asdf:test-op 'lisp-matrix)
+
+
+(def-suite tests
+    :description "tests for the package LISP-MATRIX")
+
+(def-suite matrix-double :in tests
     :description "basic tests on double matrices")
 
 (in-suite matrix-double)
@@ -82,9 +96,3 @@
 	  (unless (= (mref matrix3 i j) (mref matrix1 i j))
 	    (fail "(mref matrix3 ~d ~d) is ~a, should be ~a"
 		  i j (mref matrix3 i j) (mref matrix1 i j))))))))
-
-#|
-
-(run! 'matrix-double)
-
-|#

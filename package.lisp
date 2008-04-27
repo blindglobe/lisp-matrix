@@ -7,7 +7,6 @@
         :org.middleangle.foreign-numeric-vector
 	:fiveam)
   
-  (:import-from :fnv
-                :ncat))
+  (:import-from :fnv))
 
 (in-package :lisp-matrix)

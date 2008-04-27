@@ -73,20 +73,15 @@
     "Template constructor macro for MATRIX and other object types that 
      hold data using FNV objects of type FNV-TYPE (which is the FNV 
      datatype suffix, such as complex-double, float, double, etc.)."
-
-    ;; FIXME: by calling NCAT in this way we pollute the package with
-    ;; symbols 'FNV-, '-REF, 'WINDOW-MATVIEW-, 'TRANSPOSE-MATVIEW-,
-    ;; 'MATRIX- and 'STRIDED-MATVIEW-
-    ;; -- Evan Monroig 2008.04.24
-    (let ((fnv-ref (ncat 'fnv- fnv-type '-ref))
-	  (make-fnv (ncat 'make-fnv- fnv-type))
-	  (lisp-matrix-type-name (ncat 'matrix- fnv-type))
+    (let ((fnv-ref (make-symbol* "FNV-" fnv-type "-REF"))
+	  (make-fnv (make-symbol* "MAKE-FNV-" fnv-type))
+	  (lisp-matrix-type-name (make-symbol* "MATRIX-" fnv-type))
 	  (lisp-matrix-window-view-type-name 
-	   (ncat 'window-matview- fnv-type))
+	   (make-symbol* "window-matview-" fnv-type))
 	  (lisp-matrix-transpose-view-type-name
-	   (ncat 'transpose-matview- fnv-type))
+	   (make-symbol* "transpose-matview-" fnv-type))
 	  (lisp-matrix-strided-view-type-name
-	   (ncat 'strided-matview- fnv-type)))
+	   (make-symbol* "strided-matview-" fnv-type)))
 
       `(progn
 	 (defclass ,lisp-matrix-type-name (matrix-like)

@@ -1,3 +1,20 @@
+2008-04-27  Evan Monroig  <evan.monroig@gmail.com>
+
+	* lisp-matrix.asd (lisp-matrix, operation-done-p): automatically
+	run tests when calling (ASDF:OOS 'ASDF:TEST-OP 'LISP-MATRIX)
+
+	* tests.lisp (tests): add root test suite
+
+	* fnv-vector.lisp (make-typed-vector): replace NCAT by
+	MAKE-SYMBOL*
+
+	* fnv-matrix.lisp (make-typed-matrix): replace NCAT by
+	MAKE-SYMBOL*
+
+	* package.lisp (:lisp-matrix): don't import NCAT
+
+	* utils.lisp (make-symbol*): add simple utility to replace NCAT
+
 2008-04-24  Evan Monroig  <evan.monroig@gmail.com>
 
 	* tests.lisp (test-matrix-size): helper function
