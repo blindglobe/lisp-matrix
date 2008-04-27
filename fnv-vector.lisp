@@ -9,8 +9,10 @@
   (:documentation "Abstract base class for vectors and vector views 
                    whose elements are stored in a foreign-numeric-vector."))
 
-(defmethod vector-dimension ((x vector-like))
-  (nelts x))
+(defgeneric vector-dimension (x)
+  (:documentation "Like ARRAY-DIMENSION for vector-like objects.")
+  (:method ((x vector-like))
+    (nelts x)))
 
 (defmethod initialize-instance :after ((x vector-like) &key)
   "Make sure that the vector-like object has a valid (non-negative) 
@@ -30,13 +32,28 @@
 
 (defgeneric make-vector (nelts fnv-type &key initial-element
                                initial-contents)
-  (:documentation
-   "Generic method for creating a vector, given the number of elements
-   NELTS, and optionally either an initial element INITIAL-ELEMENT or
-   the initial contents INITIAL-CONTENTS (a 1-D array with dimension
-   NELTS), which are deep-copied into the resulting vector."))
+  (:documentation "Generic method for creating a vector, given the
+  number of elements NELTS, and optionally either an initial element
+  INITIAL-ELEMENT or the initial contents INITIAL-CONTENTS (a 1-D
+  array with dimension NELTS), which are deep-copied into the
+  resulting vector."))
 
+(defgeneric vref (a i)
+  (:documentation "Like AREF buf for vectors."))
 
+;;; Internal generic functions
+
+(defgeneric fnv-type-to-vector-type (type vector-category)
+  (:documentation "Given a particular FNV type (such as
+  'complex-float) and a keyword indicating the kind of vector (:VECTOR
+  or :SLICE), returns the corresponding specific vector type."))
+
+(defgeneric vector-type-to-fnv-type (type)
+  (:documentation "Return the FNV type (such as 'COMPLEX-FLOAT)
+  corresponding to a given type of vector (such as
+  'VECTOR-COMPLEX-FLOAT or 'VECTOR-SLICE-COMPLEX-FLOAT)."))
+
+;;; Macro to make the actual matrix classes
 
 (eval-when (:compile-toplevel :load-toplevel)
 
@@ -126,13 +143,15 @@
 (make-typed-vector complex-double)
 (make-typed-vector complex-float)
 
-(defmethod slice ((x vector-like) 
-		  &key (offset 0) (stride 1) (nelts (nelts x)))
-  "Returns a \"slice\" (readable and writeable reference to a potentially
-   strided range of elements) of the given vector-like object x."
-  (make-instance (fnv-type-to-vector-type (fnv-type x) :slice)
-		 :parent x
-		 :nelts nelts
-		 :offset offset
-		 :stride stride))
+(defgeneric slice (x &key offset stride nelts)
+  (:documentation "Returns a \"slice\" (readable and writeable
+  reference to a potentially strided range of elements) of the given
+  vector-like object x.")
+  (:method ((x vector-like) 
+            &key (offset 0) (stride 1) (nelts (nelts x)))
+    (make-instance (fnv-type-to-vector-type (fnv-type x) :slice)
+                   :parent x
+                   :nelts nelts
+                   :offset offset
+                   :stride stride)))
 

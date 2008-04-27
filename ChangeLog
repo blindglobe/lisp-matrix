@@ -1,5 +1,11 @@
 2008-04-27  Evan Monroig  <evan.monroig@gmail.com>
 
+	* fnv-matrix.lisp (matrix-type-to-fnv-type): add documentation
+
+	* fnv-vector.lisp (vector-dimension, vref)
+	(fnv-type-to-vector-type, slice, vector-type-to-fnv-type): put
+	docstring in DEFGENERIC form
+
 	* fnv-matrix.lisp (matrix-dimension, matrix-dimensions)
 	(flatten-matrix-indices, mref, orientation)
 	(fnv-type-to-matrix-type): move docstring to a DEFGENERIC form

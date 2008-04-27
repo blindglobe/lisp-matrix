@@ -85,7 +85,12 @@
   matrix view, returns the corresponding specific matrix (view)
   type."))
 
-(defgeneric matrix-type-to-fnv-type (type))
+(defgeneric matrix-type-to-fnv-type (type)
+  (:documentation "Return the FNV type (such as 'COMPLEX-FLOAT)
+  corresponding to a given type of matrix (such as
+  'MATRIX-COMPLEX-FLOAT or 'WINDOW-MATVIEW-COMPLEX-FLOAT or
+  'TRANSPOSE-MATVIEW-COMPLEX-FLOAT or
+  STRIDED-MATVIEW-COMPLEX-FLOAT)."))
 
 (defgeneric unit-stride-p (a)
   (:documentation "Tests for \"unit stride.\" (The strided matrix view
