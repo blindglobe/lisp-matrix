@@ -1,3 +1,11 @@
+2008-04-28  Evan Monroig  <evan.monroig@gmail.com>
+
+	* tests.lisp (make-matrix-double-4): add test for initialization
+	from list
+
+	* fnv-matrix.lisp (make-matrix): add initialization from a list of
+	lists
+
 2008-04-27  Evan Monroig  <evan.monroig@gmail.com>
 
 	* tests.lisp (test-matrix-size): add test for spurious argument to

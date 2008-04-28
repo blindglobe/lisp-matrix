@@ -40,7 +40,8 @@
   (is (equal (matrix-dimensions matrix)
 	     (list n m))))
 
-(test make-matrix-double-1 "default initial value"
+(test make-matrix-double-1
+  "default initial value"
   (for-all ((n (gen-integer :min 0 :max 100))
 	    (m (gen-integer :min 0 :max 100)))
     (let (matrix)
@@ -52,7 +53,8 @@
 	   (fail "(mref matrix ~d ~d) is ~a, should be ~a"
 		 i j (mref matrix i j) 0d0)))))))
 
-(test make-matrix-double-2 "initial value to 1d0"
+(test make-matrix-double-2
+  "initial value to 1d0"
   (for-all ((n (gen-integer :min 0 :max 100))
 	    (m (gen-integer :min 0 :max 100)))
     (let (matrix)
@@ -65,7 +67,8 @@
 	   (fail "(mref matrix ~d ~d) is ~a, should be ~a"
 		 i j (mref matrix i j) 1d0)))))))
 
-(test make-matrix-double-3 "set initial contents"
+(test make-matrix-double-3
+  "set initial contents"
   (for-all ((n (gen-integer :min 0 :max 100))
 	    (m (gen-integer :min 0 :max 100)))
     (let ((array (random-array n m))	  
@@ -78,6 +81,28 @@
 	 (unless (= (mref matrix i j) (aref array i j))
 	   (fail "(mref matrix ~d ~d) is ~a, should be ~a"
 		 i j (mref matrix i j) (aref array i j))))))))
+
+(test make-matrix-double-4
+  "set initial contents from a list"
+  (for-all ((n (gen-integer :min 0 :max 100))
+            (m (gen-integer :min 0 :max 100)))
+    (let* ((list (loop repeat n collect
+                      (loop repeat m collect (random 1d0))))
+           (matrix1 (make-matrix n m 'double
+                                 :initial-contents
+                                 (make-array (list n m)
+                                             :initial-contents
+                                             list)))
+           matrix2)
+      (finishes (setq matrix2
+                      (make-matrix n m 'double :initial-contents
+                                   list)))
+      (test-matrix-size matrix2 n m)
+      (dotimes (i n)
+        (dotimes (j m)
+          (unless (= (mref matrix2 i j) (mref matrix1 i j))
+            (fail "(mref matrix2 ~d ~d) is ~a, should be ~a"
+                  i j (mref matrix2 i j) (mref matrix1 i j))))))))
 
 (test transpose-double  
   (for-all ((n (gen-integer :min 0 :max 100))

@@ -299,12 +299,20 @@
                     (initial-contents-p
                      (let* ((n (* nrows ncols))
                             (fnv (,make-fnv n)))
-                       (dotimes (i nrows fnv)
-                         (dotimes (j ncols)
-                           ;; FIXME: initial contents may be a list as
-                           ;; in MAKE-ARRAY -- Evan Monroig 2008.04.24
-                           (setf (,fnv-ref fnv (+ i (* nrows j)))
-                                 (aref initial-contents i j))))))
+                       (etypecase initial-contents
+                         (array
+                          (dotimes (i nrows)
+                            (dotimes (j ncols)
+                              (setf (,fnv-ref fnv (+ i (* nrows j)))
+                                    (aref initial-contents i j)))))
+                         (list
+                          (loop for i below nrows
+                             for row in initial-contents do
+                             (loop for j below ncols
+                                for cell in row do
+                                (setf (,fnv-ref fnv (+ i (* nrows j)))
+                                      cell)))))
+                       fnv))
                     (t
                      (,make-fnv (* nrows ncols)
                                 :initial-value initial-element)))))
