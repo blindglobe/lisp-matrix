@@ -1,5 +1,8 @@
 2008-04-28  Evan Monroig  <evan.monroig@gmail.com>
 
+	* fnv-matrix.lisp (setf mref): add method for basic matrix types
+	(orientation): fixed for transposed matrix
+
 	* tests.lisp (make-matrix-double-4): add test for initialization
 	from list
 

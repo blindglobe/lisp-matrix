@@ -145,7 +145,10 @@
 
 	 (defmethod orientation ((A ,lisp-matrix-type-name))
 	   :column)
-	 
+
+         (defmethod (setf mref) (value (A ,lisp-matrix-type-name) i j)
+           (declare (type fixnum i j))
+           (setf (,fnv-ref (data A) (flatten-matrix-indices A i j)) value))
 	 ;; TODO: set up SETF to work with MREF.
 	 
 	 (defclass ,lisp-matrix-window-view-type-name (matview)
@@ -199,13 +202,16 @@
 	   (declare (type fixnum i j))
 	   (flatten-matrix-indices (parent A) j i))
 
+         (defmethod data ((A ,lisp-matrix-transpose-view-type-name))
+           (data (parent A)))
+         
 	 (defmethod mref ((A ,lisp-matrix-transpose-view-type-name) i j)
 	   (declare (type fixnum i j))
 	   (with-slots (parent) A
 	     (mref parent j i)))
 
 	 (defmethod orientation ((A ,lisp-matrix-transpose-view-type-name))
-	   (opposite-orientation (parent A)))
+	   (opposite-orientation (orientation (parent A))))
 
 	 (defclass ,lisp-matrix-strided-view-type-name (,lisp-matrix-window-view-type-name)
 	   ((stride0 :initarg :stride0
