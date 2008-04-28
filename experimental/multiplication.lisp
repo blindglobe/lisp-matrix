@@ -1,7 +1,12 @@
 
-(in-package :lisp-matrix)
+;;; Just a basic try at multiplication using CL-BLAPACK.  This code
+;;; was just to make sure that it actually worked, and you can see
+;;; code duplication at its best !
+;;;
+;;; Next step is to integrate it all using things like +OUR-FUNCTIONS+
+;;; and GENERATE-METHODS in experimental/matview.lisp
 
-;;; Just a basic try at multiplication using CL-BLAPACK
+(in-package :lisp-matrix)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (asdf:oos 'asdf:load-op 'org.middleangle.cl-blapack))
