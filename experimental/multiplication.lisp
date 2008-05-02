@@ -5,6 +5,28 @@
 ;;;
 ;;; Next step is to integrate it all using things like +OUR-FUNCTIONS+
 ;;; and GENERATE-METHODS in experimental/matview.lisp
+;;;
+;;;
+;;;
+;;; Quick look at the LAPACK functions that I (Evan Monroig) use:
+;;; 
+;;; %DGEMM -- can handle transposed matrices, and windowed matrices if
+;;; OFFSET0 and OFFSET1 are zero => no need to copy the arguments
+;;;
+;;; %DGELSY -- overwrite A and B => may need to copy, esp. for B since
+;;; we need it to be of correct size to hold the result matrix
+;;;
+;;; %DGESVD -- overwrite A; outputs depend on argument parameters =>
+;;; need to be wrapped manually
+;;;
+;;;
+;;; In general in LAPACK, we need to provide work or output matrices
+;;; of correct sizes as specified in the documentation.  Therefore,
+;;; doing the translation automatically seems to be a natural language
+;;; processing task.  We don't want to do that.
+;;;
+;;; A better way is probably to do as for MATLISP, manually wrap the
+;;; fortran function into lispy interfaces as people need them.
 
 (in-package :lisp-matrix)
 
@@ -24,7 +46,6 @@
       (res (make-matrix 2 2 'double)))
   (%dgemm "N" "N" 2 2 2 1d0 (data b) 2 (data a) 2 0d0 (data res) 2)
   res)
-
 
 (defgeneric m* (a b))
 

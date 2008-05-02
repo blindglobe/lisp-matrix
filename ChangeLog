@@ -1,3 +1,7 @@
+2008-05-02  Evan Monroig  <evan.monroig@gmail.com>
+
+	* experimental/multiplication.lisp: add comments
+
 2008-04-29  Evan Monroig  <evan.monroig@gmail.com>
 
 	* experimental/multiplication.lisp: moved here from
