@@ -55,6 +55,46 @@
                    That view may be treated as a (readable and writeable) 
                    reference to the elements of the matrix."))
 
+(define-abstract-class window-matview (matview)
+  ((offset0 :initarg :offset0
+            :initform 0
+            :reader offset0)
+   (offset1 :initarg :offset1
+            :initform 0
+            :reader offset1))
+  (:documentation "A WINDOW-MATVIEW views a block of elements in the 
+              underlying matrix that is conceptually 2-D contiguous.  If the 
+              underlying matrix is column-oriented, the elements in each column 
+              of a WINDOW-MATVIEW are stored contiguously, and horizontally 
+              adjacent elements are separated by a constant stride (\"LDA\" in 
+              BLAS terms)."))
+
+(define-abstract-class transpose-matview (matview)
+  ()
+  (:documentation "A TRANSPOSE-MATVIEW views the transpose of a
+  matrix.  If you want a deep copy, call the appropriate COPY function
+  on the transpose view.  The reason for this is to avoid expensive
+  operations whenever possible.  Many BLAS and LAPACK routines have a
+  \"TRANSA\" argument (or similar) that lets you specify that the
+  operation should work with the transpose of the matrix.  This means
+  that it usually isn't necessary to compute an explicit transpose, at
+  least for input arguments."))
+
+(define-abstract-class strided-matview (window-matview)  
+  ((stride0 :initarg :stride0
+            :initform 1
+            :reader stride0
+            :documentation "Stride in the row direction")
+   (stride1 :initarg :stride1
+            :initform 1
+            :reader stride1
+            :documentation "Stride in the column direction"))
+  (:documentation "A STRIDED-MATVIEW views a window of the matrix with
+  a particular stride in each direction (the stride can be different
+  in each direction)."))
+
+(defmethod parent ((matrix matrix-like)) nil)
+
 (defgeneric make-matrix (nrows ncols fnv-type &key initial-element
                                initial-contents)
   (:documentation "Generic method for creating a matrix, given the
@@ -112,6 +152,8 @@
      datatype suffix, such as complex-double, float, double, etc.)."
     (let ((fnv-ref (make-symbol* "FNV-" fnv-type "-REF"))
 	  (make-fnv (make-symbol* "MAKE-FNV-" fnv-type))
+          (lisp-matrix-abstract-type-name
+           (make-symbol* "MATRIX-" fnv-type "-LIKE"))
 	  (lisp-matrix-type-name (make-symbol* "MATRIX-" fnv-type))
 	  (lisp-matrix-window-view-type-name 
 	   (make-symbol* "WINDOW-MATVIEW-" fnv-type))
@@ -121,7 +163,15 @@
 	   (make-symbol* "STRIDED-MATVIEW-" fnv-type)))
 
       `(progn
-	 (defclass ,lisp-matrix-type-name (matrix-like)
+
+         (define-abstract-class ,lisp-matrix-abstract-type-name ()
+           ()
+           (:documentation
+            ,(format nil "Abstract class for dense matrices of type ~A"
+                     fnv-type)))
+         
+	 (defclass ,lisp-matrix-type-name (matrix-like
+                                           ,lisp-matrix-abstract-type-name)
 	   ((data :initarg :data
 		  ;; We don't provide an initform because it's the 
 		  ;; responsibility of the MATRIX "generic" function
@@ -149,21 +199,10 @@
          (defmethod (setf mref) (value (A ,lisp-matrix-type-name) i j)
            (declare (type fixnum i j))
            (setf (,fnv-ref (data A) (flatten-matrix-indices A i j)) value))
-	 ;; TODO: set up SETF to work with MREF.
 	 
-	 (defclass ,lisp-matrix-window-view-type-name (matview)
-	   ((offset0 :initarg :offset0
-		     :initform 0
-		     :reader offset0)
-	    (offset1 :initarg :offset1
-		     :initform 0
-		     :reader offset1))
-	   (:documentation "A WINDOW-MATVIEW views a block of elements in the 
-              underlying matrix that is conceptually 2-D contiguous.  If the 
-              underlying matrix is column-oriented, the elements in each column 
-              of a WINDOW-MATVIEW are stored contiguously, and horizontally 
-              adjacent elements are separated by a constant stride (\"LDA\" in 
-              BLAS terms)."))
+	 (defclass ,lisp-matrix-window-view-type-name
+             (window-matview ,lisp-matrix-abstract-type-name)
+           ())
 
 	 (defmethod flatten-matrix-indices ((A ,lisp-matrix-window-view-type-name) 
 					    i j)
@@ -176,21 +215,17 @@
 	   (with-slots (parent offset0 offset1) A
 	     (mref parent (+ i offset0) (+ j offset1))))
 
+         (defmethod (setf mref) (value (A ,lisp-matrix-window-view-type-name) i j)
+           (declare (type fixnum i j))
+           (with-slots (parent offset0 offset1) A
+             (setf (mref parent (+ i offset0) (+ j offset1)) value)))
+         
 	 (defmethod orientation ((A ,lisp-matrix-window-view-type-name))
 	   (orientation (parent A)))
 
-	 (defclass ,lisp-matrix-transpose-view-type-name (matview)
-           nil
-	   (:documentation "A TRANSPOSE-MATVIEW views the
-             transpose of a matrix.  If you want a deep copy,
-             call the appropriate COPY function on the transpose
-             view.  The reason for this is to avoid expensive
-             operations whenever possible.  Many BLAS and LAPACK
-             routines have a \"TRANSA\" argument (or similar)
-             that lets you specify that the operation should work
-             with the transpose of the matrix.  This means that
-             it usually isn't necessary to compute an explicit
-             transpose, at least for input arguments."))
+	 (defclass ,lisp-matrix-transpose-view-type-name
+             (transpose-matview ,lisp-matrix-abstract-type-name)
+           ())
 
 	 (defmethod initialize-instance :after ((A ,lisp-matrix-transpose-view-type-name) &key)
 	   "Set up the number of rows and columns correctly for a transpose view."
@@ -201,32 +236,24 @@
 	 (defmethod flatten-matrix-indices ((A ,lisp-matrix-transpose-view-type-name) i j)
 	   (declare (type fixnum i j))
 	   (flatten-matrix-indices (parent A) j i))
-
-         (defmethod data ((A ,lisp-matrix-transpose-view-type-name))
-           (data (parent A)))
          
 	 (defmethod mref ((A ,lisp-matrix-transpose-view-type-name) i j)
 	   (declare (type fixnum i j))
 	   (with-slots (parent) A
 	     (mref parent j i)))
 
+         (defmethod (setf mref) (value (A ,lisp-matrix-transpose-view-type-name) i j)
+           (declare (type fixnum i j))
+           (setf (mref (parent A) j i) value))
+
 	 (defmethod orientation ((A ,lisp-matrix-transpose-view-type-name))
 	   (opposite-orientation (orientation (parent A))))
 
-	 (defclass ,lisp-matrix-strided-view-type-name (,lisp-matrix-window-view-type-name)
-	   ((stride0 :initarg :stride0
-		     :initform 1
-		     :reader stride0
-		     :documentation "Stride in the row direction")
-	    (stride1 :initarg :stride1
-		     :initform 1
-		     :reader stride1
-		     :documentation "Stride in the column direction"))
-	   (:documentation "A STRIDED-MATVIEW views a window of the
-	   matrix with a particular stride in each direction (the
-	   stride can be different in each direction)."))
+	 (defclass ,lisp-matrix-strided-view-type-name
+             (strided-matview ,lisp-matrix-abstract-type-name)
+           ())
 
-	 (defmethod initialize-instance ((A ,lisp-matrix-strided-view-type-name) &key)
+	 (defmethod initialize-instance :after ((A ,lisp-matrix-strided-view-type-name) &key)
 	   ;; FIXME: add more error checking for the strides!
 	   (assert (/= 0 (stride0 A)))
 	   (assert (/= 0 (stride1 A))))
@@ -245,6 +272,13 @@
 	     (mref parent (+ offset0 (* i stride0)) 
 		   (+ offset1 (* j stride1)))))
 
+         (defmethod (setf mref) (value (A ,lisp-matrix-strided-view-type-name) i j)
+           (declare (type (fixnum i j)))
+           (with-slots (offset0 offset1 stride0 stride1 parent) A
+             (setf (mref parent (+ offset0 (* i stride0))
+                         (+ offset1 (* j stride1)))
+                   value)))
+         
 	 (defmethod orientation ((A ,lisp-matrix-strided-view-type-name))
 	   (orientation (parent A)))
 
@@ -327,6 +361,23 @@
                             :ncols ncols
                             :data data)))))))
 
+
+(defmethod data ((a matview))
+  (data (parent A)))
+
+(defgeneric m= (a b)
+  (:documentation "Test for strict equality of dimensions and of each
+  matrix element of A and B."))
+
+(defmethod m= ((a matrix-like) (b matrix-like))
+  (and (= (nrows a) (nrows b))
+       (= (ncols a) (ncols b))
+       (dotimes (i (nrows a) t)
+         (dotimes (j (ncols b))
+           (unless (= (mref a i j) (mref b i j))
+             (return-from m= nil))))))
+
+
 ;;; Instantiate the classes and methods.
 (make-typed-matrix double)
 (make-typed-matrix float)
@@ -385,7 +436,6 @@
                    :offset1 offset1
                    :stride0 stride0
                    :stride1 stride1)))
-
 
 ;;; Export the symbols that we want to export.
 (export '(nelts matrix window transpose strides matrix-dimension matrix-dimensions mref unit-stride-p))

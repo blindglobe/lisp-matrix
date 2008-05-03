@@ -5,7 +5,8 @@
   (:use :cl
         :cffi
         :org.middleangle.foreign-numeric-vector
-	:fiveam)
+	:fiveam
+        :cl-blapack)
   
   (:import-from :fnv))
 

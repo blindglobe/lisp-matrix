@@ -13,7 +13,8 @@
     :serial t  ;; the dependencies are linear
     :depends-on ("cffi"
 		 "org.middleangle.foreign-numeric-vector"
-		 "fiveam")
+		 "org.middleangle.cl-blapack"
+                 "fiveam")
     :components
     ((:file "package")
      (:file "utils" :depends-on ("package"))

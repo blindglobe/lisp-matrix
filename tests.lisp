@@ -128,8 +128,10 @@
             (m (gen-integer :min 0 :max 100))
             (n2 (gen-integer :min 0 :max 100) (<= n2 n))
             (m2 (gen-integer :min 0 :max 100) (<= m2 m))
-            (row-offset (gen-integer :min 0 :max 100) (<= row-offset (- n n2)))
-            (col-offset (gen-integer :min 0 :max 100) (<= col-offset (- m m2))))
+            (row-offset (gen-integer :min 0 :max 100)
+                        (<= row-offset (- n n2)))
+            (col-offset (gen-integer :min 0 :max 100)
+                        (<= col-offset (- m m2))))
     (let ((matrix1 (make-matrix n m 'double :initial-contents
                                 (random-array n m)))
           matrix2)
@@ -144,3 +146,29 @@
             (fail "(mref matrix2 ~d ~d) is ~a, should be ~a"
                   i j (mref matrix1 (+ i row-offset) (+ j col-offset))
                   (mref matrix2 i j))))))))
+
+(test m=
+  (for-all ((n (gen-integer :min 1 :max 10))
+            (m (gen-integer :min 1 :max 10)))
+    (let ((a (random-array n m)))
+      (is
+       (m= (make-matrix n m 'double :initial-contents a)
+           (make-matrix n m 'double :initial-contents a)))))
+  (is (not (m= (make-matrix 1 2 'double)
+               (make-matrix 1 1 'double))))
+  (is (not (m= (make-matrix 2 1 'double)
+               (make-matrix 1 1 'double))))
+  (is (not (m= (make-matrix 1 1 'double :initial-element 1d0)
+               (make-matrix 1 1 'double :initial-element 0d0)))))
+
+(test setf-mref
+  (for-all ((n (gen-integer :min 0 :max 10))
+            (m (gen-integer :min 0 :max 10)))
+   (let ((a (make-matrix n m 'double))
+         (b (make-matrix n m 'double
+                         :initial-contents (random-array n m))))    
+     (finishes
+       (dotimes (i n)
+         (dotimes (j m)
+           (setf (mref a i j) (mref b i j)))))
+     (is (m= a b)))))

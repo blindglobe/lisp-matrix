@@ -1,3 +1,31 @@
+2008-05-03  Evan Monroig  <evan.monroig@gmail.com>
+
+	* experimental/multiplication.lisp (m*): add test for
+	multiplication
+	(multiplication): test suite for this file
+	(gemm): add and rewrite content from experimental/matview.lisp to
+	allow implementation of lapack wrapper methods simultaneously for
+	all matrix types and while avoiding unnecessary matrix copies --
+	added sample GEMM method for the case of 'double matrices -- still
+	to be debugged for windowed and strided views, and to add a macro
+	to generate the GEMM methods for all matrix types
+
+	* tests.lisp (m=): test for M=
+	(setf-mref): add test for SETF MREF, using only standard matrices
+	for now
+
+	* fnv-matrix.lisp (setf mref): add method for all subtypes
+	(:compile-toplevel): add abstract class for all matrices and
+	matviews of each type
+	(data): add method for class MATVIEW and remove the one that I
+	added which was specific to transposed views
+	(m=): added strict equality test
+
+	* lisp-matrix.asd (lisp-matrix): add dependency on cl-blapack
+
+	* fnv-matrix.lisp (window-matview, transpose-matview)
+	(strided-matview): add abstrace matview classes
+
 2008-05-02  Evan Monroig  <evan.monroig@gmail.com>
 
 	* experimental/multiplication.lisp: add comments
