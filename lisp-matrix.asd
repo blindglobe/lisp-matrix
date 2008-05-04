@@ -21,7 +21,11 @@
      (:file "macros" :depends-on ("package"))
      (:file "fnv-matrix" :depends-on ("package" "macros" "utils"))
      (:file "fnv-vector" :depends-on ("package" "macros" "utils"))
-     (:file "tests" :depends-on ("fnv-matrix" "fnv-vector")))
+     (:file "lapack-utils" :depends-on ("fnv-matrix" "fnv-vector"))
+     (:file "lapack-methods" :depends-on ("lapack-utils"))
+     (:file "tests" :depends-on ("fnv-matrix" "fnv-vector"
+                                              "lapack-utils"
+                                              "lapack-methods")))
     :in-order-to ((test-op (load-op lisp-matrix)))
     :perform (test-op :after (op c)
                       (funcall (intern "RUN!" 'fiveam)

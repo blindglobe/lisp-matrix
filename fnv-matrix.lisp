@@ -142,6 +142,77 @@
   returns the corresponding FNV type (such as 'double, 'complex-float,
   etc.)."))
 
+(defgeneric transposed-p (matrix)
+  (:documentation "Is MATRIX a transposed view of its ancestor
+  matrix?"))
+
+(defmethod transposed-p ((matrix matrix-like))
+  (and (parent matrix)
+       (transposed-p (parent matrix))))
+
+(defmethod transposed-p ((matrix transpose-matview))
+  t)
+
+(defgeneric zero-offset-p (matrix)
+  (:documentation "Has MATRIX a zero offset (as for window and stride
+  views)?"))
+
+(defmethod zero-offset-p ((matrix matrix-like))
+  (if (parent matrix)
+      (zero-offset-p (parent matrix))
+      t))
+
+(defmethod zero-offset-p ((matrix window-matview))
+  (and (= 0 (offset0 matrix) (offset1 matrix))
+       (zero-offset-p (parent matrix))))
+
+(defgeneric copy-into (a b)
+  (:documentation "Copy A into B if they are not the same object, and
+  return B.  A and B should have the same dimensions."))
+
+(defmethod copy-into ((a matrix-like) (b matrix-like))
+  (assert (= (ncols a) (ncols b)))
+  (assert (= (nrows a) (nrows b)))
+  ;; FIXME: care about fast copy once everything is working
+  (unless (eq a b)
+    (dotimes (i (nrows a))
+      (dotimes (j (ncols a))
+        (setf (mref b i j) (mref a i j)))))
+  b)
+
+(defgeneric copy (a)
+  (:documentation "Return a deep copy of a matrix A."))
+
+(defmethod copy ((a matrix-like))
+  (copy-into a (make-matrix (nrows a) (ncols a) (fnv-type a))))
+
+(defgeneric copy-maybe (a test)
+  (:documentation "Return a deep copy of a matrix A if TEST is
+  satisfied, or return A itself."))
+
+(defmethod copy-maybe ((a matrix-like) test)
+  (if (funcall test a)
+      (copy a)
+      a))
+
+(defgeneric real-nrows (a)
+  (:documentation "Return the actual number of rows of the matrix into
+  which A is stored, i.e. the number of rows of the ancestor of A.")
+  (:method ((a matrix-like))
+    (if (parent a)
+        (real-nrows (parent a))
+        (nrows a))))
+
+(defgeneric real-ncols (a)
+  (:documentation "Return the actual number of columns of the matrix
+  into which A is stored, i.e. the number of columns of the ancestor
+  of A.")
+  (:method ((a matrix-like))
+    (if (parent a)
+        (real-ncols (parent a))
+        (nrows a))))
+
+
 ;;; Macro to make the actual matrix classes
 
 (eval-when (:compile-toplevel :load-toplevel)

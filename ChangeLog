@@ -1,5 +1,23 @@
 2008-05-04  Evan Monroig  <evan.monroig@gmail.com>
 
+	* lisp-matrix.asd (lisp-matrix): add new files
+
+	* tests.lisp: moved tests from experimental/multiplication.lisp
+
+	* lapack-methods.lisp (gemm): moved from
+	experimental/multiplication.lisp
+
+	* lapack-utils.lisp (make-predicate): moved from
+	experimental/multiplication.lisp and renamed from
+	BUILD-TEST-LAMBDA
+	(with-copies, *supported-datatypes*, datatype->letter)
+	(walk-and-replace, def-lapack-method, orientation->letter)
+	(orientation-letter): moved from experimental/multiplication.lisp
+
+	* fnv-matrix.lisp (transposed-p, zero-offset-p, copy-into, copy)
+	(copy-into, copy-maybe, real-nrows, real-ncols): moved from
+	experimental/multiplication.lisp
+
 	* experimental/multiplication.lisp (with-copies): fixed bug in
 	restoration
 	(*supported-datatypes*): update to use same type names as in
