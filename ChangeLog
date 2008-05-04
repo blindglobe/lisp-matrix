@@ -1,5 +1,8 @@
 2008-05-04  Evan Monroig  <evan.monroig@gmail.com>
 
+	* lapack-utils.lisp (def-lapack-method): add wrapper around method
+	body to remove floating-point traps
+
 	* lisp-matrix.asd (lisp-matrix): add new files
 
 	* tests.lisp: moved tests from experimental/multiplication.lisp

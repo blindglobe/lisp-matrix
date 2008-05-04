@@ -3,7 +3,7 @@
 ;;; This file contains functions and macros to help build LAPACK
 ;;; wrapper methods.
 ;;;
-;;; Time-stamp: <2008-05-04 13:32:38 Evan Monroig>
+;;; Time-stamp: <2008-05-04 16:39:48 Evan Monroig>
 ;;;
 ;;;
 ;;;
@@ -167,8 +167,10 @@ See for example the definition of GEMM for how to use this macro."
                  `((!function . ,(make-symbol* "%" type-letter name))
                    (!data-type . ,type)
                    (!matrix-type . ,(fnv-type-to-matrix-type type :base)))))
-            `(defmethod ,name ,(walk-and-replace lambda-list replacements)
-               ,@(walk-and-replace body replacements))))))
+            `(defmethod ,name
+                 ,(walk-and-replace lambda-list replacements)
+               (with-blapack
+                 ,@(walk-and-replace body replacements)))))))
 
 (defun orientation->letter (orientation)
   "Return the LAPACK letter corresponding to ORIENTATION."
