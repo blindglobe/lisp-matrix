@@ -295,16 +295,14 @@
 
 	 (defmethod fnv-type-to-matrix-type ((type (eql ',fnv-type))
 					     matrix-type)
-           (cond ((eq matrix-type :matrix)
-		  ',lisp-matrix-type-name)
-		 ((eq matrix-type :window)
-		  ',lisp-matrix-window-view-type-name)
-		 ((eq matrix-type :transpose)
-		  ',lisp-matrix-transpose-view-type-name)
-		 ((eq matrix-type :strided)
-		  ',lisp-matrix-strided-view-type-name)
-		 (t
-		  (error "Invalid matrix type ~A" matrix-type))))
+           (case matrix-type
+             (:matrix ',lisp-matrix-type-name)
+             (:window ',lisp-matrix-window-view-type-name)
+             (:transpose ',lisp-matrix-transpose-view-type-name)
+             (:strided ',lisp-matrix-strided-view-type-name)
+             (:base ',lisp-matrix-abstract-type-name)
+             (t
+              (error "Invalid matrix type ~A" matrix-type))))
 
 	 (defmethod matrix-type-to-fnv-type
              ((type (eql ',lisp-matrix-type-name)))
@@ -340,11 +338,15 @@
                      (let* ((n (* nrows ncols))
                             (fnv (,make-fnv n)))
                        (etypecase initial-contents
+                         ;; FIXME: check array size -- Evan Monroig
+                         ;; 2008-05-04
                          (array
                           (dotimes (i nrows)
                             (dotimes (j ncols)
                               (setf (,fnv-ref fnv (+ i (* nrows j)))
                                     (aref initial-contents i j)))))
+                         ;; FIXME: check list size -- Evan Monroig
+                         ;; 2008-05-04
                          (list
                           (loop for i below nrows
                              for row in initial-contents do
@@ -377,6 +379,14 @@
            (unless (= (mref a i j) (mref b i j))
              (return-from m= nil))))))
 
+(defmethod print-object ((a matrix-like) stream)
+  (print-unreadable-object (a stream :type t)
+    (format stream " ~d x ~d" (nrows a) (ncols a))
+    (dotimes (i (nrows a))
+      (terpri stream)
+      (dotimes (j (ncols a))
+        (write-char #\space stream)
+        (write (mref a i j) :stream stream)))))
 
 ;;; Instantiate the classes and methods.
 (make-typed-matrix double)
@@ -402,6 +412,12 @@
             (ncols (ncols parent))
             (offset0 0)
             (offset1 0))
+    (check-type nrows (integer 0))
+    (check-type ncols (integer 0))
+    (check-type offset0 (integer 0))
+    (check-type offset1 (integer 0))
+    (assert (<= (+ offset0 nrows) (nrows parent)))
+    (assert (<= (+ offset1 ncols) (ncols parent)))
     (make-instance (fnv-type-to-matrix-type (fnv-type parent) :window)
                    :parent parent
                    :nrows nrows
@@ -428,6 +444,14 @@
             (offset1 0)
             (stride0 1)
             (stride1 1))
+    (check-type nrows (integer 0))
+    (check-type ncols (integer 0))
+    (check-type offset0 (integer 0))
+    (check-type offset1 (integer 0))
+    (check-type stride0 (integer 1))
+    (check-type stride1 (integer 1))
+    (assert (<= (+ offset0 (* stride0 (1- nrows))) (nrows parent)))
+    (assert (<= (+ offset1 (* stride1 (1- ncols))) (ncols parent)))
     (make-instance (fnv-type-to-matrix-type (fnv-type parent) :strided)
                    :parent parent
                    :nrows nrows

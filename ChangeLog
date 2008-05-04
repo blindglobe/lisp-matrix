@@ -1,3 +1,20 @@
+2008-05-04  Evan Monroig  <evan.monroig@gmail.com>
+
+	* experimental/multiplication.lisp (with-copies): fixed bug in
+	restoration
+	(*supported-datatypes*): update to use same type names as in
+	fnv-matrix.lisp
+	(walk-and-replace, def-lapack-method): macro to create lapack
+	wrapper methods, and a helper function
+	(real-nrows, real-ncols): update documentation
+	(gemm): defined using DEF-LAPACK-METHOD
+
+	* fnv-matrix.lisp (window, strides): added argument checking
+	(print-object): simple method to see the contents of matrices when
+	they are returned in slime
+	(fnv-type-to-matrix-type): rewrite as a CASE statement, and add
+	:BASE keyword for the base class of the given fnv type
+
 2008-05-03  Evan Monroig  <evan.monroig@gmail.com>
 
 	* experimental/multiplication.lisp (m*): add test for

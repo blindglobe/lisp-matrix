@@ -1,5 +1,5 @@
 ;;;
-;;; Time-stamp: <2008-05-03 21:10:12 Evan Monroig>
+;;; Time-stamp: <2008-05-04 13:04:56 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -285,7 +285,7 @@
   (assert (= (nrows a) (nrows b)))
   ;; FIXME: care about fast copy once everything is working
   (unless (eq a b)
-    (dotimes (i (nrows a) b)
+    (dotimes (i (nrows a))
       (dotimes (j (ncols a))
         (setf (mref b i j) (mref a i j)))))
   b)
@@ -339,7 +339,12 @@
   "From an expression combining predicates, construct a function of
 one argument that evaluates the logical expression on the element,
 where each predicate is applied to the argument to obtain its logical
-value."
+value.
+
+FORM may be constructed as follows: a symbol whose f-value is a
+function of one argument; a list whose car is 'OR and whose CDR is a
+list of predicates; a list whose car is 'AND and whose CDR is a list
+of predicates; T; NIL."
   (typecase form
     (symbol
      (case form
@@ -413,39 +418,14 @@ CDR is a list of predicates; T; NIL."
            ,@(loop for form in forms
                 for g in gensyms
                 when (third form)
-                collect `(copy-into ,g ,(first form)))))
+                collect `(copy-into ,(first form) ,g))))
        ,result)))
 
-#+nil
-(with-copies ((a (or (not unit-stride-p)
-                     (not zero-offset-p)))
-              (b (or (not unit-stride-p)
-                     (not zero-offset-p)))
-              (c (or (not unit-stride-p)
-                     (not zero-offset-p)
-                     transposed-p)
-                 t))
-    c
-  (%dgemm (orientation-letter a)
-          (orientation-letter b)
-          (nrows a)
-          (ncols b)
-          (ncols a)
-          alpha
-          (data a)
-          (real-nrows a)
-          (data b)
-          (real-nrows b)
-          beta
-          (data c)
-          (real-nrows c)))
-
-;;; Datatypes that are supported by LAPACK and the BLAS.
 (defparameter *supported-datatypes*
-  '((single-float . "s")
-    (double-float . "d")
-    ((complex single-float) . "c")
-    ((complex double-float) . "z"))
+  '((float . "S")
+    (double . "D")
+    (complex-float . "C")
+    (complex-double . "Z"))
   "Association list mapping each supported datatype to its BLAS/LAPACK
 letter.")
 
@@ -456,10 +436,45 @@ BLAS and LAPACK."
       (error "LAPACK does not support the datatype ~A" datatype)))
 
 (test datatypes
-  (is (string= (datatype->letter 'single-float) "s"))
-  (is (string= (datatype->letter 'double-float) "d"))
-  (is (string= (datatype->letter '(complex single-float)) "c"))
-  (is (string= (datatype->letter '(complex double-float)) "z")))
+  (is (string= (datatype->letter 'float) "S"))
+  (is (string= (datatype->letter 'double) "D"))
+  (is (string= (datatype->letter 'complex-float) "C"))
+  (is (string= (datatype->letter 'complex-double) "Z")))
+
+(defun walk-and-replace (tree alist)
+  "Deep-copy TREE while replacing any symbol which is the car of an
+element of ALIST with the CDR of that element."
+  (labels ((aux (subtree)
+             (typecase subtree
+               (symbol
+                (let ((pair (assoc subtree alist)))
+                  (if pair (cdr pair) subtree)))
+               (list
+                (mapcar #'aux subtree))
+               (t subtree))))
+    (aux tree)))
+
+(defmacro def-lapack-method (name (&rest lambda-list) &body body)
+  "Define methods for supported datatypes for the lapack method named
+NAME.  The symbols !FUNCTION, !DATA-TYPE, and !MATRIX-TYPE are
+respectively bound to the actual lapack function to be called from the
+package CL-BLAPACK, the data type (float, double, complex-float or
+complex-double), and the corresponding abstract matrix
+type (e.g. matrix-double-like).
+
+See for example the definition of GEMM below for how to use this
+macro."
+  ;; FIXME: I (Evan Monroig) don't like the fact that this macro uses
+  ;; templates, but the code works.
+  `(progn
+     ,@(loop for (type . type-letter) in *supported-datatypes*
+          collect
+          (let ((replacements
+                 `((!function . ,(make-symbol* "%" type-letter name))
+                   (!data-type . ,type)
+                   (!matrix-type . ,(fnv-type-to-matrix-type type :base)))))
+            `(defmethod ,name ,(walk-and-replace lambda-list replacements)
+               ,@(walk-and-replace body replacements))))))
 
 (defun orientation->letter (orientation)
   "Return the LAPACK letter corresponding to ORIENTATION."
@@ -473,58 +488,28 @@ matrix A."
   (orientation->letter (orientation a)))
 
 (defgeneric real-nrows (a)
-  (:documentation "Return the number of rows of the ancestor of A."))
+  (:documentation "Return the actual number of rows of the matrix into
+  which A is stored, i.e. the number of rows of the ancestor of A.")
+  (:method ((a matrix-like))
+    (if (parent a)
+        (real-nrows (parent a))
+        (nrows a))))
 
 (defgeneric real-ncols (a)
-  (:documentation "Return the number of columns of the ancestor of
-  A."))
+  (:documentation "Return the actual number of columns of the matrix
+  into which A is stored, i.e. the number of columns of the ancestor
+  of A.")
+  (:method ((a matrix-like))
+    (if (parent a)
+        (real-ncols (parent a))
+        (nrows a))))
 
-(defmethod real-nrows ((a matrix-like))
-  (if (parent a)
-      (real-nrows (parent a))
-      (nrows a)))
-
-(defmethod real-ncols ((a matrix-like))
-  (if (parent a)
-      (real-ncols (parent a))
-      (nrows a)))
-
-(defmethod gemm (alpha (a matrix-double-like) (b matrix-double-like)
-                 &optional
-                 (beta 0d0) c)
+(def-lapack-method gemm (alpha (a !matrix-type) (b !matrix-type)
+                               &optional (beta 0d0) c)
   (assert (= (ncols a) (nrows b)))
   (unless c
-    (setq c (make-matrix (nrows a) (ncols b) 'double)))
-  (assert (= (nrows a) (nrows c)))
-  (assert (= (ncols b) (ncols c)))
-  (with-copies ((a (or (not unit-stride-p)
-                       (not zero-offset-p)))
-                (b (or (not unit-stride-p)
-                       (not zero-offset-p)))
-                (c (or (not unit-stride-p)
-                       (not zero-offset-p)
-                       transposed-p)
-                   t))
-      c
-    (%dgemm (orientation-letter a)
-            (orientation-letter b)
-            (nrows a)
-            (ncols b)
-            (ncols a)
-            alpha
-            (data a)
-            (real-nrows a)
-            (data b)
-            (real-nrows b)
-            beta
-            (data c)
-            (real-nrows c))))
-
-#+nil
-(def-lapack-method gemm (alpha a b &optional (beta 0d0) c)
-  (assert (= (ncols a) (nrows b)))
-  (unless c
-    (setq c (make-matrix (nrows a) (ncols b) !datatype)))
+    (setq c (make-matrix (nrows a) (ncols b) '!data-type)))
+  (check-type c !matrix-type)
   (assert (= (nrows a) (nrows c)))
   (assert (= (ncols b) (ncols c)))
   (with-copies ((a (or (not unit-stride-p)
@@ -550,84 +535,193 @@ matrix A."
                (data c)
                (real-nrows c))))
 
+;; The previous form expand into the following code (and also other
+;; methods for the single precision and complex matrix types).
+#+nil
+(defmethod gemm (alpha (a matrix-double-like) (b matrix-double-like)
+                 &optional
+                 (beta 0d0) c)
+  (assert (= (ncols a) (nrows b)))
+  (unless c
+    (setq c (make-matrix (nrows a) (ncols b) 'double)))
+  (assert (= (nrows a) (nrows c)))
+  (assert (= (ncols b) (ncols c)))
+  (with-copies
+      ((a (or (not unit-stride-p) (not zero-offset-p)))
+       (b (or (not unit-stride-p) (not zero-offset-p)))
+       (c (or (not unit-stride-p) (not zero-offset-p) transposed-p)
+          t))
+      c
+    (%dgemm (orientation-letter a)
+            (orientation-letter b)
+            (nrows a)
+            (ncols b)
+            (ncols a)
+            alpha
+            (data a)
+            (real-nrows a)
+            (data b)
+            (real-nrows b)
+            beta
+            (data c)
+            (real-nrows c))))
+
 (test gemm
-  ;; basic test
-  (is
-   (m= (gemm 1d0
-             (make-matrix 2 2 'double :initial-contents
-                          '((1d0 2d0) (3d0 4d0)))
-             (make-matrix 2 2 'double :initial-contents
-                          '((5d0 6d0) (7d0 8d0))))
+  "Test GEMM for the case of matrices of DOUBLE-FLOATs."
+  (let ((result (make-matrix 2 2 'double :initial-contents
+                             '((19d0 22d0)
+                               (43d0 50d0)))))
+    (labels ((check-gemm (a b)
+               (is (m= result (gemm 1d0 a b)))))
+      ;; basic test
+      (check-gemm
        (make-matrix 2 2 'double :initial-contents
-                    '((19d0 22d0) (43d0 50d0)))))
-  ;; transpose A
-  (is
-   (m= (gemm 1d0
-             (transpose
-              (make-matrix 2 2 'double :initial-contents
-                           '((1d0 3d0) (2d0 4d0))))
-             (make-matrix 2 2 'double :initial-contents
-                          '((5d0 6d0) (7d0 8d0))))
+                    '((1d0 2d0)
+                      (3d0 4d0)))
        (make-matrix 2 2 'double :initial-contents
-                    '((19d0 22d0) (43d0 50d0)))))
-  ;; transpose B
-  (is
-   (m= (gemm 1d0
-             (make-matrix 2 2 'double :initial-contents
-                          '((1d0 2d0) (3d0 4d0)))
-             (transpose
-              (make-matrix 2 2 'double :initial-contents
-                           '((5d0 7d0) (6d0 8d0)))))
+                    '((5d0 6d0)
+                      (7d0 8d0))))
+      ;; transpose A
+      (check-gemm
+       (transpose
+        (make-matrix 2 2 'double :initial-contents
+                     '((1d0 3d0)
+                       (2d0 4d0))))
        (make-matrix 2 2 'double :initial-contents
-                    '((19d0 22d0) (43d0 50d0)))))
-  ;; double transpose A
-  (is
-   (m= (gemm 1d0
-             (transpose
-              (transpose
-               (make-matrix 2 2 'double :initial-contents
-                            '((1d0 2d0) (3d0 4d0)))))
-             (make-matrix 2 2 'double :initial-contents
-                          '((5d0 6d0) (7d0 8d0))))
+                    '((5d0 6d0)
+                      (7d0 8d0))))
+      ;; transpose B
+      (check-gemm
        (make-matrix 2 2 'double :initial-contents
-                    '((19d0 22d0) (43d0 50d0)))))
-  ;; transpose A and B
-  (is
-   (m= (gemm 1d0
-             (transpose
-              (make-matrix 2 2 'double :initial-contents
-                           '((1d0 3d0) (2d0 4d0))))
-             (transpose
-              (make-matrix 2 2 'double :initial-contents
-                           '((5d0 7d0) (6d0 8d0)))))
+                    '((1d0 2d0)
+                      (3d0 4d0)))
+       (transpose
+        (make-matrix 2 2 'double :initial-contents
+                     '((5d0 7d0)
+                       (6d0 8d0)))))
+      ;; double transpose A
+      (check-gemm
+       (transpose
+        (transpose
+         (make-matrix 2 2 'double :initial-contents
+                      '((1d0 2d0)
+                        (3d0 4d0)))))
        (make-matrix 2 2 'double :initial-contents
-                    '((19d0 22d0) (43d0 50d0)))))
-  ;; window A
-  #+nil
-  (is
-   (m= (gemm 1d0
-             (window
-              (make-matrix 3 3 'double :initial-contents
-                           '((1d0 3d0 0d0)
-                             (2d0 4d0 0d0)
-                             (0d0 0d0 0d0)))
-              :nrows 2 :ncols 2)
-             (make-matrix 2 2 'double :initial-contents
-                          '((5d0 6d0) (7d0 8d0))))
+                    '((5d0 6d0)
+                      (7d0 8d0))))
+      ;; transpose A and B
+      (check-gemm
+       (transpose
+        (make-matrix 2 2 'double :initial-contents
+                     '((1d0 3d0)
+                       (2d0 4d0))))
+       (transpose
+        (make-matrix 2 2 'double :initial-contents
+                     '((5d0 7d0)
+                       (6d0 8d0)))))
+      ;; window A, without copy
+      (check-gemm
+       (window
+        (make-matrix 3 3 'double :initial-contents
+                     '((1d0 2d0 0d0)
+                       (3d0 4d0 0d0)
+                       (0d0 0d0 0d0)))
+        :nrows 2 :ncols 2)
        (make-matrix 2 2 'double :initial-contents
-                    '((19d0 22d0) (43d0 50d0)))))
-  #+nil
-  (is
-   (m= (gemm 1d0
-             (window
-              (make-matrix 3 3 'double :initial-contents
-                           '((0d0 1d0 3d0)
-                             (0d0 2d0 4d0)
-                             (0d0 0d0 0d0)))
-              :nrows 2 :ncols 2 :offset1 1)
-             (make-matrix 2 2 'double :initial-contents
-                          '((5d0 6d0) (7d0 8d0))))
+                    '((5d0 6d0)
+                      (7d0 8d0))))
+      ;; window A, with copy
+      (check-gemm
+       (window
+        (make-matrix 3 3 'double :initial-contents
+                     '((0d0 1d0 2d0)
+                       (0d0 3d0 4d0)
+                       (0d0 0d0 0d0)))
+        :nrows 2 :ncols 2 :offset1 1)
        (make-matrix 2 2 'double :initial-contents
-                    '((19d0 22d0) (43d0 50d0)))))
-  ;; stride A
-  )
+                    '((5d0 6d0)
+                      (7d0 8d0))))
+      ;; window B, without copy
+      (check-gemm
+       (make-matrix 2 2 'double :initial-contents
+                    '((1d0 2d0)
+                      (3d0 4d0)))
+       (window
+        (make-matrix 2 3 'double :initial-contents
+                     '((5d0 6d0 0d0)
+                       (7d0 8d0 0d0)))
+        :ncols 2))
+      ;; window B, with copy
+      (check-gemm
+       (make-matrix 2 2 'double :initial-contents
+                    '((1d0 2d0)
+                      (3d0 4d0)))
+       (window
+        (make-matrix 3 3 'double :initial-contents
+                     '((0d0 0d0 0d0)
+                       (5d0 6d0 0d0)
+                       (7d0 8d0 0d0)))
+        :ncols 2 :nrows 2 :offset0 1))
+      ;; stride A, without copy
+      (check-gemm
+       (strides
+        (make-matrix 3 3 'double :initial-contents
+                     '((1d0 2d0 0d0)
+                       (3d0 4d0 0d0)
+                       (0d0 0d0 0d0)))
+        :nrows 2 :ncols 2)
+       (make-matrix 2 2 'double :initial-contents
+                    '((5d0 6d0)
+                      (7d0 8d0))))
+      ;; stride A, with copy
+      (check-gemm
+       (strides
+        (make-matrix 3 3 'double :initial-contents
+                     '((1d0 0d0 2d0)
+                       (0d0 0d0 0d0)
+                       (3d0 0d0 4d0)
+                       (0d0 0d0 0d0)))
+        :nrows 2 :ncols 2 :stride0 2 :stride1 2)
+       (make-matrix 2 2 'double :initial-contents
+                    '((5d0 6d0)
+                      (7d0 8d0))))
+      ;; window C, without copy
+      (let* ((c (make-matrix 3 3 'double))
+             (windowed-c (window c :nrows 2 :ncols 2)))
+        (is (eq windowed-c
+                (gemm 1d0
+                      (make-matrix 2 2 'double :initial-contents
+                                   '((1d0 2d0)
+                                     (3d0 4d0)))
+                      (make-matrix 2 2 'double :initial-contents
+                                   '((5d0 6d0)
+                                     (7d0 8d0)))
+                      0d0
+                      windowed-c)))
+        (is (m= windowed-c result))
+        (is (m= windowed-c (window c :nrows 2 :ncols 2)))
+        (is (m= (window c :nrows 1 :offset0 2)
+                (make-matrix 1 3 'double)))
+        (is (m= (window c :ncols 1 :offset1 2)
+                (make-matrix 3 1 'double))))
+      ;; window C, with copy and copy back
+      (let* ((c (make-matrix 4 4 'double))
+             (windowed-c (window c :nrows 2 :ncols 2 :offset0 2
+                                                     :offset1 2)))
+        (is (eq windowed-c
+                (gemm 1d0
+                      (make-matrix 2 2 'double :initial-contents
+                                   '((1d0 2d0)
+                                     (3d0 4d0)))
+                      (make-matrix 2 2 'double :initial-contents
+                                   '((5d0 6d0)
+                                     (7d0 8d0)))
+                      0d0
+                      windowed-c)))
+        (is (m= windowed-c result))
+        (is (m= windowed-c (window c :nrows 2 :ncols 2 :offset0 2
+                                                       :offset1 2)))
+        (is (m= (window c :nrows 2) (make-matrix 2 4 'double)))
+        (is (m= (window c :ncols 2) (make-matrix 4 2 'double)))))))
+
+
