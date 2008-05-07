@@ -1,3 +1,13 @@
+2008-05-07  Evan Monroig  <evan.monroig@gmail.com>
+
+	* benchmark/lisp-vs-c-aref.lisp: same as the one on the page of
+	Mark Hoemmen but with added tests for the MREF of lisp-matrix and
+	matlisp
+
+	* experimental/element-access.lisp: some tries to see if element
+	access can be improved while having matrices defined as CLOS
+	classes
+
 2008-05-04  Evan Monroig  <evan.monroig@gmail.com>
 
 	* lapack-utils.lisp (def-lapack-method): add wrapper around method
