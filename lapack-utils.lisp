@@ -3,7 +3,7 @@
 ;;; This file contains functions and macros to help build LAPACK
 ;;; wrapper methods.
 ;;;
-;;; Time-stamp: <2008-05-04 16:39:48 Evan Monroig>
+;;; Time-stamp: <2008-05-11 09:13:22 Evan Monroig>
 ;;;
 ;;;
 ;;;
@@ -134,19 +134,6 @@ BLAS and LAPACK."
   (or (cdr (assoc datatype *supported-datatypes* :test #'equal))
       (error "LAPACK does not support the datatype ~A" datatype)))
 
-(defun walk-and-replace (tree alist)
-  "Deep-copy TREE while replacing any symbol which is the car of an
-element of ALIST with the CDR of that element."
-  (labels ((aux (subtree)
-             (typecase subtree
-               (symbol
-                (let ((pair (assoc subtree alist)))
-                  (if pair (cdr pair) subtree)))
-               (list
-                (mapcar #'aux subtree))
-               (t subtree))))
-    (aux tree)))
-
 (defmacro def-lapack-method (name (&rest lambda-list) &body body)
   "Define methods for supported datatypes for the lapack method named
 NAME.  The symbols !FUNCTION, !DATA-TYPE, and !MATRIX-TYPE are
@@ -168,9 +155,9 @@ See for example the definition of GEMM for how to use this macro."
                    (!data-type . ,type)
                    (!matrix-type . ,(fnv-type-to-matrix-type type :base)))))
             `(defmethod ,name
-                 ,(walk-and-replace lambda-list replacements)
+                 ,(sublis replacements lambda-list)
                (with-blapack
-                 ,@(walk-and-replace body replacements)))))))
+                 ,@(sublis replacements body)))))))
 
 (defun orientation->letter (orientation)
   "Return the LAPACK letter corresponding to ORIENTATION."

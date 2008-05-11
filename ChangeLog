@@ -1,3 +1,8 @@
+2008-05-11  Evan Monroig  <evan.monroig@gmail.com>
+
+	* lapack-utils.lisp (walk-and-replace): replace by common-lisp
+	function SUBLIS
+
 2008-05-07  Evan Monroig  <evan.monroig@gmail.com>
 
 	* benchmark/lisp-vs-c-aref.lisp: same as the one on the page of
