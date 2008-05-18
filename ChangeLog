@@ -1,3 +1,13 @@
+2008-05-17  Evan Monroig  <evan.monroig@gmail.com>
+
+	* tests.lisp (make-matrix-double-4, make-matrix-double-3)
+	(make-matrix-double-2, make-matrix-double-1): don't test matrices
+	for which one of the sizes is zero
+	(make-matrix-double-zero-size): separate tests for zero size (does
+	not work on clisp)
+	(transpose-double, window-double, setf-mref, copy): for clisp,
+	don't test matrices for which one of the sizes is zero
+
 2008-05-11  Evan Monroig  <evan.monroig@gmail.com>
 
 	* lapack-utils.lisp (walk-and-replace): replace by common-lisp

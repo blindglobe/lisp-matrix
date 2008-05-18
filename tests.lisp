@@ -42,10 +42,20 @@
   (is (equal (matrix-dimensions matrix)
 	     (list n m))))
 
+(test make-matrix-double-zero-size
+  "make a matrix which has zero size"
+  #-clisp
+  (progn
+    (finishes (make-matrix 0 0 'double))
+    (finishes (make-matrix 0 1 'double))
+    (finishes (make-matrix 1 0 'double)))
+  #+clisp
+  (fiveam:skip "matrix with zero size don't work in CLISP"))
+
 (test make-matrix-double-1
   "default initial value"
-  (for-all ((n (gen-integer :min 0 :max 100))
-	    (m (gen-integer :min 0 :max 100)))
+  (for-all ((n (gen-integer :min 1 :max 100))
+	    (m (gen-integer :min 1 :max 100)))
     (let (matrix)
      (finishes (setq matrix (make-matrix n m 'double)))
      (test-matrix-size matrix n m)
@@ -57,8 +67,8 @@
 
 (test make-matrix-double-2
   "initial value to 1d0"
-  (for-all ((n (gen-integer :min 0 :max 100))
-	    (m (gen-integer :min 0 :max 100)))
+  (for-all ((n (gen-integer :min 1 :max 100))
+	    (m (gen-integer :min 1 :max 100)))
     (let (matrix)
      (finishes (setq matrix (make-matrix n m 'double :initial-element
 					 1d0)))
@@ -71,8 +81,8 @@
 
 (test make-matrix-double-3
   "set initial contents"
-  (for-all ((n (gen-integer :min 0 :max 100))
-	    (m (gen-integer :min 0 :max 100)))
+  (for-all ((n (gen-integer :min 1 :max 100))
+	    (m (gen-integer :min 1 :max 100)))
     (let ((array (random-array n m))	  
 	  matrix)
      (finishes (setq matrix (make-matrix n m 'double
@@ -86,8 +96,8 @@
 
 (test make-matrix-double-4
   "set initial contents from a list"
-  (for-all ((n (gen-integer :min 0 :max 100))
-            (m (gen-integer :min 0 :max 100)))
+  (for-all ((n (gen-integer :min 1 :max 100))
+            (m (gen-integer :min 1 :max 100)))
     (let* ((list (loop repeat n collect
                       (loop repeat m collect (random 1d0))))
            (matrix1 (make-matrix n m 'double
@@ -107,8 +117,8 @@
                   i j (mref matrix2 i j) (mref matrix1 i j))))))))
 
 (test transpose-double  
-  (for-all ((n (gen-integer :min 0 :max 100))
-	    (m (gen-integer :min 0 :max 100)))
+  (for-all ((n (gen-integer :min 0 :max 100) #+clisp (> n 0))
+	    (m (gen-integer :min 0 :max 100) #+clisp (> m 0)))
     (let ((matrix1 (make-matrix n m 'double :initial-contents
                                 (random-array n m)))
           matrix2 matrix3)
@@ -126,10 +136,10 @@
 		  i j (mref matrix3 i j) (mref matrix1 i j))))))))
 
 (test window-double
-  (for-all ((n (gen-integer :min 0 :max 100))
-            (m (gen-integer :min 0 :max 100))
-            (n2 (gen-integer :min 0 :max 100) (<= n2 n))
-            (m2 (gen-integer :min 0 :max 100) (<= m2 m))
+  (for-all ((n (gen-integer :min 0 :max 100) #+clisp (> n 0))
+            (m (gen-integer :min 0 :max 100) #+clisp (> m 0))
+            (n2 (gen-integer :min 0 :max 100) (<= n2 n) #+clisp (> n2 0))
+            (m2 (gen-integer :min 0 :max 100) (<= m2 m) #+clisp (> m2 0))
             (row-offset (gen-integer :min 0 :max 100)
                         (<= row-offset (- n n2)))
             (col-offset (gen-integer :min 0 :max 100)
@@ -164,8 +174,8 @@
                (make-matrix 1 1 'double :initial-element 0d0)))))
 
 (test setf-mref
-  (for-all ((n (gen-integer :min 0 :max 10))
-            (m (gen-integer :min 0 :max 10)))
+  (for-all ((n (gen-integer :min 0 :max 10) #+clisp (> n 0))
+            (m (gen-integer :min 0 :max 10) #+clisp (> m 0)))
    (let ((a (make-matrix n m 'double))
          (b (make-matrix n m 'double
                          :initial-contents (random-array n m))))    
@@ -223,10 +233,10 @@
                (is (test-copy-m= a b))
                (is (test-copy-m= b c))
                (is (test-copy-m= a c)))))
-    (for-all ((n (gen-integer :min 0 :max 10))
-              (m (gen-integer :min 0 :max 10))
-              (n2 (gen-integer :min 0 :max 10) (<= n2 n))
-              (m2 (gen-integer :min 0 :max 10) (<= m2 m))
+    (for-all ((n (gen-integer :min 0 :max 10) #+clisp (> n 0))
+              (m (gen-integer :min 0 :max 10) #+clisp (> m 0))
+              (n2 (gen-integer :min 0 :max 10) (and (<= n2 n) #+clisp (> n2 0)))
+              (m2 (gen-integer :min 0 :max 10) (and (<= m2 m) #+clisp (> m2 0)))
               (row-offset (gen-integer :min 0 :max 10)
                           (<= row-offset (- n n2)))
               (col-offset (gen-integer :min 0 :max 10)
