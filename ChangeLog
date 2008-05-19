@@ -1,3 +1,13 @@
+2008-05-19  Evan Monroig  <evan.monroig@gmail.com>
+
+	* experimental/element-access.lisp: add execution times
+
+	* benchmark/lisp-vs-c-aref.lisp: moved experimental benchmarks to
+	experimental/element-access.lisp
+
+	* experimental/element-access.lisp: clean up and add some
+	documentation - these are just experiments anyway
+
 2008-05-17  Evan Monroig  <evan.monroig@gmail.com>
 
 	* tests.lisp (make-matrix-double-4, make-matrix-double-3)

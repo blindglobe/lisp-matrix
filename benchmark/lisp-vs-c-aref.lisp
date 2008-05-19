@@ -107,37 +107,18 @@
 	  ;; inc-pointer might cons (it returns a new pointer).
 	  (setf B (cffi:inc-pointer B 8)))))))
 
+;;; lisp-matrix benchmark
+
 (defun lisp-matrix-vref-benchmark ()
-  (let ((a (lisp-matrix::make-vector +ASIZE+ 'lisp-matrix::double :initial-element 1d0))
+  (let ((a (make-vector +asize+ 'lisp-matrix::double :initial-element 1d0))
         (s 0d0))
     (declare (type double-float s)
-             (type lisp-matrix::vector-double a))
+             (type vector-double a))
     (dotimes (i +ASIZE+ s)
       (declare (type fixnum i))
-      (incf s (lisp-matrix::vref a i)))))
+      (incf s (vref a i)))))
 
-(defun lisp-matrix-vref-lambda-benchmark ()
-  (declare (optimize (speed 3) (safety 0) (debug 0)))
-  (let ((a (lisp-matrix::make-vector +ASIZE+ 'lisp-matrix::double :initial-element 1d0))
-        (s 0d0))
-    (declare (type double-float s)
-             (type lisp-matrix::vector-double a))
-    (let ((vref (lisp-matrix::vref-lambda a)))
-      (declare (type function vref))
-      (dotimes (i +ASIZE+ s)
-        (declare (type fixnum i))
-        (incf s (the double-float (funcall vref a i)))))))
-
-
-
-(defun matlisp-mref-benchmark ()
-  (let ((a (matlisp::ones +ASIZE+ 1))
-        (s 0d0))
-    (declare (type double-float s)
-             (type matlisp::real-matrix a))
-    (dotimes (i +ASIZE+ s)
-      (declare (type fixnum i))
-      (incf s (matlisp::mref a i)))))
+;;; matlisp benchmarks
 
 (defun matlisp-mref-benchmark ()
   (let ((a (matlisp::ones +ASIZE+ 1))
