@@ -1,3 +1,9 @@
+2008-05-20  Evan Monroig  <evan.monroig@gmail.com>
+
+	* experimental/element-access.lisp (with-fast-access): try at
+	using a higher-level macro that defines local macros to override
+	VREF and gain 10x speed.
+
 2008-05-19  Evan Monroig  <evan.monroig@gmail.com>
 
 	* experimental/element-access.lisp: add execution times
