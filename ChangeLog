@@ -1,3 +1,8 @@
+2008-06-04  Evan Monroig  <evan.monroig@gmail.com>
+
+	* experimental/matrix.lisp: started to rewrite the matrix class
+	interface to add FFA arrays as well
+
 2008-05-20  Evan Monroig  <evan.monroig@gmail.com>
 
 	* experimental/element-access.lisp (with-fast-access): try at
