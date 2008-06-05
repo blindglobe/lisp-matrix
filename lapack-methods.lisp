@@ -3,7 +3,7 @@
 ;;; This file contains actual LAPACK methods.  See functions in
 ;;; lapack-utils.lisp for how supporting utility macros and functions.
 ;;;
-;;; Time-stamp: <2008-06-05 11:17:42 Evan Monroig>
+;;; Time-stamp: <2008-06-05 11:55:30 Evan Monroig>
 
 (def-lapack-method gemm (alpha (a !matrix-type) (b !matrix-type)
                                &optional (beta 0d0) c)
@@ -108,3 +108,32 @@
          (orig-b (copy b))
          (orig-x (copy x)))
     (list x (gelsy a b rcond))))
+
+
+;;;; trying gemm with :LISP-ARRAY implementation
+
+#||
+
+(asdf:oos 'asdf:load-op 'ffa)
+
+(let* ((*default-implementation* :lisp-array)
+       (*default-element-type* 'double-float)
+       (size 2)
+       (m size) (k size) (n size)
+       (a1 (rand m k))
+       (b1 (rand k n))
+       (c1 (make-matrix m n))
+       (a2 (make-matrix m k :implementation :foreign-array
+                        :initial-contents a1))
+       (b2 (make-matrix k n :implementation :foreign-array
+                        :initial-contents b1))
+       (c2 (make-matrix m n :implementation :foreign-array)))
+  (ffa:with-pointers-to-arrays
+      (((data a1) pa :double (* m k) :copy-in)
+       ((data b1) pb :double (* k n) :copy-in)
+       ((data c1) pc :double (* m n) :copy-in-out))
+    (%dgemm "N" "N" m n k 1d0 pa m pb k 0d0 pc m))
+  (list c1
+        (gemm 1d0 a2 b2 0d0 c2)))
+
+||#

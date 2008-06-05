@@ -1,5 +1,11 @@
 2008-06-05  Evan Monroig  <evan.monroig@gmail.com>
 
+	* lapack-methods.lisp: added as commented code a basic call to
+	DGEMM using matrices based on lisp arrays
+
+	* lapack-utils.lisp: added comments on how to proceed with CFFI
+	and fortran types
+
 	* lapack-methods.lisp: updated -- works only for foreign array
 	based implementation and not for MATVIEW matrices (for this I need
 	to define a common class type that groups normal matrices and
