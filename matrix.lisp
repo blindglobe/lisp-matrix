@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-05 10:45:22 Evan Monroig>
+;;; Time-stamp: <2008-06-05 16:47:43 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -284,7 +284,7 @@
     (and (= 1 (row-stride matrix) (col-stride matrix))
          (unit-stride-p (parent matrix)))))
 
-(defmethod flatten-matrix-indices ((matrix window-matview) i j)
+(defmethod flatten-matrix-indices ((matrix strided-matview) i j)
   (flatten-matrix-indices (parent matrix)
                           (+ (row-offset matrix) (* i (row-stride matrix)))
                           (+ (col-offset matrix) (* j (col-stride matrix)))))
@@ -383,13 +383,30 @@
 ;;;;
 ;;;; We define three generic function to create the transposed,
 ;;;; windowed and strided views.  By default, the views are not tied
-;;;; to a particular inmplementation.
+;;;; to a particular implementation, but an implementation may want to
+;;;; define specific MATVIEW subclasses.  Therefore, we introduce
+;;;; generic functions to obtain the correct MATVIEW class to use.
+
+(defgeneric transpose-class (matrix)
+  (:documentation "Return the name of the class to be used for a
+  transpose of MATRIX.")
+  (:method ((matrix matrix-like)) 'transpose-matview))
+
+(defgeneric window-class (matrix)
+  (:documentation "Return the name of the class to be used for a
+  window of MATRIX.")
+  (:method ((matrix matrix-like)) 'window-matview))
+
+(defgeneric stride-class (matrix)
+  (:documentation "Return the name of the class to be used for a
+  stride of MATRIX.")
+  (:method ((matrix matrix-like)) 'strided-matview))
 
 (defgeneric transpose (parent)
   (:documentation "Creates a transpose view of the given matrix-like
   object PARENT.")
   (:method ((parent matrix-like))
-    (make-instance 'transpose-matview
+    (make-instance (transpose-class parent)
                    :parent parent
                    :nrows (ncols parent)
                    :ncols (nrows parent))))
@@ -409,7 +426,7 @@
     (check-type col-offset (integer 0))
     (assert (<= (+ row-offset nrows) (nrows parent)))
     (assert (<= (+ col-offset ncols) (ncols parent)))
-    (make-instance 'window-matview
+    (make-instance (window-class parent)
                    :parent parent
                    :nrows nrows
                    :ncols ncols
@@ -436,7 +453,7 @@
     (check-type col-stride (integer 1))
     (assert (<= (+ row-offset (* row-stride (1- nrows))) (nrows parent)))
     (assert (<= (+ col-offset (* col-stride (1- ncols))) (ncols parent)))
-    (make-instance 'strided-matview
+    (make-instance (stride-class parent)
                    :parent parent
                    :nrows nrows
                    :ncols ncols

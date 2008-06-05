@@ -1,3 +1,17 @@
+2008-06-06  Evan Monroig  <evan.monroig@gmail.com>
+
+	* matrix.lisp (flatten-matrix-indices): fixed strided-matview
+	method
+	(transpose-class, window-class, stride-class): new methods to
+	determine which class to instanciate
+
+	* matrix-lisp-array.lisp: add classes for views
+
+	* matrix-foreign-array.lisp: add classes for views
+
+	* lapack-utils.lisp (def-lapack-method): update to specialize on
+	the base class of a matrix
+
 2008-06-05  Evan Monroig  <evan.monroig@gmail.com>
 
 	* lapack-methods.lisp: added as commented code a basic call to

@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-05 14:41:04 Evan Monroig>
+;;;; Time-stamp: <2008-06-05 17:05:18 Evan Monroig>
 ;;;;
 ;;;;
 ;;;;
@@ -230,7 +230,8 @@
                  `((!function . ,(make-symbol* "%" type-letter name))
                    (!data-type . ,type)
                    (!matrix-type . ,(fa-matrix-class
-                                     (fnv-type->element-type type)))
+                                     (fnv-type->element-type type)
+                                     :base))
                    (!element-type . ,(fnv-type->element-type type)))))
             `(defmethod ,name
                  ,(sublis replacements lambda-list)

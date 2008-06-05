@@ -148,7 +148,7 @@
                     i j (mref matrix3 i j) (mref matrix1 i j)))))))))
 
 (test window-double
-  (with-implementations (:lisp-array  :foreign-array)
+  (with-implementations (:lisp-array :foreign-array)
     (for-all ((n (gen-integer :min 0 :max 100) #+clisp (> n 0))
               (m (gen-integer :min 0 :max 100) #+clisp (> m 0))
               (n2 (gen-integer :min 0 :max 100) (<= n2 n) #+clisp (> n2 0))
@@ -331,7 +331,6 @@
          (make-matrix 2 2 :initial-contents
                       '((5d0 6d0)
                         (7d0 8d0))))
-        #||
         ;; transpose A
         (check-gemm
          (transpose
@@ -473,5 +472,4 @@
           (is (m= windowed-c (window c :nrows 2 :ncols 2 :row-offset 2
                                                          :col-offset 2)))
           (is (m= (window c :nrows 2) (make-matrix 2 4)))
-          (is (m= (window c :ncols 2) (make-matrix 4 2))))
-        ||#))))
+          (is (m= (window c :ncols 2) (make-matrix 4 2))))))))
