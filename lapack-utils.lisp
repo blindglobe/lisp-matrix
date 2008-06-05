@@ -3,7 +3,7 @@
 ;;; This file contains functions and macros to help build LAPACK
 ;;; wrapper methods.
 ;;;
-;;; Time-stamp: <2008-05-11 09:13:22 Evan Monroig>
+;;; Time-stamp: <2008-06-05 11:05:36 Evan Monroig>
 ;;;
 ;;;
 ;;;
@@ -98,26 +98,30 @@ bound to the original matrices.
 The PREDICATE value may be constructed as follows: a symbol whose
 f-value is a function of one argument; a list whose car is 'OR and
 whose CDR is a list of predicates; a list whose car is 'AND and whose
-CDR is a list of predicates; T; NIL."
+CDR is a list of predicates; T; NIL.
+
+See the file `lapack-methods.lisp' for examples of use."
   (let ((gensyms (loop for form in forms collect
                       (gensym (symbol-name (first form))))))
     `(progn
        (let (,@(mapcar (lambda (form gensym)
                          (list gensym (car form)))
                        forms gensyms))
-         (let (,@(mapcar (lambda (form gensym)
-                           (destructuring-bind (variable predicate &optional copy-back-p)
-                               form
-                             (declare (ignore copy-back-p))
-                             `(,variable
-                               (copy-maybe ,gensym
-                                           ,(make-predicate predicate)))))
+         (let (,@(mapcar
+                  (lambda (form gensym)
+                    (destructuring-bind
+                          (variable predicate &optional copy-back-p)
+                        form
+                      (declare (ignore copy-back-p))
+                      `(,variable
+                        (copy-maybe ,gensym
+                                    ,(make-predicate predicate)))))
                          forms gensyms))
            ,@body
            ,@(loop for form in forms
                 for g in gensyms
                 when (third form)
-                collect `(copy-into ,(first form) ,g))))
+                collect `(copy! ,(first form) ,g))))
        ,result)))
 
 (defparameter *supported-datatypes*
@@ -153,7 +157,9 @@ See for example the definition of GEMM for how to use this macro."
           (let ((replacements
                  `((!function . ,(make-symbol* "%" type-letter name))
                    (!data-type . ,type)
-                   (!matrix-type . ,(fnv-type-to-matrix-type type :base)))))
+                   (!matrix-type . ,(fa-matrix-class
+                                     (fnv-type->element-type type)))
+                   (!element-type . ,(fnv-type->element-type type)))))
             `(defmethod ,name
                  ,(sublis replacements lambda-list)
                (with-blapack

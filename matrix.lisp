@@ -1,10 +1,14 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-04 17:11:16 Evan Monroig>
+;;; Time-stamp: <2008-06-05 10:45:22 Evan Monroig>
 
 (in-package :lisp-matrix)
 
-;;;; This is a rewrite of the matrix class interface.
+(declaim (optimize (debug 3)))
+
+;;;; This is a rewrite of the matrix class interface, in order to
+;;;; allow both foreign arrays and lisp arrays as underlying
+;;;; implementation.
 ;;;;
 ;;;; * The base MATRIX-LIKE class
 ;;;; 
@@ -217,12 +221,12 @@
 ;;;; ** Windowed matrix (WINDOW-MATVIEW)
 
 (defclass window-matview (matview)
-  ((offset0 :initarg :offset0
-            :initform 0
-            :reader offset0)
-   (offset1 :initarg :offset1
-            :initform 0
-            :reader offset1))
+  ((row-offset :initarg :row-offset
+               :initform 0
+               :reader row-offset)
+   (col-offset :initarg :col-offset
+               :initform 0
+               :reader col-offset))
   (:documentation "A WINDOW-MATVIEW views a block of elements in the
   underlying matrix that is conceptually 2-D contiguous.  If the
   underlying matrix is column-oriented, the elements in each column of
@@ -236,36 +240,36 @@
   (:method ((matrix matrix-like)) t)
   (:method ((matrix matview)) (zero-offset-p (parent matrix)))
   (:method ((matrix window-matview))
-    (and (= 0 (offset0 matrix) (offset1 matrix))
+    (and (= 0 (row-offset matrix) (col-offset matrix))
          (zero-offset-p (parent matrix)))))
 
 (defmethod flatten-matrix-indices ((matrix window-matview) i j)
   (flatten-matrix-indices (parent matrix)
-                          (+ i (offset0 matrix))
-                          (+ j (offset1 matrix))))
+                          (+ i (row-offset matrix))
+                          (+ j (col-offset matrix))))
 
-(defmethod mref ((matrix transpose-matview) i j)
+(defmethod mref ((matrix window-matview) i j)
   (mref (parent matrix)
-        (+ i (offset0 matrix))
-        (+ j (offset1 matrix))))
+        (+ i (row-offset matrix))
+        (+ j (col-offset matrix))))
 
-(defmethod (setf mref) (value (matrix transpose-matview) i j)
+(defmethod (setf mref) (value (matrix window-matview) i j)
   (setf (mref (parent matrix)
-              (+ i (offset0 matrix))
-              (+ j (offset1 matrix)))
+              (+ i (row-offset matrix))
+              (+ j (col-offset matrix)))
         value))
 
 ;;;; ** Strided matrix
 
 (defclass strided-matview (window-matview)  
-  ((stride0 :initarg :stride0
-            :initform 1
-            :reader stride0
-            :documentation "Stride in the row direction")
-   (stride1 :initarg :stride1
-            :initform 1
-            :reader stride1
-            :documentation "Stride in the column direction"))
+  ((row-stride :initarg :row-stride
+               :initform 1
+               :reader row-stride
+               :documentation "Stride in the row direction")
+   (col-stride :initarg :col-stride
+               :initform 1
+               :reader col-stride
+               :documentation "Stride in the column direction"))
   (:documentation "A STRIDED-MATVIEW views a window of the matrix with
   a particular stride in each direction (the stride can be different
   in each direction)."))
@@ -274,26 +278,26 @@
   (:documentation "Tests for \"unit stride.\" (The strided matrix view
   is the only view which causes itself and its children possibly not
   to have unit stride.)")
-  (:method ((matrix lisp-matrix)) t)
+  (:method ((matrix matrix-like)) t)
   (:method ((matrix matview)) (unit-stride-p (parent matrix)))
   (:method ((matrix strided-matview))
-    (and (= 1 (stride0 matrix) (stride1 matrix))
+    (and (= 1 (row-stride matrix) (col-stride matrix))
          (unit-stride-p (parent matrix)))))
 
 (defmethod flatten-matrix-indices ((matrix window-matview) i j)
   (flatten-matrix-indices (parent matrix)
-                          (+ (offset0 matrix) (* i (stride0 matrix)))
-                          (+ (offset1 matrix) (* j (stride1 matrix)))))
+                          (+ (row-offset matrix) (* i (row-stride matrix)))
+                          (+ (col-offset matrix) (* j (col-stride matrix)))))
 
-(defmethod mref ((matrix transpose-matview) i j)
+(defmethod mref ((matrix strided-matview) i j)
   (mref (parent matrix)
-        (+ (offset0 matrix) (* i (stride0 matrix)))
-        (+ (offset1 matrix) (* j (stride1 matrix)))))
+        (+ (row-offset matrix) (* i (row-stride matrix)))
+        (+ (col-offset matrix) (* j (col-stride matrix)))))
 
-(defmethod (setf mref) (value (matrix transpose-matview) i j)
+(defmethod (setf mref) (value (matrix strided-matview) i j)
   (setf (mref (parent matrix)
-              (+ (offset0 matrix) (* i (stride0 matrix)))
-              (+ (offset1 matrix) (* j (stride1 matrix))))
+              (+ (row-offset matrix) (* i (row-stride matrix)))
+              (+ (col-offset matrix) (* j (col-stride matrix))))
         value))
 
 ;;;; * Creating matrices
@@ -329,9 +333,10 @@
   and accessing its elements will thus return spurious values."))
 
 (defun make-matrix (nrows ncols &key
-                     (implementation *default-implementation*)
-                     (element-type *default-element-type*)
-                     initial-element initial-contents)
+                    (implementation *default-implementation*)
+                    (element-type *default-element-type*)
+                    (initial-element nil initial-element-p)
+                    (initial-contents nil initial-contents-p))
   "Create a NROWS x NCOLS matrix with
   MATRIX-IMPLEMENTATION as underlying implementation.  ELEMENT-TYPE is
   the lisp type to be stored in the matrix, and INITIAL-ELEMENT an
@@ -344,12 +349,13 @@
   matrix, by using the generic function COPY!.
 
   MATRIX-IMPLEMENTATION can be one of :LISP-ARRAY and :FOREIGN-ARRAY"
-  (when (and initial-element initial-contents)
+  (when (and initial-element-p initial-contents-p)
     (error "Both INITIAL-ELEMENT and INITIAL-CONTENTS should not be ~
     specified"))
-  (let ((matrix (make-matrix* nrows ncols implementation
-                             :element-type element-type
-                             :initial-element initial-element)))
+  (let ((matrix (apply #'make-matrix* nrows ncols implementation
+                       :element-type element-type
+                       (when initial-element-p
+                         (list :initial-element initial-element)))))
     (when initial-contents
       (copy! initial-contents matrix))
     matrix))
@@ -373,48 +379,11 @@
   (:method ((matrix matview))
     (element-type (parent matrix))))
 
-#||
-
-(defun lisp-matrix-class (matrix-implementation element-type)
-  (ecase matrix-implementation
-    (:foreign-array
-     (fnv-type-to-matrix-type (lisp-type->fnv-type element-type)
-                              :matrix))
-    (:lisp-array
-     (fnv-type->matrix-type (lisp-type->fnv-type element-type)
-                            :matrix))))
-
-(defmethod fnv-type->matrix-type ((element-type (eql 'double)) matrix-type)
-  (ecase matrix-type
-    (:matrix 'lisp-matrix-double)))
-
-||#
-
 ;;;; ** Matrix views
-
-;; FIXME: OFFSET0 and OFFSET1 should be changed to make more obvious
-;; that is is for rows and columns
-(defgeneric window (parent &key nrows ncols offset0 offset1)
-  (:documentation "Creates a window view of the given matrix-like
-  object PARENT.  Note that window views always have the same
-  orientation as their parents.")
-  (:method ((parent matrix-like) 
-            &key (nrows (nrows parent))
-            (ncols (ncols parent))
-            (offset0 0)
-            (offset1 0))
-    (check-type nrows (integer 0))
-    (check-type ncols (integer 0))
-    (check-type offset0 (integer 0))
-    (check-type offset1 (integer 0))
-    (assert (<= (+ offset0 nrows) (nrows parent)))
-    (assert (<= (+ offset1 ncols) (ncols parent)))
-    (make-instance 'window-matview
-                   :parent parent
-                   :nrows nrows
-                   :ncols ncols
-                   :offset0 offset0
-                   :offset1 offset1)))
+;;;;
+;;;; We define three generic function to create the transposed,
+;;;; windowed and strided views.  By default, the views are not tied
+;;;; to a particular inmplementation.
 
 (defgeneric transpose (parent)
   (:documentation "Creates a transpose view of the given matrix-like
@@ -425,34 +394,89 @@
                    :nrows (ncols parent)
                    :ncols (nrows parent))))
 
-(defgeneric strides (parent &key nrows ncols offset0 offset1 stride0
-                            stride1)
+(defgeneric window (parent &key nrows ncols row-offset col-offset)
+  (:documentation "Creates a window view of the given matrix-like
+  object PARENT.  Note that window views always have the same
+  orientation as their parents.")
+  (:method ((parent matrix-like) 
+            &key (nrows (nrows parent))
+            (ncols (ncols parent))
+            (row-offset 0)
+            (col-offset 0))
+    (check-type nrows (integer 0))
+    (check-type ncols (integer 0))
+    (check-type row-offset (integer 0))
+    (check-type col-offset (integer 0))
+    (assert (<= (+ row-offset nrows) (nrows parent)))
+    (assert (<= (+ col-offset ncols) (ncols parent)))
+    (make-instance 'window-matview
+                   :parent parent
+                   :nrows nrows
+                   :ncols ncols
+                   :row-offset row-offset
+                   :col-offset col-offset)))
+
+(defgeneric strides (parent &key nrows ncols row-offset col-offset row-stride
+                            col-stride)
   (:documentation "Creates a strided view of the given matrix-like
   object PARENT.")
   (:method ((parent matrix-like)
             &key 
             (nrows (nrows parent))
             (ncols (ncols parent))
-            (offset0 0)
-            (offset1 0)
-            (stride0 1)
-            (stride1 1))
+            (row-offset 0)
+            (col-offset 0)
+            (row-stride 1)
+            (col-stride 1))
     (check-type nrows (integer 0))
     (check-type ncols (integer 0))
-    (check-type offset0 (integer 0))
-    (check-type offset1 (integer 0))
-    (check-type stride0 (integer 1))
-    (check-type stride1 (integer 1))
-    (assert (<= (+ offset0 (* stride0 (1- nrows))) (nrows parent)))
-    (assert (<= (+ offset1 (* stride1 (1- ncols))) (ncols parent)))
+    (check-type row-offset (integer 0))
+    (check-type col-offset (integer 0))
+    (check-type row-stride (integer 1))
+    (check-type col-stride (integer 1))
+    (assert (<= (+ row-offset (* row-stride (1- nrows))) (nrows parent)))
+    (assert (<= (+ col-offset (* col-stride (1- ncols))) (ncols parent)))
     (make-instance 'strided-matview
                    :parent parent
                    :nrows nrows
                    :ncols ncols
-                   :offset0 offset0
-                   :offset1 offset1
-                   :stride0 stride0
-                   :stride1 stride1)))
+                   :row-offset row-offset
+                   :col-offset col-offset
+                   :row-stride row-stride
+                   :col-stride col-stride)))
+
+;;;; ** Specific matrices
+
+(defun ones (nrows ncols &key
+             (implementation *default-implementation*)
+             (element-type *default-element-type*))
+  (make-matrix nrows ncols :implementation implementation
+             :element-type element-type
+             :initial-element (coerce 1 element-type)))
+
+(defun zeros (nrows ncols &key
+             (implementation *default-implementation*)
+             (element-type *default-element-type*))
+  (make-matrix nrows ncols :implementation implementation
+             :element-type element-type
+             :initial-element (coerce 0 element-type)))
+
+(defun rand (nrows ncols &key
+             (implementation *default-implementation*)
+             (element-type *default-element-type*)
+             (state *random-state*))
+  "Create a NROWS x NCOLs matrix filled with uniformly distributed
+  pseudo-random numbers between 0 and 1."
+  ;; FIXME: doesn't work for complex types
+  (check-type state random-state)
+  (let ((matrix (make-matrix nrows ncols
+                             :implementation implementation
+                             :element-type element-type))
+        (one (coerce 1 element-type)))
+    (dotimes (i nrows)
+      (dotimes (j ncols)
+        (setf (mref matrix i j) (random one state))))
+    matrix))
 
 ;;;; * Matrix operations
 ;;;;
@@ -463,11 +487,13 @@
 
 (defgeneric copy! (a b)
   (:documentation "Copy A into B if they are not the same object, and
-  return B.  A and B should be matrices with the same dimensions."))
+  return B.  A and B should be matrices with the same dimensions, but
+  not necessarily of the same implementation."))
 
 (defmethod copy! ((a matrix-like) (b matrix-like))
   (assert (= (ncols a) (ncols b)))
   (assert (= (nrows a) (nrows b)))
+  (assert (subtypep (element-type a) (element-type b)))
   ;; FIXME: care about fast copy once everything is working
   (unless (eq a b)
     (dotimes (i (nrows a))
@@ -479,20 +505,26 @@
   (unless (and (= (array-rank a) 2)
                (= (array-dimension a 0) (nrows b))
                (= (array-dimension a 1) (ncols b)))
-    ;; FIXME: also check the type of the elements
     (error "A doesn't have the correct dimensions"))
-  (dotimes (i (nrows b))
-    (dotimes (j (ncols b))
-      (setf (mref b i j) (aref a i j))))
+  ;; We cannot directly check ARRAY-ELEMENT-TYPE because for example
+  ;; for integers it is upgraded to T, so we check the element type
+  ;; individually for each element.
+  (let ((element-type (element-type b)))
+    (dotimes (i (nrows b))
+      (dotimes (j (ncols b))
+        (assert (typep (aref a i j) element-type))
+        (setf (mref b i j) (aref a i j)))))
   b)
 
 (defmethod copy! ((a list) (b matrix-like))
   (unless (and (= (nrows b) (length a))
                (= (ncols b) (length (first a))))
     (error "A doesn't have the correct dimensions"))
-  (loop for i below (nrows b) for row in a do
-        (loop for j below (ncols b) for cell in row do
-              (setf (mref b i j) cell)))
+  (let ((element-type (element-type b)))
+   (loop for i below (nrows b) for row in a do
+         (loop for j below (ncols b) for cell in row do
+               (assert (typep cell element-type))
+               (setf (mref b i j) cell))))
   b)
 
 (defgeneric copy (matrix)
@@ -520,6 +552,8 @@
   matrix element of A and B."))
 
 (defmethod m= ((a matrix-like) (b matrix-like))
+  ;; Note: this will not work for matrices of things that are not
+  ;; numbers
   (and (= (nrows a) (nrows b))
        (= (ncols a) (ncols b))
        (dotimes (i (nrows a) t)

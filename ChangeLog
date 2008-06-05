@@ -1,3 +1,24 @@
+2008-06-05  Evan Monroig  <evan.monroig@gmail.com>
+
+	* lapack-methods.lisp: updated -- works only for foreign array
+	based implementation and not for MATVIEW matrices (for this I need
+	to define a common class type that groups normal matrices and
+	MATVIEW matrices of one implementation and one element-type)
+
+	* lapack-utils.lisp: updated
+
+	* tests.lisp: updated all tests except GEMM for MATVIEWs which
+	doesn't work
+
+	* old/fnv-matrix.lisp: moved the old implementation here
+
+	* matrix-foreign-array.lisp: implementation based on foreign
+	arrays
+
+	* matrix-lisp-array.lisp: implementation based on lisp arrays
+
+	* matrix.lisp: rewritten the matrix class interface
+
 2008-06-04  Evan Monroig  <evan.monroig@gmail.com>
 
 	* experimental/matrix.lisp: started to rewrite the matrix class

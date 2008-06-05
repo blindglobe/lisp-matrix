@@ -19,13 +19,18 @@
     ((:file "package")
      (:file "utils" :depends-on ("package"))
      (:file "macros" :depends-on ("package"))
-     (:file "fnv-matrix" :depends-on ("package" "macros" "utils"))
+     (:file "matrix" :depends-on ("package"))
+     (:file "matrix-lisp-array" :depends-on ("matrix" "utils"))
+     (:file "matrix-foreign-array" :depends-on ("matrix" "utils"))
      (:file "fnv-vector" :depends-on ("package" "macros" "utils"))
-     (:file "lapack-utils" :depends-on ("fnv-matrix" "fnv-vector"))
+     (:file "lapack-utils" :depends-on ("matrix-foreign-array"
+                                        "fnv-vector"))
      (:file "lapack-methods" :depends-on ("lapack-utils"))
-     (:file "tests" :depends-on ("fnv-matrix" "fnv-vector"
-                                              "lapack-utils"
-                                              "lapack-methods")))
+     (:file "tests" :depends-on ("matrix" "matrix-lisp-array"
+                                          "matrix-foreign-array"
+                                          "fnv-vector"
+                                          "lapack-utils"
+                                          "lapack-methods")))
     :in-order-to ((test-op (load-op lisp-matrix)))
     :perform (test-op :after (op c)
                       (funcall (intern "RUN!" 'fiveam)

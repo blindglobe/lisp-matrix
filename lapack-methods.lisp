@@ -3,13 +3,14 @@
 ;;; This file contains actual LAPACK methods.  See functions in
 ;;; lapack-utils.lisp for how supporting utility macros and functions.
 ;;;
-;;; Time-stamp: <2008-05-05 21:28:47 Evan Monroig>
+;;; Time-stamp: <2008-06-05 11:17:42 Evan Monroig>
 
 (def-lapack-method gemm (alpha (a !matrix-type) (b !matrix-type)
                                &optional (beta 0d0) c)
   (assert (= (ncols a) (nrows b)))
   (unless c
-    (setq c (make-matrix (nrows a) (ncols b) '!data-type)))
+    (setq c (make-matrix (nrows a) (ncols b)
+                         :element-type '!element-type)))
   (check-type c !matrix-type)
   (assert (= (nrows a) (nrows c)))
   (assert (= (ncols b) (ncols c)))
@@ -36,33 +37,17 @@
                (data c)
                (real-nrows c))))
 
-
 ;; (make-fnv-int32 2 :initial-value 0)
 ;; (make-fnv-int32 (ncols a) :initial-value 0)
 
-(defun fnv-type->lisp-type (fnv-type)
-  (ecase fnv-type
-    (double 'double-float)
-    (float 'single-float)
-    (complex-float '(complex single-float))
-    (complex-double '(complex double-float))))
-
-(defmethod rand (nrows ncols fnv-type)
-  "random matrix"
-  (let ((a (make-matrix nrows ncols fnv-type))
-        (one (coerce 1 (fnv-type->lisp-type fnv-type))))
-    (dotimes (i nrows a)
-      (dotimes (j ncols)
-        (setf (mref a i j)
-              (random one))))))
-
 (defmacro call-with-work ((lwork work type) call)
-  `(let ((work (make-matrix 1 1 ,type))
-         (,lwork -1))
-     ,call
-     (setq ,lwork (floor (mref ,work 0 0)))
-     (setq ,work (make-vector ,lwork ,type))
-     ,call))
+  (let ((element-type (fnv-type->element-type type)))
+    `(let ((work (make-matrix 1 1 :element-type ',element-type))
+           (,lwork -1))
+       ,call
+       (setq ,lwork (floor (mref ,work 0 0)))
+       (setq ,work (make-vector ,lwork ',type))
+       ,call)))
 
 (defun check-info (info function-name)
   (unless (= info 0)
@@ -95,7 +80,7 @@
                     b
                     (window b :nrows (ncols a)))
                 (fnv-int32-ref rank 0)))
-     (call-with-work (lwork work '!data-type)
+     (call-with-work (lwork work !data-type)
                      (!function (nrows a)
                                 (ncols a)
                                 (ncols b)
@@ -111,15 +96,15 @@
                                 info)))))
 
 #+nil
-(let* ((m 10)
-       (n 10)
-       (a (rand m n 'double))
-       (x (rand n 1 'double))
-       (b (gemm 1d0 a x))
-       (rcond (* (coerce (expt 2 -52) 'double-float)
-                 (max (nrows a) (ncols a))))
-       (orig-a (copy a))
-       (orig-b (copy b))
-       (orig-x (copy x)))
-  (list x (gelsy a b rcond)))
-
+(let ((*default-implementation* :foreign-array))
+  (let* ((m 10)
+         (n 10)
+         (a (rand m n))
+         (x (rand n 1))
+         (b (gemm 1d0 a x))
+         (rcond (* (coerce (expt 2 -52) 'double-float)
+                   (max (nrows a) (ncols a))))
+         (orig-a (copy a))
+         (orig-b (copy b))
+         (orig-x (copy x)))
+    (list x (gelsy a b rcond))))
