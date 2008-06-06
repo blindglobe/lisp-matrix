@@ -315,161 +315,180 @@
   (is (string= (datatype->letter 'complex-float) "C"))
   (is (string= (datatype->letter 'complex-double) "Z")))
 
-(test gemm
-  "Test GEMM for the case of matrices of DOUBLE-FLOATs."
+
+
+(def-suite gemm :in lapack
+           :description "tests of the GEMM function")
+
+(in-suite gemm)
+
+(defun check-gemm (a b)
+  (let ((result (make-matrix 2 2 :initial-contents
+                             '((19d0 22d0)
+                               (43d0 50d0)))))
+    (is (m= result (gemm 1d0 a b)))))
+
+(defmacro defgemm-test (name a b)
+  `(test ,name
+     (with-implementations (:foreign-array)
+       (check-gemm ,a ,b))))
+
+(defgemm-test gemm-basic-test
+    (make-matrix 2 2 :initial-contents
+                 '((1d0 2d0)
+                   (3d0 4d0)))
+  (make-matrix 2 2 :initial-contents
+               '((5d0 6d0)
+                 (7d0 8d0))))
+
+(defgemm-test gemm-transpose-a
+    (transpose
+     (make-matrix 2 2 :initial-contents
+                  '((1d0 3d0)
+                    (2d0 4d0))))
+  (make-matrix 2 2 :initial-contents
+               '((5d0 6d0)
+                 (7d0 8d0))))
+
+(defgemm-test gemm-transpose-b
+    (make-matrix 2 2 :initial-contents
+                 '((1d0 2d0)
+                   (3d0 4d0)))
+  (transpose
+   (make-matrix 2 2 :initial-contents
+                '((5d0 7d0)
+                  (6d0 8d0)))))
+
+(defgemm-test gemm-double-transpose-a
+ (transpose
+  (transpose
+   (make-matrix 2 2 :initial-contents
+                '((1d0 2d0)
+                  (3d0 4d0)))))
+ (make-matrix 2 2 :initial-contents
+              '((5d0 6d0)
+                (7d0 8d0))))
+
+(defgemm-test gemm-transpose-a-b
+ (transpose
+  (make-matrix 2 2 :initial-contents
+               '((1d0 3d0)
+                 (2d0 4d0))))
+ (transpose
+  (make-matrix 2 2 :initial-contents
+               '((5d0 7d0)
+                 (6d0 8d0)))))
+
+(defgemm-test gemm-window-a-nocopy
+ (window
+  (make-matrix 3 3 :initial-contents
+               '((1d0 2d0 0d0)
+                 (3d0 4d0 0d0)
+                 (0d0 0d0 0d0)))
+  :nrows 2 :ncols 2)
+ (make-matrix 2 2 :initial-contents
+              '((5d0 6d0)
+                (7d0 8d0))))
+
+(defgemm-test gemm-window-a-copy
+ (window
+  (make-matrix 3 3 :initial-contents
+               '((0d0 1d0 2d0)
+                 (0d0 3d0 4d0)
+                 (0d0 0d0 0d0)))
+  :nrows 2 :ncols 2 :col-offset 1)
+ (make-matrix 2 2 :initial-contents
+              '((5d0 6d0)
+                (7d0 8d0))))
+
+(defgemm-test gemm-window-b-nocopy
+ (make-matrix 2 2 :initial-contents
+              '((1d0 2d0)
+                (3d0 4d0)))
+ (window
+  (make-matrix 2 3 :initial-contents
+               '((5d0 6d0 0d0)
+                 (7d0 8d0 0d0)))
+  :ncols 2))
+
+(defgemm-test gemm-window-b-copy
+ (make-matrix 2 2 :initial-contents
+              '((1d0 2d0)
+                (3d0 4d0)))
+ (window
+  (make-matrix 3 3 :initial-contents
+               '((0d0 0d0 0d0)
+                 (5d0 6d0 0d0)
+                 (7d0 8d0 0d0)))
+  :ncols 2 :nrows 2 :row-offset 1))
+
+(defgemm-test gemm-stride-a-nocopy
+ (strides
+  (make-matrix 3 3 :initial-contents
+               '((1d0 2d0 0d0)
+                 (3d0 4d0 0d0)
+                 (0d0 0d0 0d0)))
+  :nrows 2 :ncols 2)
+ (make-matrix 2 2 :initial-contents
+              '((5d0 6d0)
+                (7d0 8d0))))
+
+(defgemm-test gemm-stride-a-copy
+ (strides
+  (make-matrix 4 3 :initial-contents
+               '((1d0 0d0 2d0)
+                 (0d0 0d0 0d0)
+                 (3d0 0d0 4d0)
+                 (0d0 0d0 0d0)))
+  :nrows 2 :ncols 2 :row-stride 2 :col-stride 2)
+ (make-matrix 2 2 :initial-contents
+              '((5d0 6d0)
+                (7d0 8d0))))
+
+(test gemm-window-c-copy
   (with-implementations (:foreign-array)
-    (let ((result (make-matrix 2 2 :initial-contents
-                               '((19d0 22d0)
-                                 (43d0 50d0)))))
-      (labels ((check-gemm (a b)
-                 (is (m= result (gemm 1d0 a b)))))
-        ;; basic test
-        (check-gemm
-         (make-matrix 2 2 :initial-contents
-                      '((1d0 2d0)
-                        (3d0 4d0)))
-         (make-matrix 2 2 :initial-contents
-                      '((5d0 6d0)
-                        (7d0 8d0))))
-        ;; transpose A
-        (check-gemm
-         (transpose
-          (make-matrix 2 2 :initial-contents
-                       '((1d0 3d0)
-                         (2d0 4d0))))
-         (make-matrix 2 2 :initial-contents
-                      '((5d0 6d0)
-                        (7d0 8d0))))
-        ;; transpose B
-        (check-gemm
-         (make-matrix 2 2 :initial-contents
-                      '((1d0 2d0)
-                        (3d0 4d0)))
-         (transpose
-          (make-matrix 2 2 :initial-contents
-                       '((5d0 7d0)
-                         (6d0 8d0)))))
-        ;; double transpose A
-        (check-gemm
-         (transpose
-          (transpose
-           (make-matrix 2 2 :initial-contents
-                        '((1d0 2d0)
-                          (3d0 4d0)))))
-         (make-matrix 2 2 :initial-contents
-                      '((5d0 6d0)
-                        (7d0 8d0))))
-        ;; transpose A and B
-        (check-gemm
-         (transpose
-          (make-matrix 2 2 :initial-contents
-                       '((1d0 3d0)
-                         (2d0 4d0))))
-         (transpose
-          (make-matrix 2 2 :initial-contents
-                       '((5d0 7d0)
-                         (6d0 8d0)))))
-        ;; window A, without copy
-        (check-gemm
-         (window
-          (make-matrix 3 3 :initial-contents
-                       '((1d0 2d0 0d0)
-                         (3d0 4d0 0d0)
-                         (0d0 0d0 0d0)))
-          :nrows 2 :ncols 2)
-         (make-matrix 2 2 :initial-contents
-                      '((5d0 6d0)
-                        (7d0 8d0))))
-        ;; window A, with copy
-        (check-gemm
-         (window
-          (make-matrix 3 3 :initial-contents
-                       '((0d0 1d0 2d0)
-                         (0d0 3d0 4d0)
-                         (0d0 0d0 0d0)))
-          :nrows 2 :ncols 2 :col-offset 1)
-         (make-matrix 2 2 :initial-contents
-                      '((5d0 6d0)
-                        (7d0 8d0))))
-        ;; window B, without copy
-        (check-gemm
-         (make-matrix 2 2 :initial-contents
-                      '((1d0 2d0)
-                        (3d0 4d0)))
-         (window
-          (make-matrix 2 3 :initial-contents
-                       '((5d0 6d0 0d0)
-                         (7d0 8d0 0d0)))
-          :ncols 2))
-        ;; window B, with copy
-        (check-gemm
-         (make-matrix 2 2 :initial-contents
-                      '((1d0 2d0)
-                        (3d0 4d0)))
-         (window
-          (make-matrix 3 3 :initial-contents
-                       '((0d0 0d0 0d0)
-                         (5d0 6d0 0d0)
-                         (7d0 8d0 0d0)))
-          :ncols 2 :nrows 2 :row-offset 1))
-        ;; stride A, without copy
-        (check-gemm
-         (strides
-          (make-matrix 3 3 :initial-contents
-                       '((1d0 2d0 0d0)
-                         (3d0 4d0 0d0)
-                         (0d0 0d0 0d0)))
-          :nrows 2 :ncols 2)
-         (make-matrix 2 2 :initial-contents
-                      '((5d0 6d0)
-                        (7d0 8d0))))
-        ;; stride A, with copy
-        (check-gemm
-         (strides
-          (make-matrix 3 3 :initial-contents
-                       '((1d0 0d0 2d0)
-                         (0d0 0d0 0d0)
-                         (3d0 0d0 4d0)
-                         (0d0 0d0 0d0)))
-          :nrows 2 :ncols 2 :row-stride 2 :col-stride 2)
-         (make-matrix 2 2 :initial-contents
-                      '((5d0 6d0)
-                        (7d0 8d0))))
-        ;; window C, without copy
-        (let* ((c (make-matrix 3 3))
-               (windowed-c (window c :nrows 2 :ncols 2)))
-          (is (eq windowed-c
-                  (gemm 1d0
-                        (make-matrix 2 2 :initial-contents
-                                     '((1d0 2d0)
-                                       (3d0 4d0)))
-                        (make-matrix 2 2 :initial-contents
-                                     '((5d0 6d0)
-                                       (7d0 8d0)))
-                        0d0
-                        windowed-c)))
-          (is (m= windowed-c result))
-          (is (m= windowed-c (window c :nrows 2 :ncols 2)))
-          (is (m= (window c :nrows 1 :row-offset 2)
-                  (make-matrix 1 3)))
-          (is (m= (window c :ncols 1 :col-offset 2)
-                  (make-matrix 3 1))))
-        ;; window C, with copy and copy back
-        (let* ((c (make-matrix 4 4))
-               (windowed-c (window c :nrows 2 :ncols 2 :row-offset 2
-                                                       :col-offset 2)))
-          (is (eq windowed-c
-                  (gemm 1d0
-                        (make-matrix 2 2 :initial-contents
-                                     '((1d0 2d0)
-                                       (3d0 4d0)))
-                        (make-matrix 2 2 :initial-contents
-                                     '((5d0 6d0)
-                                       (7d0 8d0)))
-                        0d0
-                        windowed-c)))
-          (is (m= windowed-c result))
-          (is (m= windowed-c (window c :nrows 2 :ncols 2 :row-offset 2
-                                                         :col-offset 2)))
-          (is (m= (window c :nrows 2) (make-matrix 2 4)))
-          (is (m= (window c :ncols 2) (make-matrix 4 2))))))))
+    (let* ((result (make-matrix 2 2 :initial-contents
+                                '((19d0 22d0)
+                                  (43d0 50d0))))
+           (c (zeros 3 3))
+           (windowed-c (window c :nrows 2 :ncols 2)))
+      (is (eq windowed-c
+              (gemm 1d0
+                    (make-matrix 2 2 :initial-contents
+                                 '((1d0 2d0)
+                                   (3d0 4d0)))
+                    (make-matrix 2 2 :initial-contents
+                                 '((5d0 6d0)
+                                   (7d0 8d0)))
+                    0d0
+                    windowed-c)))
+      (is (m= windowed-c result))
+      (is (m= windowed-c (window c :nrows 2 :ncols 2)))
+      (is (m= (window c :nrows 1 :row-offset 2)
+              (zeros 1 3)))
+      (is (m= (window c :ncols 1 :col-offset 2)
+              (zeros 3 1))))))
+
+(test gemm-window-c-copy-copyback
+  (with-implementations (:foreign-array)
+    (let* ((result (make-matrix 2 2 :initial-contents
+                                '((19d0 22d0)
+                                  (43d0 50d0))))
+           (c (zeros 4 4))
+           (windowed-c (window c :nrows 2 :ncols 2 :row-offset 2
+                                                   :col-offset 2)))
+      (is (eq windowed-c
+              (gemm 1d0
+                    (make-matrix 2 2 :initial-contents
+                                 '((1d0 2d0)
+                                   (3d0 4d0)))
+                    (make-matrix 2 2 :initial-contents
+                                 '((5d0 6d0)
+                                   (7d0 8d0)))
+                    0d0
+                    windowed-c)))
+      (is (m= windowed-c result))
+      (is (m= windowed-c (window c :nrows 2 :ncols 2 :row-offset 2
+                                                     :col-offset 2)))
+      (is (m= (window c :nrows 2) (zeros 2 4)))
+      (is (m= (window c :ncols 2) (zeros 4 2))))))

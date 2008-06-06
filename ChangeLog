@@ -1,5 +1,17 @@
 2008-06-06  Evan Monroig  <evan.monroig@gmail.com>
 
+	* lapack-utils.lisp (def-lapack-method): updated
+
+	* matrix-foreign-array.lisp: use DEFINE-IMPLEMENTATION and
+	DEF-LISP-MATRIX-TYPE
+
+	* matrix-lisp-array.lisp: use DEFINE-IMPLEMENTATION and
+	DEF-LISP-MATRIX-TYPE
+
+	* matrix-implementations.lisp (define-implementation)
+	(def-lisp-matrix-type): function and macro to do some bookkeeping
+	on implementations and element-types
+
 	* matrix-lisp-array.lisp (construct-la-matrix): use
 	MAKE-CLASS-HIERARCHY
 

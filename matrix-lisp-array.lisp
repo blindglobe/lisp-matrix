@@ -6,6 +6,9 @@
 ;;;; The implementation will be named :LISP-ARRAY, and specific
 ;;;; functions that we introduce will have "LA" in their name.
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (define-implementation :lisp-array "LA"))
+
 (defclass la-matrix (matrix-like) ())
 
 (defmethod implementation ((matrix la-matrix))
@@ -19,8 +22,8 @@
         value))
 
 (defmethod make-matrix* (nrows ncols
-                        (matrix-implementation (eql :lisp-array))
-                        &key element-type
+                         (matrix-implementation (eql :lisp-array))
+                         &key element-type
                          (initial-element nil initial-element-p))
   (make-instance
    (la-matrix-class element-type)
@@ -32,50 +35,21 @@
                   (list :initial-element initial-element)))))
 
 ;;;; ** Typed matrices
-;;;; 
-;;;; For classes representing typed matrices, we will base the class
-;;;; names on a name derived from the element type.  We also define
-;;;; the names as lisp types, and define two functions to convert
-;;;; between lisp types and names.
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
- (defvar *la-name-table* nil
-   "Table associating LA-NAMEs to their corresponding lisp type.  These
-  names are used in the class names of matrices subclassing LA-MATRIX,
-  and the lisp type is the element-type of the matrices.")
 
- (defun element-type->la-name (element-type)
-   "Return the LA-NAME corresponding to the lisp type ELEMENT-TYPE."
-   (car (rassoc element-type *la-name-table* :test #'equal)))
-
- (defun la-name->element-type (la-name)
-   "Return the lisp type corresponding to LA-NAME."
-   (cdr (assoc la-name *la-name-table*)))
-
- (defun la-matrix-class (element-type &optional (type :simple))
-   "Return the LA-MATRIX class name corresponding to ELEMENT-TYPE."
-   (matrix-class type "LA" (element-type->la-name element-type))))
-
-;;;; We now introduce a macro to construct the typed matrices.
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro construct-la-matrix (la-type element-type)
+  (defun la-matrix-class (element-type &optional (type :simple))
+    "Return the LA-MATRIX class name corresponding to ELEMENT-TYPE."
+    (matrix-class type :lisp-array element-type))
+  
+  (defmacro construct-la-matrix (element-type)
     "Construct a matrix class holding elements of type ELEMENT-TYPE
-    based on lisp arrays.  LA-TYPE is the name that will be used to
-    identify the element-type."
-    (pushnew (cons la-type element-type) *la-name-table*
-             :test #'equal)
-    (let* ((la-type-name
-            (symbol-name (element-type->la-name element-type)))
-           (la-typed-class (matrix-class :simple "LA" la-type-name))
-           (la-typed-base-class (matrix-class :base "LA"
-                                              la-type-name)))
+    based on lisp arrays."
+    (let* ((la-typed-class (la-matrix-class element-type :simple))
+           (la-typed-base-class (la-matrix-class element-type :base)))
       `(progn
-         ,(unless (eql la-type element-type)
-                  `(deftype ,la-type () ',element-type))
 
-         (make-class-hierarchy :lisp-array "LA" ,element-type
-                               ,la-type-name)
+         (make-class-hierarchy :lisp-array ,element-type)
          
          (defclass ,la-typed-class (,la-typed-base-class)
            ((data :initarg :data
@@ -85,12 +59,12 @@
                   holding the elements."))
            (:documentation ,(format nil "Dense matrix holding ~
            elements of type ~A, implemented as a lisp array."
-                                    element-type)))))))
+           element-type)))))))
 
-(construct-la-matrix double double-float)
-(construct-la-matrix single single-float)
-(construct-la-matrix complex-single (complex single-float))
-(construct-la-matrix complex-double (complex double-float))
-(construct-la-matrix fixnum fixnum)
-(construct-la-matrix integer integer)
-(construct-la-matrix t t)
+(construct-la-matrix double-float)
+(construct-la-matrix single-float)
+(construct-la-matrix (complex single-float))
+(construct-la-matrix (complex double-float))
+(construct-la-matrix fixnum)
+(construct-la-matrix integer)
+(construct-la-matrix t)

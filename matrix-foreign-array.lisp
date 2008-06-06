@@ -7,6 +7,9 @@
 ;;;; implementation will be named :FOREIGN-ARRAY, and specific
 ;;;; functions that we introduce will have "FA" in their name.
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (define-implementation :foreign-array "FA"))
+
 (defclass fa-matrix (matrix-like) ())
 
 (defmethod implementation ((matrix fa-matrix))
@@ -19,7 +22,7 @@
                   :initial-element initial-element))
 
 (defgeneric make-fa-matrix (nrows ncols fnv-type
-                                       &key initial-element)
+                                  &key initial-element)
   (:documentation "Same as MAKE-MATRIX*, but specific to matrix of
   implementation :FOREIGN-ARRAY and specialize on FNV-TYPE."))
 
@@ -42,23 +45,18 @@
 
   (defun element-type->fnv-type (element-type)
     "Return the FNV type corresponding to ELEMENT-TYPE."
-    (car (rassoc element-type *fnv-type-table* :test #'equal))))
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
+    (car (rassoc element-type *fnv-type-table* :test #'equal)))
   
-  (defmacro construct-fa-matrix (fnv-type)
-    (let* ((element-type (fnv-type->element-type fnv-type))
-           (fnv-type-name (symbol-name fnv-type))
-           (fa-typed-class (matrix-class :simple "FA" fnv-type-name))
-           (fa-typed-base-class (matrix-class :base "FA"
-                                              fnv-type-name))
+  (defmacro construct-fa-matrix (element-type)
+    (let* ((fnv-type (element-type->fnv-type element-type))
+           (fa-typed-class (matrix-class :simple :foreign-array element-type))
+           (fa-typed-base-class (matrix-class :base :foreign-array element-type))
            (fnv-class (make-symbol* "FNV-" fnv-type))
            (fnv-ref (make-symbol* "FNV-" fnv-type "-REF"))
            (make-fnv (make-symbol* "MAKE-FNV-" fnv-type)))
       `(progn
          
-         (make-class-hierarchy :foreign-array "FA" ,element-type
-                               ,(symbol-name fnv-type))
+         (make-class-hierarchy :foreign-array ,element-type)
          
          (defclass ,fa-typed-class (,fa-typed-base-class)
            ((data :initarg :data
@@ -87,7 +85,7 @@
              (make-instance ',fa-typed-class :nrows nrows :ncols ncols
                             :data data)))))))
 
-(construct-fa-matrix double)
-(construct-fa-matrix float)
-(construct-fa-matrix complex-double)
-(construct-fa-matrix complex-float)
+(construct-fa-matrix single-float)
+(construct-fa-matrix double-float)
+(construct-fa-matrix (complex single-float))
+(construct-fa-matrix (complex double-float))

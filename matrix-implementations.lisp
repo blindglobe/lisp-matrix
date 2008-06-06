@@ -4,6 +4,78 @@
 ;;;;
 ;;;; * Define implementations
 ;;;;
+;;;; ** Implementation
+;;;;
+;;;; We will introduce a simple function DEFINE-IMPLEMENTATION to
+;;;; maintain a list of available implementations, and also keep some
+;;;; information on them.  For now, we will only store the short name
+;;;; of the implementation that is used in class prefixes.
+
+(defvar *implementations* nil
+  "Table of available implementations.")
+
+(defun implementation-short-name (implementation)
+  (cdr (assoc implementation *implementations*)))
+
+(defun define-implementation (keyword short-name)
+  "Define an implementation named KEYWORD and with SHORT-NAME (a
+  string) as abbreviated name."
+  (pushnew (cons keyword short-name) *implementations*
+           :test #'equal))
+
+;;;; ** Element types
+;;;;
+;;;; Although some lisp types are symbols, such as 'DOUBLE-FLOAT, some
+;;;; others are lists, such as '(COMPLEX DOUBLE-FLOAT).  In our matrix
+;;;; classes, we sometimes want to have generic functions specializing
+;;;; on an element-type argument using EQL, so it should be a symbol.
+;;;; Also, we would like to unify the matrix class names by having
+;;;; typed matrices names containing a description of the element
+;;;; type.
+;;;;
+;;;; To solve these two problems, we will define a correspondence
+;;;; between lisp types and symbols representing these lisp types.  We
+;;;; will call such symbols lisp-matrix types by opposition to lisp
+;;;; types.
+;;;
+;;;; For each symbol thus created, we create a type of the
+;;;; corresponding name if it does not already exist, and we provide
+;;;; functions to associate a lisp type to a lisp-matrix type.
+
+(defvar *lisp-matrix-type-table* nil
+  "Table associating LISP-MATRIX-TYPEs to their corresponding lisp type.
+  These names are used in the class names of typed matrices, for which
+  the lisp type is the element-type of the matrices.")
+
+(defun lisp-type->lisp-matrix-type (lisp-type)
+  "Return the LISP-MATRIX-TYPE corresponding to the lisp type LISP-TYPE."
+  (car (rassoc lisp-type *lisp-matrix-type-table* :test #'equal)))
+
+(defun lisp-matrix-type->lisp-type (lisp-matrix-type)
+  "Return the lisp type corresponding to LISP-MATRIX-TYPE."
+  (cdr (assoc lisp-matrix-type *lisp-matrix-type-table*)))
+
+(defmacro def-lisp-matrix-type (name type)
+  "Define a new lisp-matrix type of name NAME from the lisp type
+  TYPE."
+  (check-type name symbol)
+  `(progn
+     (pushnew (cons ',name ',type) *lisp-matrix-type-table*
+              :test #'equal)
+           
+     ,(unless (eql name type)
+              `(deftype ,name () ',type))))
+
+(def-lisp-matrix-type single single-float)
+(def-lisp-matrix-type double double-float)
+(def-lisp-matrix-type complex-single (complex single-float))
+(def-lisp-matrix-type complex-double (complex double-float))
+(def-lisp-matrix-type fixnum fixnum)
+(def-lisp-matrix-type integer integer)
+(def-lisp-matrix-type t t)
+
+;;;; ** Matrix classes
+;;;;
 ;;;; In order to avoid code duplication in implementation, we
 ;;;; introduce a macro that will build classes for the matrix views.
 ;;;;
@@ -23,43 +95,45 @@
 ;;;; IMPL-SIMPLE-MATRIX-ET, and the following macro takes care of the
 ;;;; other classes, and implements also the method ELEMENT-TYPE.
 
-(defun matrix-class (class-type &optional implementation-shortname
-                     element-type-shortname)
+(defun matrix-class (class-type &optional implementation element-type)
   "Return the matrix class name corresponding to CLASS-TYPE.  When
   IMPLEMENTATION-SHORTNAME is given, it gives the class for the given
   implementation, and when ELEMENT-TYPE-SHORTNAME is given, a
   specialized class for that element type."
-  (let ((type-string
-         (ecase class-type
-           (:base "MATRIX")
-           (:simple "SIMPLE-MATRIX")
-           (:matview "MATVIEW")
-           (:transpose "TRANSPOSE-MATVIEW")
-           (:window "WINDOW-MATVIEW")
-           (:strided "STRIDED-MATVIEW"))))
-   (cond ((and implementation-shortname element-type-shortname)
-          (make-symbol* implementation-shortname "-" type-string "-"
-                        element-type-shortname))
-         (implementation-shortname
-          (make-symbol* implementation-shortname "-" type-string))
-         (element-type-shortname
-          (make-symbol* type-string "-" element-type-shortname))
-         (t
-          (make-symbol* type-string)))))
+  (let ((is (when implementation
+              (implementation-short-name implementation)))
+        (es (when element-type
+              (symbol-name (lisp-type->lisp-matrix-type element-type)))))
+    (let ((type-string
+           (ecase class-type
+             (:base "MATRIX")
+             (:simple "SIMPLE-MATRIX")
+             (:matview "MATVIEW")
+             (:transpose "TRANSPOSE-MATVIEW")
+             (:window "WINDOW-MATVIEW")
+             (:strided "STRIDED-MATVIEW"))))
+      (cond ((and is es)
+             (make-symbol* is "-" type-string "-" es))
+            (is
+             (make-symbol* is "-" type-string))
+            (es
+             (make-symbol* type-string "-" es))
+            (t
+             (make-symbol* type-string))))))
 
-(defmacro make-class-hierarchy (implementation
-                                implementation-shortname
-                                element-type
-                                element-type-shortname)
-  (let* ((is implementation-shortname)
-         (es element-type-shortname)
-         (impl-base-class (matrix-class :base is nil))
-         (typed-base-class (matrix-class :base nil es))
-         (typed-impl-base-class (matrix-class :base is es))
-         (typed-class (matrix-class :simple is es))
-         (typed-transpose-class (matrix-class :transpose is es))
-         (typed-window-class (matrix-class :window is es))
-         (typed-strided-class (matrix-class :strided is es)))
+(defmacro make-class-hierarchy (implementation element-type)
+  (let* ((impl-base-class (matrix-class :base implementation nil))
+         (typed-base-class (matrix-class :base nil element-type))
+         (typed-impl-base-class
+          (matrix-class :base implementation element-type))
+         (typed-class
+          (matrix-class :simple implementation element-type))
+         (typed-transpose-class
+          (matrix-class :transpose implementation element-type))
+         (typed-window-class
+          (matrix-class :window implementation element-type))
+         (typed-strided-class
+          (matrix-class :strided implementation element-type)))
     `(progn
 
        (defclass ,typed-base-class (matrix-like)

@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-05 16:47:43 Evan Monroig>
+;;; Time-stamp: <2008-06-06 11:40:14 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -468,15 +468,15 @@
              (implementation *default-implementation*)
              (element-type *default-element-type*))
   (make-matrix nrows ncols :implementation implementation
-             :element-type element-type
-             :initial-element (coerce 1 element-type)))
+               :element-type element-type
+               :initial-element (coerce 1 element-type)))
 
 (defun zeros (nrows ncols &key
-             (implementation *default-implementation*)
-             (element-type *default-element-type*))
+              (implementation *default-implementation*)
+              (element-type *default-element-type*))
   (make-matrix nrows ncols :implementation implementation
-             :element-type element-type
-             :initial-element (coerce 0 element-type)))
+               :element-type element-type
+               :initial-element (coerce 0 element-type)))
 
 (defun rand (nrows ncols &key
              (implementation *default-implementation*)
@@ -538,10 +538,10 @@
                (= (ncols b) (length (first a))))
     (error "A doesn't have the correct dimensions"))
   (let ((element-type (element-type b)))
-   (loop for i below (nrows b) for row in a do
-         (loop for j below (ncols b) for cell in row do
-               (assert (typep cell element-type))
-               (setf (mref b i j) cell))))
+    (loop for i below (nrows b) for row in a do
+          (loop for j below (ncols b) for cell in row do
+                (assert (typep cell element-type))
+                (setf (mref b i j) cell))))
   b)
 
 (defgeneric copy (matrix)

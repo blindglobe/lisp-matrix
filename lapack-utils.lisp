@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-06 09:43:17 Evan Monroig>
+;;;; Time-stamp: <2008-06-06 11:39:55 Evan Monroig>
 ;;;;
 ;;;;
 ;;;;
@@ -174,7 +174,7 @@
 
   See the file `lapack-methods.lisp' for examples of use."
   (let ((gensyms (loop for form in forms collect
-                      (gensym (symbol-name (first form))))))
+                       (gensym (symbol-name (first form))))))
     `(progn
        (let (,@(mapcar (lambda (form gensym)
                          (list gensym (car form)))
@@ -188,12 +188,12 @@
                       `(,variable
                         (copy-maybe ,gensym
                                     ,(make-predicate predicate)))))
-                         forms gensyms))
+                  forms gensyms))
            ,@body
            ,@(loop for form in forms
-                for g in gensyms
-                when (third form)
-                collect `(copy! ,(first form) ,g))))
+                   for g in gensyms
+                   when (third form)
+                   collect `(copy! ,(first form) ,g))))
        ,result)))
 
 (defparameter *supported-datatypes*
@@ -225,17 +225,18 @@
   ;; Evan Monroig 2008-05-04
   `(progn
      ,@(loop for (type . type-letter) in *supported-datatypes*
-          collect
-          (let ((replacements
-                 `((!function . ,(make-symbol* "%" type-letter name))
-                   (!data-type . ,type)
-                   (!matrix-type . ,(matrix-class :base "FA"
-                                                  (symbol-name type)))
-                   (!element-type . ,(fnv-type->element-type type)))))
-            `(defmethod ,name
-                 ,(sublis replacements lambda-list)
-               (with-blapack
-                 ,@(sublis replacements body)))))))
+             collect
+             (let* ((element-type (fnv-type->element-type type))
+                    (replacements
+                     `((!function . ,(make-symbol* "%" type-letter name))
+                       (!data-type . ,type)
+                       (!element-type . ,element-type)
+                       (!matrix-type . ,(matrix-class :base :foreign-array
+                                                      element-type)))))
+               `(defmethod ,name
+                    ,(sublis replacements lambda-list)
+                  (with-blapack
+                    ,@(sublis replacements body)))))))
 
 (defun orientation->letter (orientation)
   "Return the LAPACK letter corresponding to ORIENTATION."
