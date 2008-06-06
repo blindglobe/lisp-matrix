@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-06 15:25:55 Evan Monroig>
+;;;; Time-stamp: <2008-06-06 16:52:53 Evan Monroig>
 ;;;;
 ;;;;
 ;;;;
@@ -189,8 +189,9 @@
                         form
                       (declare (ignore copy-back-p))
                       `(,variable
-                        (copy-maybe ,gensym
-                                    ,(make-predicate predicate)))))
+                        (copy-maybe* ,gensym
+                                     ,(make-predicate predicate)
+                                     *default-implementation*))))
                   forms gensyms))
            ,@body
            ,@(loop for form in forms
@@ -200,27 +201,41 @@
        ,result)))
 
 #+sbcl
-(defmacro with-pinned-objects ((&rest objects) &body body)
-  `(sb-sys:with-pinned-objects (,@objects) ,@body))
+(defmacro with-pinned-arrays ((&rest arrays) &body body)
+  `(sb-sys:with-pinned-objects (,@arrays) ,@body))
 
 #+cmu
-(defmacro with-pinned-objects ((&rest objects) &body body)
-  (declare (ignore objects))
+(defmacro with-pinned-arrays ((&rest arrays) &body body)
+  (declare (ignore arrays))
   `(sys:without-gcing ,@body))
 
 #-(or sbcl cmu)
-(defmacro with-pinned-objects ((&rest objects) &body body)
-  (declare (ignore objects))
-  (warn "Don't know how to pin objects for this lisp.")
+(defmacro with-pinned-arrays ((&rest arrays) &body body)
+  (declare (ignore arrays))
+  (error "Don't know how to pin arrays for this lisp.")
   `(progn ,@body))
 
+#+(or sbcl cmu)
 (defmacro with-pinned-copies ((&rest forms) result &body body)
   (labels ((form->data (form)
              `(data ,(car form))))
    `(with-copies ,forms
         ,result
-      (with-pinned-objects ,(mapcar #'form->data forms)
+      (with-pinned-arrays ,(mapcar #'form->data forms)
         ,@body))))
+
+#-(or sbcl cmu)
+(defmacro with-pinned-copies ((&rest forms) result &body body)
+  (warn "Don't know how to pin matrices for this lisp, so they will ~
+  be converted to foreign matrices instead.")
+  (labels ((always-copy (form)
+             `(,(car form) t ,(third form))))
+    `(let ((*default-implementation* :foreign-array)) ; so that copies
+                                        ; are foreign
+                                        ; matrices
+       (with-copies ,(mapcar #'always-copy forms)
+           ,result
+         ,@body))))
 
 (defparameter *supported-datatypes*
   '((float . "S")
@@ -319,6 +334,7 @@
 
 #-(or sbcl cmu)
 (defun la-matrix->pointer (matrix)
+  (declare (ignore matrix))
   (error "Don't know how to pass a lisp array to a foreign function ~
   for this lisp."))
 

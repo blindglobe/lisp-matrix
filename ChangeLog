@@ -1,5 +1,17 @@
 2008-06-06  Evan Monroig  <evan.monroig@gmail.com>
 
+	* lapack-utils.lisp (with-pinned-copies): copy all matrices to
+	foreign arrays for those lisps for which arrays cannot be pinned
+	(with-copies): copy using *DEFAULT-IMPLEMENTATION* as the target
+	matrix implementation
+
+	* matrix-lisp-array.lisp (make-matrix*, la-default-value): work
+	around CLISP array initialization to NIL
+
+	* matrix.lisp (copy*, copy-maybe*): versions where we specify the
+	implementation
+	(fill-matrix): newly added
+
 	* tests.lisp: all tests now work for :FOREIGN-ARRAY and
 	:LISP-ARRAY implementations
 

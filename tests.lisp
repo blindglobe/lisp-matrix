@@ -62,6 +62,11 @@
     (finishes (make-matrix 0 1))
     (finishes (make-matrix 1 0)))
   #+clisp
+  (for-implementations (:lisp-array)
+    (finishes (make-matrix 0 0))
+    (finishes (make-matrix 0 1))
+    (finishes (make-matrix 1 0)))
+  #+clisp
   (fiveam:skip "matrix with zero size don't work in CLISP"))
 
 (test make-matrix-double-1

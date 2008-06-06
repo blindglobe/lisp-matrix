@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-06 11:40:14 Evan Monroig>
+;;; Time-stamp: <2008-06-06 16:43:44 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -544,23 +544,41 @@
                 (setf (mref b i j) cell))))
   b)
 
-(defgeneric copy (matrix)
-  (:documentation "Return a deep copy of MATRIX with the same
-  implementation and element-type.")
-  (:method ((matrix matrix-like))
+(declaim (inline copy))
+(defun copy (matrix)
+  "Return a deep copy of MATRIX with the same implementation and
+  element-type."
+  (copy* matrix (implementation matrix)))
+
+(defgeneric copy* (matrix implementation)
+  (:documentation "Same as COPY but specify the implementation.")
+  (:method ((matrix matrix-like) implementation)
     (make-matrix (nrows matrix) (ncols matrix)
-                 :implementation (implementation matrix)
+                 :implementation implementation
                  :element-type (element-type matrix)
                  :initial-contents matrix)))
 
-(defgeneric copy-maybe (matrix test)
-  (:documentation "Return a deep copy of MATRIX if TEST is satisfied,
-  or return MATRIX itself.  TEST is a function of one argument that
-  will be applied to MATRIX.")
-  (:method ((matrix matrix-like) test)
-    (if (funcall test matrix)
-        (copy matrix)
-        matrix)))
+(declaim (inline copy-maybe))
+(defun copy-maybe (matrix test)
+  "Return a deep copy of MATRIX if TEST is satisfied, or return MATRIX
+  itself.  TEST is a function of one argument that will be applied to
+  MATRIX."
+  (copy-maybe* matrix test (implementation matrix)))
+
+(defun copy-maybe* (matrix test implementation)
+  "Same as COPY-MAYBE but specify the implementation."
+  (if (funcall test matrix)
+      (copy* matrix implementation)
+      matrix))
+
+(defgeneric fill-matrix (matrix fill-element)
+  (:documentation "Set each element of MATRIX to FILL-ELEMENT.")
+  (:method :before ((matrix matrix-like) fill-element)
+    (assert (typep fill-element (element-type matrix))))
+  (:method ((matrix matrix-like) fill-element)
+    (dotimes (i (nrows matrix))
+      (dotimes (j (ncols matrix))
+        (setf (mref matrix i j) fill-element)))))
 
 ;;;; ** Equality
 

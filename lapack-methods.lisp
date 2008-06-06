@@ -3,7 +3,7 @@
 ;;; This file contains actual LAPACK methods.  See functions in
 ;;; lapack-utils.lisp for how supporting utility macros and functions.
 ;;;
-;;; Time-stamp: <2008-06-06 15:32:16 Evan Monroig>
+;;; Time-stamp: <2008-06-06 16:40:12 Evan Monroig>
 
 (def-lapack-method gemm (alpha (a !matrix-type) (b !matrix-type)
                                &optional (beta 0d0) c)
@@ -107,5 +107,3 @@
          (orig-b (copy b))
          (orig-x (copy x)))
     (list x (gelsy a b rcond))))
-
-

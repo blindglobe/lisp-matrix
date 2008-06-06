@@ -34,6 +34,40 @@
                 (when initial-element-p
                   (list :initial-element initial-element)))))
 
+;;;; Also, some lisps (e.g., CLISP) fill the matrix with NIL if we
+;;;; don't provide INITIAL-ELEMENT or an INITIAL-CONTENTS, so for
+;;;; those we add an :AROUND method to make sure that the element
+;;;; satisfies the element-type.
+
+#+clisp
+(defmethod make-matrix* :around
+    (nrows ncols (matrix-implementation (eql :lisp-array))
+           &key element-type initial-element)
+  (declare (ignore initial-element))
+  (let ((matrix (call-next-method)))
+    (unless (or (zerop nrows)
+                (zerop ncols)
+                (typep (mref matrix 0 0) element-type))
+      (fill-matrix matrix (la-default-value element-type)))
+    matrix))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar *la-default-value-table* nil
+    "Table of default element types."))
+
+(defun la-default-value (element-type)
+  "Default value for a given ELEMENT-TYPE."
+  (cdr (assoc element-type *la-default-value-table* :test #'equal)))
+
+(defun add-la-default-value (element-type value)
+  "Add VALUE as default value for ELEMENT-TYPE."
+  (pushnew (cons element-type value)
+           *la-default-value-table* :test #'equal))
+
+(defmethod fill-matrix ((matrix la-matrix) fill-element)
+  (fill (data matrix) fill-element)
+  matrix)
+
 ;;;; ** Typed matrices
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -42,13 +76,15 @@
     "Return the LA-MATRIX class name corresponding to ELEMENT-TYPE."
     (matrix-class type :lisp-array element-type))
   
-  (defmacro construct-la-matrix (element-type)
+  (defmacro construct-la-matrix (element-type default-value)
     "Construct a matrix class holding elements of type ELEMENT-TYPE
     based on lisp arrays."
     (let* ((la-typed-class (la-matrix-class element-type :simple))
            (la-typed-base-class (la-matrix-class element-type :base)))
       `(progn
 
+         (add-la-default-value ',element-type ,default-value)
+         
          (make-class-hierarchy :lisp-array ,element-type)
          
          (defclass ,la-typed-class (,la-typed-base-class)
@@ -61,10 +97,10 @@
            elements of type ~A, implemented as a lisp array."
            element-type)))))))
 
-(construct-la-matrix double-float)
-(construct-la-matrix single-float)
-(construct-la-matrix (complex single-float))
-(construct-la-matrix (complex double-float))
-(construct-la-matrix fixnum)
-(construct-la-matrix integer)
-(construct-la-matrix t)
+(construct-la-matrix single-float 0.0)
+(construct-la-matrix double-float 0d0)
+(construct-la-matrix (complex single-float) #C(0.0 0.0))
+(construct-la-matrix (complex double-float) #C(0d0 0d0))
+(construct-la-matrix fixnum 0)
+(construct-la-matrix integer 0)
+(construct-la-matrix t nil)
