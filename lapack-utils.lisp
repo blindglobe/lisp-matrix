@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-06 11:39:55 Evan Monroig>
+;;;; Time-stamp: <2008-06-06 15:25:55 Evan Monroig>
 ;;;;
 ;;;;
 ;;;;
@@ -129,6 +129,9 @@
 ;;;; doing the conversions ourselves instead of going through the
 ;;;; macro DEFCFUN.
 
+;; FIXME: I just added a nice mess (WITH-PINNED-OBJECTS,
+;; LA-MATRIX->POINTER and TRANSLATE-TO-FOREIGN).  Clean this.
+
 (defun make-predicate (form)
   "From an expression combining predicates, construct a function of
   one argument that evaluates the logical expression on the element,
@@ -196,6 +199,29 @@
                    collect `(copy! ,(first form) ,g))))
        ,result)))
 
+#+sbcl
+(defmacro with-pinned-objects ((&rest objects) &body body)
+  `(sb-sys:with-pinned-objects (,@objects) ,@body))
+
+#+cmu
+(defmacro with-pinned-objects ((&rest objects) &body body)
+  (declare (ignore objects))
+  `(sys:without-gcing ,@body))
+
+#-(or sbcl cmu)
+(defmacro with-pinned-objects ((&rest objects) &body body)
+  (declare (ignore objects))
+  (warn "Don't know how to pin objects for this lisp.")
+  `(progn ,@body))
+
+(defmacro with-pinned-copies ((&rest forms) result &body body)
+  (labels ((form->data (form)
+             `(data ,(car form))))
+   `(with-copies ,forms
+        ,result
+      (with-pinned-objects ,(mapcar #'form->data forms)
+        ,@body))))
+
 (defparameter *supported-datatypes*
   '((float . "S")
     (double . "D")
@@ -225,18 +251,29 @@
   ;; Evan Monroig 2008-05-04
   `(progn
      ,@(loop for (type . type-letter) in *supported-datatypes*
-             collect
+             append
              (let* ((element-type (fnv-type->element-type type))
-                    (replacements
+                    (fa-replacements
                      `((!function . ,(make-symbol* "%" type-letter name))
                        (!data-type . ,type)
                        (!element-type . ,element-type)
                        (!matrix-type . ,(matrix-class :base :foreign-array
-                                                      element-type)))))
-               `(defmethod ,name
-                    ,(sublis replacements lambda-list)
-                  (with-blapack
-                    ,@(sublis replacements body)))))))
+                                                      element-type))))
+                    (la-replacements
+                     `((!function . ,(make-symbol* "%" type-letter name))
+                       (!data-type . ,type)
+                       (!element-type . ,element-type)
+                       (!matrix-type . ,(matrix-class :base :lisp-array
+                                                      element-type))
+                       (with-copies . with-pinned-copies))))
+               `((defmethod ,name
+                     ,(sublis fa-replacements lambda-list)
+                   (with-blapack
+                     ,@(sublis fa-replacements body)))
+                 (defmethod ,name
+                     ,(sublis la-replacements lambda-list)
+                   (with-blapack
+                     ,@(sublis la-replacements body))))))))
 
 (defun orientation->letter (orientation)
   "Return the LAPACK letter corresponding to ORIENTATION."
@@ -248,3 +285,116 @@
   "Return the LAPACK letter corresponding to the orientation of
   MATRIX."
   (orientation->letter (orientation matrix)))
+
+
+
+(defmethod translate-to-foreign ((val fa-matrix-single)
+                                 (name fnv::cffi-fnv-float-type))
+  (fnv-foreign-pointer (data val)))
+
+(defmethod translate-to-foreign ((val fa-matrix-double)
+                                 (name fnv::cffi-fnv-double-type))
+  (fnv-foreign-pointer (data val)))
+
+(defmethod translate-to-foreign ((val fa-matrix-complex-single)
+                                 (name fnv::cffi-fnv-complex-float-type))
+  (fnv-foreign-pointer (data val)))
+
+(defmethod translate-to-foreign ((val fa-matrix-complex-double)
+                                 (name fnv::cffi-fnv-complex-double-type))
+  (fnv-foreign-pointer (data val)))
+
+#+sbcl
+(defun la-matrix->pointer (matrix)
+  (sb-sys:vector-sap (data matrix)))
+
+#+cmu
+(defun la-matrix->pointer (matrix)
+  (sys:vector-sap (data matrix))
+  ;; FIXME: later add an offset
+  #+(or)
+  (cffi:inc-pointer (sys:vector-sap (data matrix))
+                    (* index-offset
+                       (cffi:foreign-type-size cffi-type))))
+
+#-(or sbcl cmu)
+(defun la-matrix->pointer (matrix)
+  (error "Don't know how to pass a lisp array to a foreign function ~
+  for this lisp."))
+
+(defmethod translate-to-foreign ((val la-matrix-single)
+                                 (name fnv::cffi-fnv-float-type))
+  (la-matrix->pointer val))
+
+(defmethod translate-to-foreign ((val la-matrix-double)
+                                 (name fnv::cffi-fnv-double-type))
+  (la-matrix->pointer val))
+
+(defmethod translate-to-foreign ((val la-matrix-complex-single)
+                                 (name fnv::cffi-fnv-complex-float-type))
+  (la-matrix->pointer val))
+
+(defmethod translate-to-foreign ((val la-matrix-complex-double)
+                                 (name fnv::cffi-fnv-complex-double-type))
+  (la-matrix->pointer val))
+
+
+#||
+
+;; This is test code to define a CFFI type and have cffi expand the
+;; type conversion inline
+
+(asdf:oos 'asdf:load-op 'ffa)
+(asdf:oos 'asdf:load-op 'cl-utilities)
+
+(import '(blapack-cffi-types:fortran-int
+          blapack-cffi-types:fortran-double))
+
+(define-foreign-type lisp-array-double-type
+    ()
+  ()
+  (:ACTUAL-TYPE :POINTER)
+  (:SIMPLE-PARSER lisp-array-double))
+
+(defmethod expand-to-foreign-dyn (value var body
+                                  (type lisp-array-double-type))
+  (cl-utilities:once-only (value)
+   `(ffa:with-pointer-to-array ((data ,value) ,var :double (nelts
+                                  ,value) :copy-in)
+      ,@body)))
+
+(defmethod gemm (alpha (a la-matrix-double) (b la-matrix-double)
+                 &optional (beta 0d0) c)
+  (assert (= (ncols a) (nrows b)))
+  (if c
+      (progn
+        (check-type c la-matrix-double)
+        (assert (= (nrows a) (nrows c)))
+        (assert (= (ncols b) (ncols c))))
+      (setq c (make-matrix (nrows a) (ncols b)
+                           :element-type '!element-type)))
+  (with-copies ((a (or (not unit-stride-p)
+                       (not zero-offset-p)))
+                (b (or (not unit-stride-p)
+                       (not zero-offset-p)))
+                (c (or (not unit-stride-p)
+                       (not zero-offset-p)
+                       transposed-p)
+                   t))
+      c
+    (foreign-funcall "dgemm_"
+                     :string (orientation-letter a)
+                     :string (orientation-letter b)
+                     fortran-int (nrows a)
+                     fortran-int (ncols b)
+                     fortran-int (ncols a)
+                     fortran-double alpha
+                     lisp-array-double a
+                     fortran-int (real-nrows a)
+                     lisp-array-double b
+                     fortran-int (real-nrows b)
+                     fortran-double beta
+                     lisp-array-double c
+                     fortran-int (real-nrows c))))
+
+||#

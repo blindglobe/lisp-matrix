@@ -1,6 +1,19 @@
 2008-06-06  Evan Monroig  <evan.monroig@gmail.com>
 
+	* tests.lisp: all tests now work for :FOREIGN-ARRAY and
+	:LISP-ARRAY implementations
+
+	* lapack-methods.lisp (gemm, gelsy): updated
+
 	* lapack-utils.lisp (def-lapack-method): updated
+	(with-pinned-objects, with-pinned-copies): arrange matrix copies
+	to be pinned (for SBCL) or GC turned off (for CMUCL)
+	(def-lapack-method): add methods for lisp-array based matrices,
+	and for those replace WITH-COPIES by WITH-PINNED-COPIES
+	(translate-to-foreign): define several methods to directly convert
+	matrices to pointers
+	(la-matrix->pointer): function to convert a lisp-array based
+	matrix to a pointer for CMUCL and SBCL
 
 	* matrix-foreign-array.lisp: use DEFINE-IMPLEMENTATION and
 	DEF-LISP-MATRIX-TYPE

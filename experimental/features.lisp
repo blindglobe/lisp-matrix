@@ -32,7 +32,7 @@
 (add-features :use-lisp-arrays :static-arrays :finalization)
 #+clisp
 (add-features :finalization)
-#+(or cmucl sbcl)
+#+(or cmu sbcl)
 (add-features :can-pause-gc :finalization)
 #+corman
 (add-features :finalization)
@@ -46,11 +46,9 @@
 (add-features :can-pause-gc :finalization)
 #+scl
 (add-features :finalization) ; I don't know what other features should be here
-#-(or allegro clisp cmucl corman ecl gcl lispworks openmcl sbcl scl)
+#-(or allegro clisp cmu corman ecl gcl lispworks openmcl sbcl scl)
 (error "I don't know anything about your Lisp and I don't want to assume anything either.  You should add an entry here for your own Lisp, filling in the features that it implements.")
-	
 
 (defun has-feature-p (feature)
   "Returns non-nil iff our Lisp implementation implements the given FEATURE."
   (member feature *our-features*))
-

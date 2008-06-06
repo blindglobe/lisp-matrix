@@ -17,7 +17,7 @@
 ;;; Basic tests
 
 (def-suite matrix-double :in tests
-    :description "basic tests on double matrices")
+           :description "basic tests on double matrices")
 
 (in-suite matrix-double)
 
@@ -27,8 +27,8 @@
               :element-type 'double-float
               :initial-contents
               (loop for i below n collect
-                   (loop for j below m collect
-                        (random 1d0)))))
+                    (loop for j below m collect
+                          (random 1d0)))))
 
 (defun test-matrix-size (matrix n m)
   "test all size functions of MATRIX against N and M"
@@ -42,7 +42,7 @@
   (is (equal (matrix-dimensions matrix)
 	     (list n m))))
 
-(defmacro with-implementations ((&rest implementations) &body body)
+(defmacro for-implementations ((&rest implementations) &body body)
   "Execute BODY for each implementation in IMPLEMENTATIONS."
   `(progn
      ,@(loop for implementation in implementations collect
@@ -50,10 +50,14 @@
                     (*default-element-type* 'double-float))
                 ,@body))))
 
+(defmacro for-all-implementations (&body body)
+  `(for-implementations ,(mapcar #'car *implementations*)
+     ,@body))
+
 (test make-matrix-double-zero-size
   "make a matrix which has zero size"
   #-clisp
-  (with-implementations (:lisp-array :foreign-array)
+  (for-all-implementations
     (finishes (make-matrix 0 0))
     (finishes (make-matrix 0 1))
     (finishes (make-matrix 1 0)))
@@ -62,7 +66,7 @@
 
 (test make-matrix-double-1
   "default initial value"
-  (with-implementations (:lisp-array :foreign-array)
+  (for-all-implementations
     (for-all ((n (gen-integer :min 1 :max 100))
               (m (gen-integer :min 1 :max 100)))
       (let (matrix)
@@ -77,7 +81,7 @@
 
 (test make-matrix-double-2
   "initial value to 1d0"
-  (with-implementations (:lisp-array :foreign-array)
+  (for-all-implementations
     (for-all ((n (gen-integer :min 1 :max 100))
               (m (gen-integer :min 1 :max 100)))
       (let (matrix)
@@ -91,7 +95,7 @@
 
 (test make-matrix-double-3
   "set initial contents"
-  (with-implementations (:lisp-array :foreign-array)
+  (for-all-implementations
     (for-all ((n (gen-integer :min 1 :max 100))
               (m (gen-integer :min 1 :max 100)))
       (let ((array (random-array n m))	  
@@ -107,7 +111,7 @@
 
 (test make-matrix-double-4
   "set initial contents from a list"
-  (with-implementations (:lisp-array :foreign-array)
+  (for-all-implementations
     (for-all ((n (gen-integer :min 1 :max 100))
               (m (gen-integer :min 1 :max 100)))
       (let* ((list (loop repeat n collect
@@ -129,7 +133,7 @@
                     i j (mref matrix2 i j) (mref matrix1 i j)))))))))
 
 (test transpose-double
-  (with-implementations (:lisp-array  :foreign-array)
+  (for-all-implementations
     (for-all ((n (gen-integer :min 0 :max 100) #+clisp (> n 0))
               (m (gen-integer :min 0 :max 100) #+clisp (> m 0)))
       (let ((matrix1 (rand n m))
@@ -148,7 +152,7 @@
                     i j (mref matrix3 i j) (mref matrix1 i j)))))))))
 
 (test window-double
-  (with-implementations (:lisp-array :foreign-array)
+  (for-all-implementations
     (for-all ((n (gen-integer :min 0 :max 100) #+clisp (> n 0))
               (m (gen-integer :min 0 :max 100) #+clisp (> m 0))
               (n2 (gen-integer :min 0 :max 100) (<= n2 n) #+clisp (> n2 0))
@@ -173,22 +177,22 @@
                     (mref matrix2 i j)))))))))
 
 (test m=
-  (with-implementations (:lisp-array  :foreign-array)
-   (for-all ((n (gen-integer :min 1 :max 10))
-             (m (gen-integer :min 1 :max 10)))
-     (let ((a (rand n m)))
-       (is
-        (m= (make-matrix n m :initial-contents a)
-            (make-matrix n m :initial-contents a)))))
-   (is (not (m= (make-matrix 1 2)
-                (make-matrix 1 1))))
-   (is (not (m= (make-matrix 2 1)
-                (make-matrix 1 1))))
-   (is (not (m= (make-matrix 1 1 :initial-element 1d0)
-                (make-matrix 1 1 :initial-element 0d0))))))
+  (for-all-implementations
+    (for-all ((n (gen-integer :min 1 :max 10))
+              (m (gen-integer :min 1 :max 10)))
+      (let ((a (rand n m)))
+        (is
+         (m= (make-matrix n m :initial-contents a)
+             (make-matrix n m :initial-contents a)))))
+    (is (not (m= (make-matrix 1 2)
+                 (make-matrix 1 1))))
+    (is (not (m= (make-matrix 2 1)
+                 (make-matrix 1 1))))
+    (is (not (m= (make-matrix 1 1 :initial-element 1d0)
+                 (make-matrix 1 1 :initial-element 0d0))))))
 
 (test setf-mref
-  (with-implementations (:lisp-array  :foreign-array)
+  (for-all-implementations
     (for-all ((n (gen-integer :min 0 :max 10) #+clisp (> n 0))
               (m (gen-integer :min 0 :max 10) #+clisp (> m 0)))
       (let ((a (make-matrix n m))
@@ -200,7 +204,7 @@
         (is (m= a b))))))
 
 (test transposed-p
-  (with-implementations (:lisp-array  :foreign-array)
+  (for-all-implementations
     (let ((m (make-matrix 1 1)))
       (is (null (transposed-p m)))
       (is (transposed-p (transpose m)))
@@ -208,7 +212,7 @@
       (is (transposed-p (window (transpose m)))))))
 
 (test zero-offset-p
-  (with-implementations (:lisp-array  :foreign-array)
+  (for-all-implementations
     (let ((m (make-matrix 3 3)))
       (is (zero-offset-p m))
       (is (zero-offset-p (transpose m)))
@@ -223,7 +227,7 @@
       (is (zero-offset-p (strides m :row-stride 2 :nrows 2))))))
 
 (test unit-stride-p
-  (with-implementations (:lisp-array  :foreign-array)
+  (for-all-implementations
     (let ((m (make-matrix 3 3)))
       (is (unit-stride-p m))
       (is (unit-stride-p (transpose m)))
@@ -240,7 +244,7 @@
       (is (not (unit-stride-p (strides (strides m :row-stride 2 :nrows 2))))))))
 
 (test copy
-  (with-implementations (:lisp-array  :foreign-array)
+  (for-all-implementations
     (labels ((test-copy-m= (a b)
                (and (not (eq a b))
                     (m= a b)))
@@ -271,7 +275,7 @@
                            :col-offset col-offset))))))
 
 (test rand
-  (with-implementations (:lisp-array  :foreign-array)
+  (for-all-implementations
     (let* ((state1 (make-random-state))
            (state2 (make-random-state state1)))
       (is (m= (rand 2 3 :state state1)
@@ -282,7 +286,7 @@
 ;;; Test lapack
 
 (def-suite lapack :in tests
-    :description "tests for lapack methods")
+           :description "tests for lapack methods")
 
 (in-suite lapack)
 
@@ -330,7 +334,7 @@
 
 (defmacro defgemm-test (name a b)
   `(test ,name
-     (with-implementations (:foreign-array)
+     (for-all-implementations
        (check-gemm ,a ,b))))
 
 (defgemm-test gemm-basic-test
@@ -360,93 +364,93 @@
                   (6d0 8d0)))))
 
 (defgemm-test gemm-double-transpose-a
- (transpose
-  (transpose
-   (make-matrix 2 2 :initial-contents
-                '((1d0 2d0)
-                  (3d0 4d0)))))
- (make-matrix 2 2 :initial-contents
-              '((5d0 6d0)
-                (7d0 8d0))))
+    (transpose
+     (transpose
+      (make-matrix 2 2 :initial-contents
+                   '((1d0 2d0)
+                     (3d0 4d0)))))
+  (make-matrix 2 2 :initial-contents
+               '((5d0 6d0)
+                 (7d0 8d0))))
 
 (defgemm-test gemm-transpose-a-b
- (transpose
-  (make-matrix 2 2 :initial-contents
-               '((1d0 3d0)
-                 (2d0 4d0))))
- (transpose
-  (make-matrix 2 2 :initial-contents
-               '((5d0 7d0)
-                 (6d0 8d0)))))
+    (transpose
+     (make-matrix 2 2 :initial-contents
+                  '((1d0 3d0)
+                    (2d0 4d0))))
+  (transpose
+   (make-matrix 2 2 :initial-contents
+                '((5d0 7d0)
+                  (6d0 8d0)))))
 
 (defgemm-test gemm-window-a-nocopy
- (window
-  (make-matrix 3 3 :initial-contents
-               '((1d0 2d0 0d0)
-                 (3d0 4d0 0d0)
-                 (0d0 0d0 0d0)))
-  :nrows 2 :ncols 2)
- (make-matrix 2 2 :initial-contents
-              '((5d0 6d0)
-                (7d0 8d0))))
+    (window
+     (make-matrix 3 3 :initial-contents
+                  '((1d0 2d0 0d0)
+                    (3d0 4d0 0d0)
+                    (0d0 0d0 0d0)))
+     :nrows 2 :ncols 2)
+  (make-matrix 2 2 :initial-contents
+               '((5d0 6d0)
+                 (7d0 8d0))))
 
 (defgemm-test gemm-window-a-copy
- (window
-  (make-matrix 3 3 :initial-contents
-               '((0d0 1d0 2d0)
-                 (0d0 3d0 4d0)
-                 (0d0 0d0 0d0)))
-  :nrows 2 :ncols 2 :col-offset 1)
- (make-matrix 2 2 :initial-contents
-              '((5d0 6d0)
-                (7d0 8d0))))
+    (window
+     (make-matrix 3 3 :initial-contents
+                  '((0d0 1d0 2d0)
+                    (0d0 3d0 4d0)
+                    (0d0 0d0 0d0)))
+     :nrows 2 :ncols 2 :col-offset 1)
+  (make-matrix 2 2 :initial-contents
+               '((5d0 6d0)
+                 (7d0 8d0))))
 
 (defgemm-test gemm-window-b-nocopy
- (make-matrix 2 2 :initial-contents
-              '((1d0 2d0)
-                (3d0 4d0)))
- (window
-  (make-matrix 2 3 :initial-contents
-               '((5d0 6d0 0d0)
-                 (7d0 8d0 0d0)))
-  :ncols 2))
+    (make-matrix 2 2 :initial-contents
+                 '((1d0 2d0)
+                   (3d0 4d0)))
+  (window
+   (make-matrix 2 3 :initial-contents
+                '((5d0 6d0 0d0)
+                  (7d0 8d0 0d0)))
+   :ncols 2))
 
 (defgemm-test gemm-window-b-copy
- (make-matrix 2 2 :initial-contents
-              '((1d0 2d0)
-                (3d0 4d0)))
- (window
-  (make-matrix 3 3 :initial-contents
-               '((0d0 0d0 0d0)
-                 (5d0 6d0 0d0)
-                 (7d0 8d0 0d0)))
-  :ncols 2 :nrows 2 :row-offset 1))
+    (make-matrix 2 2 :initial-contents
+                 '((1d0 2d0)
+                   (3d0 4d0)))
+  (window
+   (make-matrix 3 3 :initial-contents
+                '((0d0 0d0 0d0)
+                  (5d0 6d0 0d0)
+                  (7d0 8d0 0d0)))
+   :ncols 2 :nrows 2 :row-offset 1))
 
 (defgemm-test gemm-stride-a-nocopy
- (strides
-  (make-matrix 3 3 :initial-contents
-               '((1d0 2d0 0d0)
-                 (3d0 4d0 0d0)
-                 (0d0 0d0 0d0)))
-  :nrows 2 :ncols 2)
- (make-matrix 2 2 :initial-contents
-              '((5d0 6d0)
-                (7d0 8d0))))
+    (strides
+     (make-matrix 3 3 :initial-contents
+                  '((1d0 2d0 0d0)
+                    (3d0 4d0 0d0)
+                    (0d0 0d0 0d0)))
+     :nrows 2 :ncols 2)
+  (make-matrix 2 2 :initial-contents
+               '((5d0 6d0)
+                 (7d0 8d0))))
 
 (defgemm-test gemm-stride-a-copy
- (strides
-  (make-matrix 4 3 :initial-contents
-               '((1d0 0d0 2d0)
-                 (0d0 0d0 0d0)
-                 (3d0 0d0 4d0)
-                 (0d0 0d0 0d0)))
-  :nrows 2 :ncols 2 :row-stride 2 :col-stride 2)
- (make-matrix 2 2 :initial-contents
-              '((5d0 6d0)
-                (7d0 8d0))))
+    (strides
+     (make-matrix 4 3 :initial-contents
+                  '((1d0 0d0 2d0)
+                    (0d0 0d0 0d0)
+                    (3d0 0d0 4d0)
+                    (0d0 0d0 0d0)))
+     :nrows 2 :ncols 2 :row-stride 2 :col-stride 2)
+  (make-matrix 2 2 :initial-contents
+               '((5d0 6d0)
+                 (7d0 8d0))))
 
 (test gemm-window-c-copy
-  (with-implementations (:foreign-array)
+  (for-all-implementations
     (let* ((result (make-matrix 2 2 :initial-contents
                                 '((19d0 22d0)
                                   (43d0 50d0))))
@@ -470,7 +474,7 @@
               (zeros 3 1))))))
 
 (test gemm-window-c-copy-copyback
-  (with-implementations (:foreign-array)
+  (for-all-implementations
     (let* ((result (make-matrix 2 2 :initial-contents
                                 '((19d0 22d0)
                                   (43d0 50d0))))
@@ -492,3 +496,80 @@
                                                      :col-offset 2)))
       (is (m= (window c :nrows 2) (zeros 2 4)))
       (is (m= (window c :ncols 2) (zeros 4 2))))))
+
+
+(test gemm-double
+  (for-all-implementations
+    (is
+     (m=
+      (gemm 1d0
+            (window
+             (make-matrix 3 3 :element-type 'double-float
+                              :initial-contents '((1d0 2d0 0d0)
+                                                  (3d0 4d0 0d0)
+                                                  (0d0 0d0 0d0)))
+             :nrows 2 :ncols 2)
+            (make-matrix 2 2 :element-type 'double-float
+                             :initial-contents '((5d0 6d0)
+                                                 (7d0 8d0))))
+      (make-matrix 2 2 :element-type 'double-float
+                       :initial-contents '((19d0 22d0)
+                                           (43d0 50d0)))))))
+
+(test gemm-single
+  (for-all-implementations
+    (is
+     (m=
+      (gemm 1.0
+            (window
+             (make-matrix 3 3 :element-type 'single-float
+                              :initial-contents '((1.0 2.0 0.0)
+                                                  (3.0 4.0 0.0)
+                                                  (0.0 0.0 0.0)))
+             :nrows 2 :ncols 2)
+            (make-matrix 2 2 :element-type 'single-float
+                             :initial-contents '((5.0 6.0)
+                                                 (7.0 8.0))))
+      (make-matrix 2 2 :element-type 'single-float
+                       :initial-contents '((19.0 22.0)
+                                           (43.0 50.0)))))))
+
+(test gemm-complex-single
+  (for-all-implementations
+    (is
+     (m=
+      (gemm #C(1.0 0.0)
+            (window
+             (make-matrix 3 3 :element-type '(complex single-float)
+                              :initial-contents
+                              '((#C(1.0 0.0) #C(2.0 0.0) #C(0.0 0.0))
+                                (#C(3.0 0.0) #C(4.0 0.0) #C(0.0 0.0))
+                                (#C(0.0 0.0) #C(0.0 0.0) #C(0.0 0.0))))
+             :nrows 2 :ncols 2)
+            (make-matrix 2 2 :element-type '(complex single-float)
+                             :initial-contents
+                             '((#C(5.0 0.0) #C(6.0 0.0))
+                               (#C(7.0 0.0) #C(8.0 0.0)))))
+      (make-matrix 2 2 :element-type '(complex single-float)
+                       :initial-contents '((#C(19.0 0.0) #C(22.0 0.0))
+                                           (#C(43.0 0.0) #C(50.0 0.0))))))))
+
+(test gemm-complex-double
+  (for-all-implementations
+    (is
+     (m=
+      (gemm #C(1d0 0d0)
+            (window
+             (make-matrix 3 3 :element-type '(complex double-float)
+                              :initial-contents
+                              '((#C(1d0 0d0) #C(2d0 0d0) #C(0d0 0d0))
+                                (#C(3d0 0d0) #C(4d0 0d0) #C(0d0 0d0))
+                                (#C(0d0 0d0) #C(0d0 0d0) #C(0d0 0d0))))
+             :nrows 2 :ncols 2)
+            (make-matrix 2 2 :element-type '(complex double-float)
+                             :initial-contents
+                             '((#C(5d0 0d0) #C(6d0 0d0))
+                               (#C(7d0 0d0) #C(8d0 0d0)))))
+      (make-matrix 2 2 :element-type '(complex double-float)
+                       :initial-contents '((#C(19d0 0d0) #C(22d0 0d0))
+                                           (#C(43d0 0d0) #C(50d0 0d0))))))))
