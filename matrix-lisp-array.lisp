@@ -54,14 +54,7 @@
 
  (defun la-matrix-class (element-type &optional (type :simple))
    "Return the LA-MATRIX class name corresponding to ELEMENT-TYPE."
-   (make-symbol* (ecase type
-                   (:base "LA-MATRIX-")
-                   (:simple "LA-SIMPLE-MATRIX-")
-                   (:matview "LA-MATVIEW-")
-                   (:transpose "LA-TRANSPOSE-MATVIEW-")
-                   (:window "LA-WINDOW-MATVIEW-")
-                   (:strided "LA-STRIDED-MATVIEW-"))
-                 (element-type->la-name element-type))))
+   (matrix-class type "LA" (element-type->la-name element-type))))
 
 ;;;; We now introduce a macro to construct the typed matrices.
 
@@ -72,23 +65,19 @@
     identify the element-type."
     (pushnew (cons la-type element-type) *la-name-table*
              :test #'equal)
-    (let ((la-class (la-matrix-class element-type))
-          (la-base-class (la-matrix-class element-type :base))
-          (la-transpose-class (la-matrix-class element-type
-                                               :transpose))
-          (la-window-class (la-matrix-class element-type :window))
-          (la-strided-class (la-matrix-class element-type :strided)))
+    (let* ((la-type-name
+            (symbol-name (element-type->la-name element-type)))
+           (la-typed-class (matrix-class :simple "LA" la-type-name))
+           (la-typed-base-class (matrix-class :base "LA"
+                                              la-type-name)))
       `(progn
          ,(unless (eql la-type element-type)
                   `(deftype ,la-type () ',element-type))
 
-         (defclass ,la-base-class (la-matrix)
-           ()
-           (:documentation ,(format nil "Base class for dense of ~
-           matrices holding elements of type ~A, implemented as a ~
-           lisp array."  element-type)))
+         (make-class-hierarchy :lisp-array "LA" ,element-type
+                               ,la-type-name)
          
-         (defclass ,la-class (,la-base-class)
+         (defclass ,la-typed-class (,la-typed-base-class)
            ((data :initarg :data
                   :accessor data
                   :type (simple-array ,element-type (*))
@@ -96,35 +85,7 @@
                   holding the elements."))
            (:documentation ,(format nil "Dense matrix holding ~
            elements of type ~A, implemented as a lisp array."
-                                    element-type)))
-
-         (defclass ,la-transpose-class (,la-base-class
-                                        transpose-matview)
-           ()
-           (:documentation ,(format nil "Transposed view of a ~A ~
-           matrix." la-class)))
-
-         (defclass ,la-window-class (,la-base-class window-matview)
-           ()
-           (:documentation ,(format nil "Windowed view of a ~A ~
-           matrix." la-class)))
-
-         (defclass ,la-strided-class (,la-base-class strided-matview)
-           ()
-           (:documentation ,(format nil "Strided view of a ~A ~
-           matrix." la-class)))
-
-         (defmethod transpose-class ((matrix ,la-base-class))
-           ',la-transpose-class)
-         
-         (defmethod window-class ((matrix ,la-base-class))
-           ',la-window-class)
-         
-         (defmethod stride-class ((matrix ,la-base-class))
-           ',la-strided-class)
-         
-         (defmethod element-type ((matrix ,la-base-class))
-           ',element-type)))))
+                                    element-type)))))))
 
 (construct-la-matrix double double-float)
 (construct-la-matrix single single-float)

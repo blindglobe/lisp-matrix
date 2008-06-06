@@ -9,7 +9,10 @@
     :author "Mark Hoemmen <mhoemmen@cs.berkeley.edu>"
     :license "BSD sans advertising clause"
     :description "linear algebra library"
-    :long-description "Linear algebra library for ANSI Common Lisp; implemented at the lowest level using CFFI to call the BLAS and LAPACK.  Should run on any ANSI CL implementation that supports CFFI."
+    :long-description "Linear algebra library for ANSI Common Lisp;
+    implemented at the lowest level using CFFI to call the BLAS and
+    LAPACK.  Should run on any ANSI CL implementation that supports
+    CFFI."
     :serial t  ;; the dependencies are linear
     :depends-on ("cffi"
 		 "org.middleangle.foreign-numeric-vector"
@@ -20,8 +23,13 @@
      (:file "utils" :depends-on ("package"))
      (:file "macros" :depends-on ("package"))
      (:file "matrix" :depends-on ("package"))
-     (:file "matrix-lisp-array" :depends-on ("matrix" "utils"))
-     (:file "matrix-foreign-array" :depends-on ("matrix" "utils"))
+     (:file "matrix-implementations" :depends-on ("matrix"))
+     (:file "matrix-lisp-array" :depends-on ("matrix"
+                                             "matrix-implementations"
+                                             "utils"))
+     (:file "matrix-foreign-array" :depends-on ("matrix"
+                                                "matrix-implementations"
+                                                "utils"))
      (:file "fnv-vector" :depends-on ("package" "macros" "utils"))
      (:file "lapack-utils" :depends-on ("matrix-foreign-array"
                                         "fnv-vector"))

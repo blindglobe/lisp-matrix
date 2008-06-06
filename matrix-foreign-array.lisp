@@ -42,40 +42,25 @@
 
   (defun element-type->fnv-type (element-type)
     "Return the FNV type corresponding to ELEMENT-TYPE."
-    (car (rassoc element-type *fnv-type-table* :test #'equal)))
-
-  (defun fa-matrix-class (element-type &optional (type :simple))
-    "Return the FA-MATRIX class name corresponding to ELEMENT-TYPE."
-    (make-symbol* (ecase type
-                    (:base "FA-MATRIX-")
-                    (:simple "FA-SIMPLE-MATRIX-")
-                    (:matview "FA-MATVIEW-")
-                    (:transpose "FA-TRANSPOSE-MATVIEW-")
-                    (:window "FA-WINDOW-MATVIEW-")
-                    (:strided "FA-STRIDED-MATVIEW-"))
-                  (element-type->fnv-type element-type))))
+    (car (rassoc element-type *fnv-type-table* :test #'equal))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   
   (defmacro construct-fa-matrix (fnv-type)
     (let* ((element-type (fnv-type->element-type fnv-type))
-           (fa-class (fa-matrix-class element-type))
-           (fa-base-class (fa-matrix-class element-type :base))
-           (fa-transpose-class (fa-matrix-class element-type
-                                                :transpose))           
-           (fa-window-class (fa-matrix-class element-type :window))
-           (fa-strided-class (fa-matrix-class element-type :strided))
+           (fnv-type-name (symbol-name fnv-type))
+           (fa-typed-class (matrix-class :simple "FA" fnv-type-name))
+           (fa-typed-base-class (matrix-class :base "FA"
+                                              fnv-type-name))
            (fnv-class (make-symbol* "FNV-" fnv-type))
            (fnv-ref (make-symbol* "FNV-" fnv-type "-REF"))
            (make-fnv (make-symbol* "MAKE-FNV-" fnv-type)))
       `(progn
-         (defclass ,fa-base-class (fa-matrix)
-           ()
-           (:documentation ,(format nil "Base class for dense ~
-           matrices holding elements of type ~A, implemented as a ~
-           foreign array." element-type)))
          
-         (defclass ,fa-class (,fa-base-class)
+         (make-class-hierarchy :foreign-array "FA" ,element-type
+                               ,(symbol-name fnv-type))
+         
+         (defclass ,fa-typed-class (,fa-typed-base-class)
            ((data :initarg :data
                   :accessor data
                   :type ,fnv-class
@@ -83,51 +68,23 @@
                   elements."))
            (:documentation ,(format nil "Dense matrix holding ~
             elements of type ~A, implemented as a foreign array."
-            element-type)))
+                                    element-type)))
          
-         (defmethod mref ((matrix ,fa-class) i j)
+         (defmethod mref ((matrix ,fa-typed-class) i j)
            (,fnv-ref (data matrix)
                      (flatten-matrix-indices matrix i j)))
 
-         (defmethod (setf mref) (value (matrix ,fa-class) i j)
+         (defmethod (setf mref) (value (matrix ,fa-typed-class) i j)
            (setf (,fnv-ref (data matrix)
                            (flatten-matrix-indices matrix i j))
                  value))
-         
-         (defclass ,fa-transpose-class (,fa-base-class
-                                        transpose-matview)
-           ()
-           (:documentation ,(format nil "Transposed view of a ~A ~
-           matrix." fa-class)))
-
-         (defclass ,fa-window-class (,fa-base-class window-matview)
-           ()
-           (:documentation ,(format nil "Windowed view of a ~A ~
-           matrix." fa-class)))
-
-         (defclass ,fa-strided-class (,fa-base-class strided-matview)
-           ()
-           (:documentation ,(format nil "Strided view of a ~A ~
-           matrix." fa-class)))
-
-         (defmethod transpose-class ((matrix ,fa-base-class))
-           ',fa-transpose-class)
-         
-         (defmethod window-class ((matrix ,fa-base-class))
-           ',fa-window-class)
-         
-         (defmethod stride-class ((matrix ,fa-base-class))
-           ',fa-strided-class)
-
-         (defmethod element-type ((matrix ,fa-base-class))
-           ',element-type)
          
          (defmethod make-fa-matrix (nrows ncols
                                     (fnv-type (eql ',fnv-type))
                                     &key initial-element)
            (let ((data (,make-fnv (* nrows ncols)
                                   :initial-value initial-element)))
-             (make-instance ',fa-class :nrows nrows :ncols ncols
+             (make-instance ',fa-typed-class :nrows nrows :ncols ncols
                             :data data)))))))
 
 (construct-fa-matrix double)

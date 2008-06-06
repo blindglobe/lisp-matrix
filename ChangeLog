@@ -1,5 +1,15 @@
 2008-06-06  Evan Monroig  <evan.monroig@gmail.com>
 
+	* matrix-lisp-array.lisp (construct-la-matrix): use
+	MAKE-CLASS-HIERARCHY
+
+	* matrix-foreign-array.lisp (construct-fa-matrix): use
+	MAKE-CLASS-HIERARCHY
+
+	* matrix-implementations.lisp (matrix-class)
+	(make-class-hierarchy): remove code duplication by factoring out
+	common code in both implementations
+
 	* matrix.lisp (flatten-matrix-indices): fixed strided-matview
 	method
 	(transpose-class, window-class, stride-class): new methods to
