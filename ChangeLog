@@ -1,3 +1,27 @@
+2008-06-07  Evan Monroig  <evan.monroig@gmail.com>
+
+	* matrix-operations.lisp (m*): added
+
+	* lapack-utils.lisp (translate-to-foreign): keep to minimal methods
+	(with-pinned-arrays, with-pinned-copies, la-matrix->pointer):
+	clean up a little
+
+	* matrix-implementations.lisp (*type-table*, type-info)
+	(add-type, def-lisp-matrix-type): rewritten type functions and
+	type info table to also define a CFFI-TYPE
+	(make-class-hierarchy): also create a method ELEMENT-TYPE-SIZE
+
+	* matrix.lisp (offset): moved here from lapack-utils.lisp
+
+	* lapack-methods.lisp (gemm): striped down, made closer to the
+	fortran call
+
+	* experimental/multiplication.lisp: replaced by some experimental
+	code to call the fortran dgemm using CFFI types for which lisp
+	arrays are converted inline (no generic functions) -- this would
+	necessitate to duplicate the work (and the CFFI types) for the
+	case of foreign arrays.
+
 2008-06-06  Evan Monroig  <evan.monroig@gmail.com>
 
 	* lapack-utils.lisp (with-pinned-copies): copy all matrices to

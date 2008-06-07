@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-06 16:52:53 Evan Monroig>
+;;;; Time-stamp: <2008-06-07 16:07:49 Evan Monroig>
 ;;;;
 ;;;;
 ;;;;
@@ -54,7 +54,139 @@
 ;;;; Finally, for example for GEMM!, after the copies are made we need
 ;;;; to inspect the resulting matrices to tell LAPACK the actual sizes
 ;;;; and orientations of the matrices.
-;;;;
+
+(defun make-predicate (form)
+  "From an expression combining predicates, construct a function of
+  one argument that evaluates the logical expression on the element,
+  where each predicate is applied to the argument to obtain its
+  logical value.
+
+  FORM may be constructed as follows: a symbol whose f-value is a
+  function of one argument; a list whose car is 'OR and whose CDR is a
+  list of predicates; a list whose car is 'AND and whose CDR is a list
+  of predicates; T; NIL."
+  (typecase form
+    (symbol
+     (case form
+       ((t) '(constantly t))
+       ((nil) '(constantly nil))
+       (t form)))
+    (list
+     (labels ((aux (arg)
+                (etypecase arg
+                  (symbol (list arg 'a))
+                  (list
+                   (ecase (car arg)
+                     (or (cons 'or (mapcar #'aux (cdr arg))))
+                     (and (cons 'and (mapcar #'aux (cdr arg))))
+                     (not (list 'not (aux (cadr arg)))))))))
+       `(lambda (a)
+          ,(aux form))))))
+
+(defmacro with-copies ((&rest forms) result &body body)
+  "Each form in FORMS is a lambda-list defined as (VARIABLE PREDICATE
+  &optional COPY-BACK-P).  VARIABLE is a symbol bound to a matrix,
+  that is to be copied if the predicate obtained from PREDICATE
+  applied to the matrix is true.  All variables are bound
+  to (possible) copies of the original matrices, and body is executed.
+  After that, variables for which COPY-BACK-P is true are copied back
+  to the original matrices, and the evaluation of RESULT is returned
+  with the variables bound to the original matrices.
+
+  The PREDICATE value may be constructed as follows: a symbol whose
+  f-value is a function of one argument; a list whose car is 'OR and
+  whose CDR is a list of predicates; a list whose car is 'AND and
+  whose CDR is a list of predicates; T; NIL.
+
+  See the file `lapack-methods.lisp' for examples of use."
+  (let ((gensyms (loop for form in forms collect
+                       (gensym (symbol-name (first form))))))
+    `(progn
+       (let (,@(mapcar (lambda (form gensym)
+                         (list gensym (car form)))
+                       forms gensyms))
+         (let (,@(mapcar
+                  (lambda (form gensym)
+                    (destructuring-bind
+                          (variable predicate &optional copy-back-p)
+                        form
+                      (declare (ignore copy-back-p))
+                      `(,variable
+                        (copy-maybe* ,gensym
+                                     ,(make-predicate predicate)
+                                     *default-implementation*))))
+                  forms gensyms))
+           ,@body
+           ,@(loop for form in forms
+                   for g in gensyms
+                   when (third form)
+                   collect `(copy! ,(first form) ,g))))
+       ,result)))
+
+(defparameter *supported-datatypes*
+  '((float . "S")
+    (double . "D")
+    (complex-float . "C")
+    (complex-double . "Z"))
+  "Association list mapping each supported datatype to its BLAS/LAPACK
+  letter.")
+
+(defun datatype->letter (datatype)
+  "Converts the given DATATYPE to the letter that symbolizes it in the
+  BLAS and LAPACK."
+  (or (cdr (assoc datatype *supported-datatypes* :test #'equal))
+      (error "LAPACK does not support the datatype ~A" datatype)))
+
+(defmacro def-lapack-method (name (&rest lambda-list) &body body)
+  "Define methods for supported datatypes for the lapack method named
+  NAME.  The symbols !FUNCTION, !DATA-TYPE, and !MATRIX-TYPE are
+  respectively bound to the actual lapack function to be called from
+  the package CL-BLAPACK, the data type (float, double, complex-float
+  or complex-double), and the corresponding abstract matrix
+  type (e.g. matrix-double-like).
+
+  See for example the definition of GEMM for how to use this macro."
+  ;; FIXME: I don't like the fact that this macro uses templates, but
+  ;; the code works. -- Evan Monroig 2008-05-04
+  ;; FIXME: also create the generic function with documentation --
+  ;; Evan Monroig 2008-05-04
+  `(progn
+     ,@(loop for (type . type-letter) in *supported-datatypes*
+             append
+             (let* ((element-type (fnv-type->element-type type))
+                    (fa-replacements
+                     `((!function . ,(make-symbol* "%" type-letter name))
+                       (!data-type . ,type)
+                       (!element-type . ,element-type)
+                       (!matrix-type . ,(matrix-class :base :foreign-array
+                                                      element-type))))
+                    (la-replacements
+                     `((!function . ,(make-symbol* "%" type-letter name))
+                       (!data-type . ,type)
+                       (!element-type . ,element-type)
+                       (!matrix-type . ,(matrix-class :base :lisp-array
+                                                      element-type))
+                       (with-copies . with-pinned-copies))))
+               `((defmethod ,name
+                     ,(sublis fa-replacements lambda-list)
+                   (with-blapack
+                     ,@(sublis fa-replacements body)))
+                 (defmethod ,name
+                     ,(sublis la-replacements lambda-list)
+                   (with-blapack
+                     ,@(sublis la-replacements body))))))))
+
+(defun orientation->letter (orientation)
+  "Return the LAPACK letter corresponding to ORIENTATION."
+  (ecase orientation
+    (:column "N")
+    (:row "T")))
+
+(defun orientation-letter (matrix)
+  "Return the LAPACK letter corresponding to the orientation of
+  MATRIX."
+  (orientation->letter (orientation matrix)))
+
 ;;;; * CFFI and fortran types
 ;;;;
 ;;;; The package cl-blapack uses CFFI to access the fortran libraries
@@ -129,94 +261,31 @@
 ;;;; doing the conversions ourselves instead of going through the
 ;;;; macro DEFCFUN.
 
-;; FIXME: I just added a nice mess (WITH-PINNED-OBJECTS,
-;; LA-MATRIX->POINTER and TRANSLATE-TO-FOREIGN).  Clean this.
-
-(defun make-predicate (form)
-  "From an expression combining predicates, construct a function of
-  one argument that evaluates the logical expression on the element,
-  where each predicate is applied to the argument to obtain its
-  logical value.
-
-  FORM may be constructed as follows: a symbol whose f-value is a
-  function of one argument; a list whose car is 'OR and whose CDR is a
-  list of predicates; a list whose car is 'AND and whose CDR is a list
-  of predicates; T; NIL."
-  (typecase form
-    (symbol
-     (case form
-       ((t) '(constantly t))
-       ((nil) '(constantly nil))
-       (t form)))
-    (list
-     (labels ((aux (arg)
-                (etypecase arg
-                  (symbol (list arg 'a))
-                  (list
-                   (ecase (car arg)
-                     (or (cons 'or (mapcar #'aux (cdr arg))))
-                     (and (cons 'and (mapcar #'aux (cdr arg))))
-                     (not (list 'not (aux (cadr arg)))))))))
-       `(lambda (a)
-          ,(aux form))))))
-
-(defmacro with-copies ((&rest forms) result &body body)
-  "Each form in FORMS is a lambda-list defined as (VARIABLE PREDICATE
-  &optional COPY-BACK-P).  VARIABLE is a symbol bound to a matrix,
-  that is to be copied if the predicate obtained from PREDICATE
-  applied to the matrix is true.  All variables are bound
-  to (possible) copies of the original matrices, and body is executed.
-  After that, variables for which COPY-BACK-P is true are copied back
-  to the original matrices, and the evaluation of RESULT is returned
-  with the variables bound to the original matrices.
-
-  The PREDICATE value may be constructed as follows: a symbol whose
-  f-value is a function of one argument; a list whose car is 'OR and
-  whose CDR is a list of predicates; a list whose car is 'AND and
-  whose CDR is a list of predicates; T; NIL.
-
-  See the file `lapack-methods.lisp' for examples of use."
-  (let ((gensyms (loop for form in forms collect
-                       (gensym (symbol-name (first form))))))
-    `(progn
-       (let (,@(mapcar (lambda (form gensym)
-                         (list gensym (car form)))
-                       forms gensyms))
-         (let (,@(mapcar
-                  (lambda (form gensym)
-                    (destructuring-bind
-                          (variable predicate &optional copy-back-p)
-                        form
-                      (declare (ignore copy-back-p))
-                      `(,variable
-                        (copy-maybe* ,gensym
-                                     ,(make-predicate predicate)
-                                     *default-implementation*))))
-                  forms gensyms))
-           ,@body
-           ,@(loop for form in forms
-                   for g in gensyms
-                   when (third form)
-                   collect `(copy! ,(first form) ,g))))
-       ,result)))
-
 #+sbcl
 (defmacro with-pinned-arrays ((&rest arrays) &body body)
+  "Make sure that every array will not be moved by the GC in ARRAYS
+  is pinned during the execution of BODY."
   `(sb-sys:with-pinned-objects (,@arrays) ,@body))
 
 #+cmu
 (defmacro with-pinned-arrays ((&rest arrays) &body body)
+  "Make sure that every array will not be moved by the GC in ARRAYS
+  is pinned during the execution of BODY."
   (declare (ignore arrays))
   `(sys:without-gcing ,@body))
 
 #-(or sbcl cmu)
 (defmacro with-pinned-arrays ((&rest arrays) &body body)
+  "Make sure that every array will not be moved by the GC in ARRAYS
+  is pinned during the execution of BODY."
   (declare (ignore arrays))
   (error "Don't know how to pin arrays for this lisp.")
   `(progn ,@body))
 
 #+(or sbcl cmu)
 (defmacro with-pinned-copies ((&rest forms) result &body body)
+  "Same as WITH-COPIES, but make sure that the arrays obtained after
+  eventual copying are pinned while executing BODY."
   (labels ((form->data (form)
              `(data ,(car form))))
    `(with-copies ,forms
@@ -226,7 +295,12 @@
 
 #-(or sbcl cmu)
 (defmacro with-pinned-copies ((&rest forms) result &body body)
-  (warn "Don't know how to pin matrices for this lisp, so they will ~
+  "Same as WITH-COPIES, but make sure that the arrays obtained after
+  eventual copying are pinned while executing BODY.
+
+  For your lisp, I don't know how to pin arrays, so instead I convert
+  them to foreign arrays before executing BODY."
+  (warn "Don't know how to pin arrays for this lisp, so they will ~
   be converted to foreign matrices instead.")
   (labels ((always-copy (form)
              `(,(car form) t ,(third form))))
@@ -237,180 +311,26 @@
            ,result
          ,@body))))
 
-(defparameter *supported-datatypes*
-  '((float . "S")
-    (double . "D")
-    (complex-float . "C")
-    (complex-double . "Z"))
-  "Association list mapping each supported datatype to its BLAS/LAPACK
-  letter.")
-
-(defun datatype->letter (datatype)
-  "Converts the given DATATYPE to the letter that symbolizes it in the
-  BLAS and LAPACK."
-  (or (cdr (assoc datatype *supported-datatypes* :test #'equal))
-      (error "LAPACK does not support the datatype ~A" datatype)))
-
-(defmacro def-lapack-method (name (&rest lambda-list) &body body)
-  "Define methods for supported datatypes for the lapack method named
-  NAME.  The symbols !FUNCTION, !DATA-TYPE, and !MATRIX-TYPE are
-  respectively bound to the actual lapack function to be called from
-  the package CL-BLAPACK, the data type (float, double, complex-float
-  or complex-double), and the corresponding abstract matrix
-  type (e.g. matrix-double-like).
-
-  See for example the definition of GEMM for how to use this macro."
-  ;; FIXME: I don't like the fact that this macro uses templates, but
-  ;; the code works. -- Evan Monroig 2008-05-04
-  ;; FIXME: also create the generic function with documentation --
-  ;; Evan Monroig 2008-05-04
-  `(progn
-     ,@(loop for (type . type-letter) in *supported-datatypes*
-             append
-             (let* ((element-type (fnv-type->element-type type))
-                    (fa-replacements
-                     `((!function . ,(make-symbol* "%" type-letter name))
-                       (!data-type . ,type)
-                       (!element-type . ,element-type)
-                       (!matrix-type . ,(matrix-class :base :foreign-array
-                                                      element-type))))
-                    (la-replacements
-                     `((!function . ,(make-symbol* "%" type-letter name))
-                       (!data-type . ,type)
-                       (!element-type . ,element-type)
-                       (!matrix-type . ,(matrix-class :base :lisp-array
-                                                      element-type))
-                       (with-copies . with-pinned-copies))))
-               `((defmethod ,name
-                     ,(sublis fa-replacements lambda-list)
-                   (with-blapack
-                     ,@(sublis fa-replacements body)))
-                 (defmethod ,name
-                     ,(sublis la-replacements lambda-list)
-                   (with-blapack
-                     ,@(sublis la-replacements body))))))))
-
-(defun orientation->letter (orientation)
-  "Return the LAPACK letter corresponding to ORIENTATION."
-  (ecase orientation
-    (:column "N")
-    (:row "T")))
-
-(defun orientation-letter (matrix)
-  "Return the LAPACK letter corresponding to the orientation of
-  MATRIX."
-  (orientation->letter (orientation matrix)))
-
-
-
-(defmethod translate-to-foreign ((val fa-matrix-single)
-                                 (name fnv::cffi-fnv-float-type))
-  (fnv-foreign-pointer (data val)))
-
-(defmethod translate-to-foreign ((val fa-matrix-double)
-                                 (name fnv::cffi-fnv-double-type))
-  (fnv-foreign-pointer (data val)))
-
-(defmethod translate-to-foreign ((val fa-matrix-complex-single)
-                                 (name fnv::cffi-fnv-complex-float-type))
-  (fnv-foreign-pointer (data val)))
-
-(defmethod translate-to-foreign ((val fa-matrix-complex-double)
-                                 (name fnv::cffi-fnv-complex-double-type))
-  (fnv-foreign-pointer (data val)))
-
 #+sbcl
 (defun la-matrix->pointer (matrix)
   (sb-sys:vector-sap (data matrix)))
 
 #+cmu
 (defun la-matrix->pointer (matrix)
-  (sys:vector-sap (data matrix))
-  ;; FIXME: later add an offset
-  #+(or)
-  (cffi:inc-pointer (sys:vector-sap (data matrix))
-                    (* index-offset
-                       (cffi:foreign-type-size cffi-type))))
+  (sys:vector-sap (data matrix)))
 
 #-(or sbcl cmu)
 (defun la-matrix->pointer (matrix)
-  (declare (ignore matrix))
+  (declare (ignore matrix offset))
   (error "Don't know how to pass a lisp array to a foreign function ~
   for this lisp."))
 
-(defmethod translate-to-foreign ((val la-matrix-single)
-                                 (name fnv::cffi-fnv-float-type))
-  (la-matrix->pointer val))
+(defmethod translate-to-foreign ((val fa-matrix) name)
+  (cffi:inc-pointer (fnv-foreign-pointer (data val))
+                    (* (offset val)
+                       (element-type-size val))))
 
-(defmethod translate-to-foreign ((val la-matrix-double)
-                                 (name fnv::cffi-fnv-double-type))
-  (la-matrix->pointer val))
-
-(defmethod translate-to-foreign ((val la-matrix-complex-single)
-                                 (name fnv::cffi-fnv-complex-float-type))
-  (la-matrix->pointer val))
-
-(defmethod translate-to-foreign ((val la-matrix-complex-double)
-                                 (name fnv::cffi-fnv-complex-double-type))
-  (la-matrix->pointer val))
-
-
-#||
-
-;; This is test code to define a CFFI type and have cffi expand the
-;; type conversion inline
-
-(asdf:oos 'asdf:load-op 'ffa)
-(asdf:oos 'asdf:load-op 'cl-utilities)
-
-(import '(blapack-cffi-types:fortran-int
-          blapack-cffi-types:fortran-double))
-
-(define-foreign-type lisp-array-double-type
-    ()
-  ()
-  (:ACTUAL-TYPE :POINTER)
-  (:SIMPLE-PARSER lisp-array-double))
-
-(defmethod expand-to-foreign-dyn (value var body
-                                  (type lisp-array-double-type))
-  (cl-utilities:once-only (value)
-   `(ffa:with-pointer-to-array ((data ,value) ,var :double (nelts
-                                  ,value) :copy-in)
-      ,@body)))
-
-(defmethod gemm (alpha (a la-matrix-double) (b la-matrix-double)
-                 &optional (beta 0d0) c)
-  (assert (= (ncols a) (nrows b)))
-  (if c
-      (progn
-        (check-type c la-matrix-double)
-        (assert (= (nrows a) (nrows c)))
-        (assert (= (ncols b) (ncols c))))
-      (setq c (make-matrix (nrows a) (ncols b)
-                           :element-type '!element-type)))
-  (with-copies ((a (or (not unit-stride-p)
-                       (not zero-offset-p)))
-                (b (or (not unit-stride-p)
-                       (not zero-offset-p)))
-                (c (or (not unit-stride-p)
-                       (not zero-offset-p)
-                       transposed-p)
-                   t))
-      c
-    (foreign-funcall "dgemm_"
-                     :string (orientation-letter a)
-                     :string (orientation-letter b)
-                     fortran-int (nrows a)
-                     fortran-int (ncols b)
-                     fortran-int (ncols a)
-                     fortran-double alpha
-                     lisp-array-double a
-                     fortran-int (real-nrows a)
-                     lisp-array-double b
-                     fortran-int (real-nrows b)
-                     fortran-double beta
-                     lisp-array-double c
-                     fortran-int (real-nrows c))))
-
-||#
+(defmethod translate-to-foreign ((val la-matrix) name)
+  (cffi:inc-pointer (la-matrix->pointer val)
+                    (* (offset val)
+                       (element-type-size val))))

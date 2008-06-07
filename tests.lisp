@@ -324,25 +324,47 @@
   (is (string= (datatype->letter 'complex-float) "C"))
   (is (string= (datatype->letter 'complex-double) "Z")))
 
-
+(test scal
+  (is
+   (m=
+    (scal 1.5d0 (ones 2 2 :element-type 'double-float))
+    (make-matrix 2 2 :element-type 'double-float
+                     :initial-element 1.5d0)))
+  (is
+   (m=
+    (scal 1.5 (ones 2 2 :element-type 'single-float))
+    (make-matrix 2 2 :element-type 'single-float
+                     :initial-element 1.5)))
+  (is
+   (m=
+    (scal #C(1.5 1.5)
+          (ones 2 2 :element-type '(complex single-float)))
+    (make-matrix 2 2 :element-type '(complex single-float)
+                     :initial-element #C(1.5 1.5))))
+  (is
+   (m=
+    (scal #C(1.5d0 1.5d0)
+          (ones 2 2 :element-type '(complex double-float)))
+    (make-matrix 2 2 :element-type '(complex double-float)
+                     :initial-element #C(1.5d0 1.5d0)))))
 
 (def-suite gemm :in lapack
-           :description "tests of the GEMM function")
+           :description "tests of the M* function")
 
 (in-suite gemm)
 
-(defun check-gemm (a b)
+(defun check-m* (a b)
   (let ((result (make-matrix 2 2 :initial-contents
                              '((19d0 22d0)
                                (43d0 50d0)))))
-    (is (m= result (gemm 1d0 a b)))))
+    (is (m= result (m* a b)))))
 
-(defmacro defgemm-test (name a b)
+(defmacro def-m*-test (name a b)
   `(test ,name
      (for-all-implementations
-       (check-gemm ,a ,b))))
+       (check-m* ,a ,b))))
 
-(defgemm-test gemm-basic-test
+(def-m*-test m*-basic-test
     (make-matrix 2 2 :initial-contents
                  '((1d0 2d0)
                    (3d0 4d0)))
@@ -350,7 +372,7 @@
                '((5d0 6d0)
                  (7d0 8d0))))
 
-(defgemm-test gemm-transpose-a
+(def-m*-test m*-transpose-a
     (transpose
      (make-matrix 2 2 :initial-contents
                   '((1d0 3d0)
@@ -359,7 +381,7 @@
                '((5d0 6d0)
                  (7d0 8d0))))
 
-(defgemm-test gemm-transpose-b
+(def-m*-test m*-transpose-b
     (make-matrix 2 2 :initial-contents
                  '((1d0 2d0)
                    (3d0 4d0)))
@@ -368,7 +390,7 @@
                 '((5d0 7d0)
                   (6d0 8d0)))))
 
-(defgemm-test gemm-double-transpose-a
+(def-m*-test m*-double-transpose-a
     (transpose
      (transpose
       (make-matrix 2 2 :initial-contents
@@ -378,7 +400,7 @@
                '((5d0 6d0)
                  (7d0 8d0))))
 
-(defgemm-test gemm-transpose-a-b
+(def-m*-test m*-transpose-a-b
     (transpose
      (make-matrix 2 2 :initial-contents
                   '((1d0 3d0)
@@ -388,7 +410,7 @@
                 '((5d0 7d0)
                   (6d0 8d0)))))
 
-(defgemm-test gemm-window-a-nocopy
+(def-m*-test m*-window-a-nocopy
     (window
      (make-matrix 3 3 :initial-contents
                   '((1d0 2d0 0d0)
@@ -399,7 +421,7 @@
                '((5d0 6d0)
                  (7d0 8d0))))
 
-(defgemm-test gemm-window-a-copy
+(def-m*-test m*-window-a-copy
     (window
      (make-matrix 3 3 :initial-contents
                   '((0d0 1d0 2d0)
@@ -410,7 +432,7 @@
                '((5d0 6d0)
                  (7d0 8d0))))
 
-(defgemm-test gemm-window-b-nocopy
+(def-m*-test m*-window-b-nocopy
     (make-matrix 2 2 :initial-contents
                  '((1d0 2d0)
                    (3d0 4d0)))
@@ -420,7 +442,7 @@
                   (7d0 8d0 0d0)))
    :ncols 2))
 
-(defgemm-test gemm-window-b-copy
+(def-m*-test m*-window-b-copy
     (make-matrix 2 2 :initial-contents
                  '((1d0 2d0)
                    (3d0 4d0)))
@@ -431,7 +453,7 @@
                   (7d0 8d0 0d0)))
    :ncols 2 :nrows 2 :row-offset 1))
 
-(defgemm-test gemm-stride-a-nocopy
+(def-m*-test m*-stride-a-nocopy
     (strides
      (make-matrix 3 3 :initial-contents
                   '((1d0 2d0 0d0)
@@ -442,7 +464,7 @@
                '((5d0 6d0)
                  (7d0 8d0))))
 
-(defgemm-test gemm-stride-a-copy
+(def-m*-test m*-stride-a-copy
     (strides
      (make-matrix 4 3 :initial-contents
                   '((1d0 0d0 2d0)
@@ -503,78 +525,74 @@
       (is (m= (window c :ncols 2) (zeros 4 2))))))
 
 
-(test gemm-double
+(test m*-double
   (for-all-implementations
     (is
      (m=
-      (gemm 1d0
-            (window
-             (make-matrix 3 3 :element-type 'double-float
-                              :initial-contents '((1d0 2d0 0d0)
-                                                  (3d0 4d0 0d0)
-                                                  (0d0 0d0 0d0)))
-             :nrows 2 :ncols 2)
-            (make-matrix 2 2 :element-type 'double-float
-                             :initial-contents '((5d0 6d0)
-                                                 (7d0 8d0))))
+      (m* (window
+           (make-matrix 3 3 :element-type 'double-float
+                            :initial-contents '((1d0 2d0 0d0)
+                                                (3d0 4d0 0d0)
+                                                (0d0 0d0 0d0)))
+           :nrows 2 :ncols 2)
+          (make-matrix 2 2 :element-type 'double-float
+                           :initial-contents '((5d0 6d0)
+                                               (7d0 8d0))))
       (make-matrix 2 2 :element-type 'double-float
                        :initial-contents '((19d0 22d0)
                                            (43d0 50d0)))))))
 
-(test gemm-single
+(test m*-single
   (for-all-implementations
     (is
      (m=
-      (gemm 1.0
-            (window
-             (make-matrix 3 3 :element-type 'single-float
-                              :initial-contents '((1.0 2.0 0.0)
-                                                  (3.0 4.0 0.0)
-                                                  (0.0 0.0 0.0)))
-             :nrows 2 :ncols 2)
-            (make-matrix 2 2 :element-type 'single-float
-                             :initial-contents '((5.0 6.0)
-                                                 (7.0 8.0))))
+      (m* (window
+           (make-matrix 3 3 :element-type 'single-float
+                            :initial-contents '((1.0 2.0 0.0)
+                                                (3.0 4.0 0.0)
+                                                (0.0 0.0 0.0)))
+           :nrows 2 :ncols 2)
+          (make-matrix 2 2 :element-type 'single-float
+                           :initial-contents '((5.0 6.0)
+                                               (7.0 8.0))))
       (make-matrix 2 2 :element-type 'single-float
                        :initial-contents '((19.0 22.0)
                                            (43.0 50.0)))))))
 
-(test gemm-complex-single
+(test m*-complex-single
   (for-all-implementations
     (is
      (m=
-      (gemm #C(1.0 0.0)
-            (window
-             (make-matrix 3 3 :element-type '(complex single-float)
-                              :initial-contents
-                              '((#C(1.0 0.0) #C(2.0 0.0) #C(0.0 0.0))
-                                (#C(3.0 0.0) #C(4.0 0.0) #C(0.0 0.0))
-                                (#C(0.0 0.0) #C(0.0 0.0) #C(0.0 0.0))))
-             :nrows 2 :ncols 2)
-            (make-matrix 2 2 :element-type '(complex single-float)
-                             :initial-contents
-                             '((#C(5.0 0.0) #C(6.0 0.0))
-                               (#C(7.0 0.0) #C(8.0 0.0)))))
+      (m* (window
+           (make-matrix 3 3 :element-type '(complex single-float)
+                            :initial-contents
+                            '((#C(1.0 0.0) #C(2.0 0.0) #C(0.0 0.0))
+                              (#C(3.0 0.0) #C(4.0 0.0) #C(0.0 0.0))
+                              (#C(0.0 0.0) #C(0.0 0.0) #C(0.0 0.0))))
+           :nrows 2 :ncols 2)
+          (make-matrix 2 2 :element-type '(complex single-float)
+                           :initial-contents
+                           '((#C(5.0 0.0) #C(6.0 0.0))
+                             (#C(7.0 0.0) #C(8.0 0.0)))))
       (make-matrix 2 2 :element-type '(complex single-float)
                        :initial-contents '((#C(19.0 0.0) #C(22.0 0.0))
                                            (#C(43.0 0.0) #C(50.0 0.0))))))))
 
-(test gemm-complex-double
+(test m*-complex-double
   (for-all-implementations
     (is
      (m=
-      (gemm #C(1d0 0d0)
-            (window
-             (make-matrix 3 3 :element-type '(complex double-float)
-                              :initial-contents
-                              '((#C(1d0 0d0) #C(2d0 0d0) #C(0d0 0d0))
-                                (#C(3d0 0d0) #C(4d0 0d0) #C(0d0 0d0))
-                                (#C(0d0 0d0) #C(0d0 0d0) #C(0d0 0d0))))
-             :nrows 2 :ncols 2)
-            (make-matrix 2 2 :element-type '(complex double-float)
-                             :initial-contents
-                             '((#C(5d0 0d0) #C(6d0 0d0))
-                               (#C(7d0 0d0) #C(8d0 0d0)))))
+      (m* (window
+           (make-matrix 3 3 :element-type '(complex double-float)
+                            :initial-contents
+                            '((#C(1d0 0d0) #C(2d0 0d0) #C(0d0 0d0))
+                              (#C(3d0 0d0) #C(4d0 0d0) #C(0d0 0d0))
+                              (#C(0d0 0d0) #C(0d0 0d0) #C(0d0 0d0))))
+           :nrows 2 :ncols 2)
+          (make-matrix 2 2 :element-type '(complex double-float)
+                           :initial-contents
+                           '((#C(5d0 0d0) #C(6d0 0d0))
+                             (#C(7d0 0d0) #C(8d0 0d0)))))
       (make-matrix 2 2 :element-type '(complex double-float)
                        :initial-contents '((#C(19d0 0d0) #C(22d0 0d0))
                                            (#C(43d0 0d0) #C(50d0 0d0))))))))

@@ -3,24 +3,46 @@
 ;;; This file contains actual LAPACK methods.  See functions in
 ;;; lapack-utils.lisp for how supporting utility macros and functions.
 ;;;
-;;; Time-stamp: <2008-06-06 16:40:12 Evan Monroig>
+;;; Time-stamp: <2008-06-07 15:56:07 Evan Monroig>
 
-(def-lapack-method gemm (alpha (a !matrix-type) (b !matrix-type)
-                               &optional (beta 0d0) c)
+;;;; * Blas methods
+;;;;
+;;;; ** Level 1 BLAS
+;;;; 
+;;;; xROTG, xROTMG, xROT, xROTM, xSWAP, xSCAL, xCOPY, xAXPY, xDOT,
+;;;; xSDOT, xDOTU, xDOTC, xNRM2, xASUM, IxAMAX
+
+(def-lapack-method scal (alpha (x !matrix-type))
+  (let ((n (nelts x)))
+    (assert (typep alpha '!element-type))
+    (with-copies ((x (or (not unit-stride-p)
+                         (not zero-offset-p))
+                     t))
+        x
+      (!function n alpha x 1))))
+
+;;;; ** Level 2 BLAS
+;;;;
+;;;; xGEMV, xGBMV, xHBMV, xHPMV, xSYMV, xSBMV, xSPMV, xTRMV, xTBMV,
+;;;; xTPMV, xTRSV, xTBSV, xTPSV, xGER, xGERU, xGERC, xHER, xHPR,
+;;;; xHER2, xHPR2, xSYR, xSPR, xSYR2, xSPR2
+;;;;
+;;;; ** Extended precision Level 2 BLAS
+;;;;
+;;;; ** LEVEL 3 BLAS
+;;;;
+;;;; Done: xGEMM
+;;;;
+;;;; xSYMM, xHEMM, xSYRK, xHERK, xSYR2K, xHER2K, xTRMM, xTRSM, 
+
+(def-lapack-method gemm (alpha (a !matrix-type) (b !matrix-type) beta
+                               (c !matrix-type))
   (assert (= (ncols a) (nrows b)))
-  (if c
-      (progn
-        (check-type c !matrix-type)
-        (assert (= (nrows a) (nrows c)))
-        (assert (= (ncols b) (ncols c))))
-      (setq c (make-matrix (nrows a) (ncols b)
-                           :element-type '!element-type)))
-  (with-copies ((a (or (not unit-stride-p)
-                       (not zero-offset-p)))
-                (b (or (not unit-stride-p)
-                       (not zero-offset-p)))
+  (assert (= (nrows a) (nrows c)))
+  (assert (= (ncols b) (ncols c)))
+  (with-copies ((a (or (not unit-stride-p)))
+                (b (or (not unit-stride-p)))
                 (c (or (not unit-stride-p)
-                       (not zero-offset-p)
                        transposed-p)
                    t))
       c
@@ -37,6 +59,8 @@
                beta
                c
                (real-nrows c))))
+
+;;;; * Lapack
 
 (defmacro call-with-work ((lwork work type) call)
   (let ((element-type (fnv-type->element-type type)))
@@ -64,10 +88,8 @@
     ;; quick fix: disallow this
     (assert (<= (ncols a) (nrows a)))
     (with-copies ((a (or (not unit-stride-p)
-                         (not zero-offset-p)
                          transposed-p))
                   (b (or (not unit-stride-p)
-                         (not zero-offset-p)
                          transposed-p)))
         ;; FIXME: the value RANK is not correct because the cffi type
         ;; :FORTRAN-INT does not define a TRANSLATE-FROM-FOREIGN method?
@@ -95,12 +117,12 @@
                                 info)))))
 
 #+nil
-(let ((*default-implementation* :lisp-array))
+(let ((*default-implementation* :foreign-array))
   (let* ((m 10)
          (n 10)
          (a (rand m n))
          (x (rand n 1))
-         (b (gemm 1d0 a x))
+         (b (m* a x))
          (rcond (* (coerce (expt 2 -52) 'double-float)
                    (max (nrows a) (ncols a))))
          (orig-a (copy a))

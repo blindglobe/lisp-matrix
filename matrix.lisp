@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-06 16:43:44 Evan Monroig>
+;;; Time-stamp: <2008-06-07 16:00:38 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -243,6 +243,11 @@
     (and (= 0 (row-offset matrix) (col-offset matrix))
          (zero-offset-p (parent matrix)))))
 
+(defgeneric offset (matrix)
+  (:documentation "Offset of the first element of MATRIX.")
+  (:method ((matrix matrix-like))
+    (flatten-matrix-indices matrix 0 0)))
+
 (defmethod flatten-matrix-indices ((matrix window-matview) i j)
   (flatten-matrix-indices (parent matrix)
                           (+ i (row-offset matrix))
@@ -378,6 +383,10 @@
   (:documentation "Type of the elements of MATRIX.")
   (:method ((matrix matview))
     (element-type (parent matrix))))
+
+(defgeneric element-type-size (matrix)
+  (:documentation "Size in memory of the elements of MATRIX (useful
+  for pointer arithmetic when calling foreign functions)."))
 
 ;;;; ** Matrix views
 ;;;;

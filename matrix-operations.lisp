@@ -1,0 +1,11 @@
+(in-package :lisp-matrix)
+
+(defgeneric m* (a b)
+  (:documentation "Matrix multiplication: A*B.")
+  (:method ((a matrix-like) (b matrix-like))
+    (let* ((element-type (element-type a))
+           (one (coerce 1 element-type))
+           (zero (coerce 0 element-type))
+           (c (make-matrix (nrows a) (ncols b)
+                           :element-type element-type)))
+      (gemm one a b zero c))))

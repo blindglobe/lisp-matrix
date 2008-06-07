@@ -41,35 +41,77 @@
 ;;;; For each symbol thus created, we create a type of the
 ;;;; corresponding name if it does not already exist, and we provide
 ;;;; functions to associate a lisp type to a lisp-matrix type.
+;;;;
+;;;; We add some additional information to each type,
 
-(defvar *lisp-matrix-type-table* nil
-  "Table associating LISP-MATRIX-TYPEs to their corresponding lisp type.
-  These names are used in the class names of typed matrices, for which
-  the lisp type is the element-type of the matrices.")
+(defvar *type-table* nil
+  "Table with information about lisp-matrix types, which are used in
+  the class names of typed matrices and correspond to their element
+  type.")
+
+(defstruct type-info
+  (lisp-type t :type (or symbol cons))
+  (lisp-matrix-type t :type symbol)
+  (cffi-type nil :type symbol)
+  (size 0 :type (unsigned-byte 32)))
+
+(defun add-type (&key (lisp-type t) (lisp-matrix-type t) cffi-type)
+  (pushnew (make-type-info :lisp-matrix-type lisp-matrix-type
+                           :lisp-type lisp-type
+                           :cffi-type cffi-type
+                           :size (if cffi-type
+                                     (cffi:foreign-type-size cffi-type)
+                                     0))
+           *type-table*
+           :key #'type-info-lisp-matrix-type))
+
+(defun lisp-type-info (lisp-type)
+  (find lisp-type *type-table*
+        :key #'type-info-lisp-type
+        :test #'equal))
+
+(defun lisp-matrix-type-info (lisp-matrix-type)
+  (find lisp-matrix-type *type-table*
+        :key #'type-info-lisp-matrix-type))
+
+(defun lisp-type-size (lisp-type)
+  (type-info-size (lisp-type-info lisp-type)))
+
+(defun lisp-matrix-type-size (lisp-matrix-type)
+  (type-info-size (lisp-matrix-type-info lisp-matrix-type)))
 
 (defun lisp-type->lisp-matrix-type (lisp-type)
-  "Return the LISP-MATRIX-TYPE corresponding to the lisp type LISP-TYPE."
-  (car (rassoc lisp-type *lisp-matrix-type-table* :test #'equal)))
+  "Return the LISP-MATRIX-TYPE corresponding to the lisp type
+  LISP-TYPE."
+  (let ((info (lisp-type-info lisp-type)))
+    (when (type-info-p info)
+      (type-info-lisp-matrix-type info))))
 
 (defun lisp-matrix-type->lisp-type (lisp-matrix-type)
   "Return the lisp type corresponding to LISP-MATRIX-TYPE."
-  (cdr (assoc lisp-matrix-type *lisp-matrix-type-table*)))
+  (let ((info (lisp-matrix-type-info lisp-matrix-type)))
+    (when (type-info-p info)
+      (type-info-lisp-type info))))
 
-(defmacro def-lisp-matrix-type (name type)
+(defmacro def-lisp-matrix-type (name lisp-type &key cffi-type)
   "Define a new lisp-matrix type of name NAME from the lisp type
   TYPE."
   (check-type name symbol)
+  (check-type cffi-type symbol)
+  (check-type lisp-type (or symbol cons))
   `(progn
-     (pushnew (cons ',name ',type) *lisp-matrix-type-table*
-              :test #'equal)
+     (add-type :lisp-type ',lisp-type :lisp-matrix-type ',name
+               :cffi-type ',cffi-type)
            
-     ,(unless (eql name type)
-              `(deftype ,name () ',type))))
+     ,(unless (eql name lisp-type)
+              `(deftype ,name () ',lisp-type))))
 
-(def-lisp-matrix-type single single-float)
-(def-lisp-matrix-type double double-float)
-(def-lisp-matrix-type complex-single (complex single-float))
-(def-lisp-matrix-type complex-double (complex double-float))
+(def-lisp-matrix-type single single-float :cffi-type :float)
+(def-lisp-matrix-type double double-float :cffi-type :double)
+(def-lisp-matrix-type complex-single (complex single-float)
+  :cffi-type :complex-float)
+(def-lisp-matrix-type complex-double (complex double-float)
+  :cffi-type :complex-double)
 (def-lisp-matrix-type fixnum fixnum)
 (def-lisp-matrix-type integer integer)
 (def-lisp-matrix-type t t)
@@ -172,5 +214,8 @@
        (defmethod stride-class ((matrix ,typed-impl-base-class))
          ',typed-strided-class)
 
-       (defmethod element-type ((matrix ,typed-impl-base-class))
-         ',element-type))))
+       (defmethod element-type ((matrix ,typed-base-class))
+         ',element-type)
+
+       (defmethod element-type-size ((matrix ,typed-base-class))
+         ,(lisp-type-size element-type)))))
