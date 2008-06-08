@@ -1,5 +1,8 @@
 2008-06-08  Evan Monroig  <evan.monroig@gmail.com>
 
+	* experimental/vector.lisp: just some 5-minute exploratory
+	brainstorming at the vector interface
+
 	* tests.lisp (ones, zeros, eye): new tests
 	(axpy, dot, nrm2, asum, iamax, m+, m-): new tests
 
