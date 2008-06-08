@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-07 16:00:38 Evan Monroig>
+;;; Time-stamp: <2008-06-08 09:25:05 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -476,6 +476,7 @@
 (defun ones (nrows ncols &key
              (implementation *default-implementation*)
              (element-type *default-element-type*))
+  "Create a NROWS x NCOLS matrix filled with ones."
   (make-matrix nrows ncols :implementation implementation
                :element-type element-type
                :initial-element (coerce 1 element-type)))
@@ -483,9 +484,23 @@
 (defun zeros (nrows ncols &key
               (implementation *default-implementation*)
               (element-type *default-element-type*))
+  "Create a NROWS x NCOLS matrix filled with zeros."
   (make-matrix nrows ncols :implementation implementation
                :element-type element-type
                :initial-element (coerce 0 element-type)))
+
+(defun eye (nrows ncols &key
+            (implementation *default-implementation*)
+            (element-type *default-element-type*))
+  "Create a NROWS x NCOLS matrix with ones on the diagonal, and zeros
+  elsewhere."
+  (let ((matrix (zeros nrows ncols :implementation implementation
+                       :element-type element-type)))
+    (let ((n (min nrows ncols))
+          (one (coerce 1 element-type)))
+      (dotimes (i n)
+        (setf (mref matrix i i) one))
+      matrix)))
 
 (defun rand (nrows ncols &key
              (implementation *default-implementation*)

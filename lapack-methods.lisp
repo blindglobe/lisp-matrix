@@ -3,23 +3,98 @@
 ;;; This file contains actual LAPACK methods.  See functions in
 ;;; lapack-utils.lisp for how supporting utility macros and functions.
 ;;;
-;;; Time-stamp: <2008-06-07 15:56:07 Evan Monroig>
+;;; Time-stamp: <2008-06-07 20:31:19 Evan Monroig>
 
 ;;;; * Blas methods
 ;;;;
 ;;;; ** Level 1 BLAS
-;;;; 
-;;;; xROTG, xROTMG, xROT, xROTM, xSWAP, xSCAL, xCOPY, xAXPY, xDOT,
-;;;; xSDOT, xDOTU, xDOTC, xNRM2, xASUM, IxAMAX
+;;;;
+;;;; Done: xSCAL, xAXPY, xDOT xDOTU, xDOTC, 
+;;;;
+;;;; Miss some names: xNRM2, xASUM, IxAMAX
+;;;;
+;;;; TODO: xROTG, xROTMG, xROT, xROTM, xSWAP, xCOPY, xSDOT
 
 (def-lapack-method scal (alpha (x !matrix-type))
-  (let ((n (nelts x)))
-    (assert (typep alpha '!element-type))
-    (with-copies ((x (or (not unit-stride-p)
-                         (not zero-offset-p))
-                     t))
-        x
-      (!function n alpha x 1))))
+  (assert (typep alpha '!element-type))
+  (with-copies ((x (or (not unit-stride-p)
+                       (not zero-offset-p))
+                   t))
+      x
+    (!function (nelts x) alpha x 1)))
+
+(def-lapack-method axpy (alpha (x !matrix-type) (y !matrix-type))
+  (assert (typep alpha '!element-type))
+  (assert (= (nelts x) (nelts y)))
+  (with-copies ((x (or (not unit-stride-p)
+                       (not zero-offset-p)))
+                (y (or (not unit-stride-p)
+                       (not zero-offset-p))
+                   t))
+      y
+   (!function (nelts x) alpha x 1 y 1)))
+
+(def-lapack-method dot ((x !matrix-type) (y !matrix-type))
+  (assert (= (nelts x) (nelts y)))
+  (with-copies ((x (or (not unit-stride-p)
+                       (not zero-offset-p)))
+                (y (or (not unit-stride-p)
+                       (not zero-offset-p))))
+      nil
+    (!function (nelts x) x 1 y 1)))
+
+(def-lapack-method dotu ((x !matrix-type) (y !matrix-type))
+  (assert (= (nelts x) (nelts y)))
+  (with-copies ((x (or (not unit-stride-p)
+                       (not zero-offset-p)))
+                (y (or (not unit-stride-p)
+                       (not zero-offset-p))))
+      nil
+    (!function (nelts x) x 1 y 1)))
+
+(def-lapack-method dotc ((x !matrix-type) (y !matrix-type))
+  (assert (= (nelts x) (nelts y)))
+  (with-copies ((x (or (not unit-stride-p)
+                       (not zero-offset-p)))
+                (y (or (not unit-stride-p)
+                       (not zero-offset-p))))
+      nil
+    (!function (nelts x) x 1 y 1)))
+
+(def-lapack-method (nrm2 :function-names
+                         ((%snrm2 single-float)
+                          (%dnrm2 double-float)
+                          (%scnrm2 (complex single-float))
+                          (%dznrm2 (complex double-float))))
+    ((x !matrix-type))
+  (with-copies ((x (or (not unit-stride-p)
+                       (not zero-offset-p))))
+      nil
+    (!function (nelts x) x 1)))
+
+(def-lapack-method (asum :function-names
+                         ((%sasum single-float)
+                          (%dasum double-float)
+                          (%scasum (complex single-float))
+                          (%dzasum (complex double-float))))
+    ((x !matrix-type))
+  (with-copies ((x (or (not unit-stride-p)
+                       (not zero-offset-p))))
+      nil
+    (!function (nelts x) x 1)))
+
+(def-lapack-method (iamax :function-names
+                          ((%isamax single-float)
+                           (%idamax double-float)
+                           (%icamax (complex single-float))
+                           (%izamax (complex double-float))))
+    ((x !matrix-type))
+  (with-copies ((x (or (not unit-stride-p)
+                       (not zero-offset-p))))
+      nil
+    ;; LAPACK element numbering starts from 1, so we correct this to
+    ;; the lisp style starting from 0.
+    (1- (!function (nelts x) x 1))))
 
 ;;;; ** Level 2 BLAS
 ;;;;
@@ -61,6 +136,12 @@
                (real-nrows c))))
 
 ;;;; * Lapack
+;;;;
+;;;; Done:
+;;;;
+;;;; Need more work: xGELSY
+;;;;
+;;;; TODO: many many
 
 (defmacro call-with-work ((lwork work type) call)
   (let ((element-type (fnv-type->element-type type)))

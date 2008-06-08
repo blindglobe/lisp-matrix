@@ -1,3 +1,24 @@
+2008-06-08  Evan Monroig  <evan.monroig@gmail.com>
+
+	* tests.lisp (ones, zeros, eye): new tests
+	(axpy, dot, nrm2, asum, iamax, m+, m-): new tests
+
+	* matrix.lisp (eye): added
+
+	* lapack-methods.lisp (axpy, dot, dotu, dotc, nrm2, asum, iamax):
+	added
+	(scal): modified
+
+	* matrix-operations.lisp (m+, m-): added
+
+	* lapack-utils.lisp (def-lapack-method): modify NAME parameter to
+	allow a list with the name and then keywords.
+	(%get-functions, %get-name): helper functions to obtain the NAME
+	and the cl-blapack function names to use for each matrix
+	element-type
+	(with-copies): when RESULT is NIL, don't return it but instead
+	return the value of BODY
+
 2008-06-07  Evan Monroig  <evan.monroig@gmail.com>
 
 	* matrix-operations.lisp (m*): added

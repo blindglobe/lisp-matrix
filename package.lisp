@@ -3,6 +3,7 @@
 
 (defpackage :lisp-matrix
   (:use :cl
+        :cl-utilities
         :cffi
         :org.middleangle.foreign-numeric-vector
 	:fiveam

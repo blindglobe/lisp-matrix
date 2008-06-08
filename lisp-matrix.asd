@@ -17,7 +17,8 @@
     :depends-on ("cffi"
 		 "org.middleangle.foreign-numeric-vector"
 		 "org.middleangle.cl-blapack"
-                 "fiveam")
+                 "fiveam"
+                 "cl-utilities")
     :components
     ((:file "package")
      (:file "utils" :depends-on ("package"))
@@ -32,10 +33,13 @@
                                                 "utils"))
      (:file "fnv-vector" :depends-on ("package" "macros" "utils"))
      (:file "lapack-utils" :depends-on ("matrix-foreign-array"
+                                        "matrix-lisp-array"
                                         "fnv-vector"))
      (:file "lapack-methods" :depends-on ("lapack-utils"))
+     (:file "matrix-operations" :depends-on ("lapack-methods"))
      (:file "tests" :depends-on ("matrix" "matrix-lisp-array"
                                           "matrix-foreign-array"
+                                          "matrix-operations"
                                           "fnv-vector"
                                           "lapack-utils"
                                           "lapack-methods")))

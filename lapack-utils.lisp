@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-07 16:07:49 Evan Monroig>
+;;;; Time-stamp: <2008-06-07 20:15:19 Evan Monroig>
 ;;;;
 ;;;;
 ;;;;
@@ -121,7 +121,7 @@
                    for g in gensyms
                    when (third form)
                    collect `(copy! ,(first form) ,g))))
-       ,result)))
+       ,@(when result `(,result)))))
 
 (defparameter *supported-datatypes*
   '((float . "S")
@@ -137,7 +137,56 @@
   (or (cdr (assoc datatype *supported-datatypes* :test #'equal))
       (error "LAPACK does not support the datatype ~A" datatype)))
 
-(defmacro def-lapack-method (name (&rest lambda-list) &body body)
+(defun %get-name (name-and-options)
+  "Used in DEF-LAPACK-METHOD.
+
+  NAME-AND-OPTIONS is either: NAME, or (NAME &KEY FUNCTION-NAMES).
+
+  Returns NAME."
+  (etypecase name-and-options
+    (symbol name-and-options)
+    (list (car name-and-options))))
+
+(defun %get-functions (name-and-options)
+  "Used in DEF-LAPACK-METHOD.
+
+  NAME-AND-OPTIONS is either: NAME, or (NAME &KEY FUNCTION-NAMES).
+
+  If FUNCTION-NAMES is not set, the names are automatically generated
+  by prepending NAME by the character #\\% and one of the characters
+  '(#\\s #\\d #\\c #\\z) which correspond to the data types supported
+  by fortran.  If one function name does not exist, it is ignored so
+  it is safe to use this for example for xDOT which has only %SDOT and
+  %DDOT as functions.  If FUNCTION-NAMES is set, then it is a list
+  where each element is of the form (FUNCTION-NAME TYPE) where
+  FUNCTION-NAME is the symbol to use for the function to call, and
+  TYPE is the lisp type to use, which is one of '(single-float
+  double-float (complex double-float) (complex single-float))."
+  (declare (optimize (debug 3)))
+  (labels ((filter-names (functions)
+             (remove-if-not #'fboundp functions :key #'car)))
+    (let* ((name (%get-name name-and-options))
+           (default-function-names
+            (loop for (type . type-letter) in *supported-datatypes*
+                  collect (list (make-symbol* "%" type-letter name)
+                                (fnv-type->element-type type)))))
+     (filter-names
+      (etypecase name-and-options
+        (symbol default-function-names)
+        (list
+         (destructuring-bind (name &key function-names)
+             name-and-options
+           (declare (ignore name))
+           (or function-names default-function-names))))))))
+
+;; (%get-functions 'gemm)
+;; (%get-functions '(nrm2 :function-names
+;;                   ((%snrm2 single-float)
+;;                    (%dnrm2 double-float)
+;;                    (%scnrm2 (complex single-float))
+;;                    (%dznrm2 (complex double-float)))))
+
+(defmacro def-lapack-method (name-and-options (&rest lambda-list) &body body)
   "Define methods for supported datatypes for the lapack method named
   NAME.  The symbols !FUNCTION, !DATA-TYPE, and !MATRIX-TYPE are
   respectively bound to the actual lapack function to be called from
@@ -145,36 +194,51 @@
   or complex-double), and the corresponding abstract matrix
   type (e.g. matrix-double-like).
 
+  NAME-AND-OPTIONS is either: NAME, or (NAME &KEY FUNCTION-NAMES).
+
+  If FUNCTION-NAMES is not set, the names are automatically generated
+  by prepending NAME by the character #\\% and one of the characters
+  '(#\\s #\\d #\\c #\\z) which correspond to the data types supported
+  by fortran.  If one function name does not exist, it is ignored so
+  it is safe to use this for example for xDOT which has only %SDOT and
+  %DDOT as functions.  If FUNCTION-NAMES is set, then it is a list
+  where each element is of the form (FUNCTION-NAME TYPE) where
+  FUNCTION-NAME is the symbol to use for the function to call, and
+  TYPE is the lisp type to use, which is one of '(single-float
+  double-float (complex double-float) (complex single-float)).
+
   See for example the definition of GEMM for how to use this macro."
   ;; FIXME: I don't like the fact that this macro uses templates, but
   ;; the code works. -- Evan Monroig 2008-05-04
   ;; FIXME: also create the generic function with documentation --
   ;; Evan Monroig 2008-05-04
-  `(progn
-     ,@(loop for (type . type-letter) in *supported-datatypes*
-             append
-             (let* ((element-type (fnv-type->element-type type))
-                    (fa-replacements
-                     `((!function . ,(make-symbol* "%" type-letter name))
-                       (!data-type . ,type)
-                       (!element-type . ,element-type)
-                       (!matrix-type . ,(matrix-class :base :foreign-array
-                                                      element-type))))
-                    (la-replacements
-                     `((!function . ,(make-symbol* "%" type-letter name))
-                       (!data-type . ,type)
-                       (!element-type . ,element-type)
-                       (!matrix-type . ,(matrix-class :base :lisp-array
-                                                      element-type))
-                       (with-copies . with-pinned-copies))))
-               `((defmethod ,name
-                     ,(sublis fa-replacements lambda-list)
-                   (with-blapack
-                     ,@(sublis fa-replacements body)))
-                 (defmethod ,name
-                     ,(sublis la-replacements lambda-list)
-                   (with-blapack
-                     ,@(sublis la-replacements body))))))))
+  (let ((name (%get-name name-and-options))
+        (functions (%get-functions name-and-options)))
+   `(progn
+      ,@(loop for (function-name element-type) in functions
+              append
+              (let* ((type (element-type->fnv-type element-type))
+                     (fa-replacements
+                      `((!function . ,function-name)
+                        (!data-type . ,type)
+                        (!element-type . ,element-type)
+                        (!matrix-type . ,(matrix-class :base :foreign-array
+                                                       element-type))))
+                     (la-replacements
+                      `((!function . ,function-name)
+                        (!data-type . ,type)
+                        (!element-type . ,element-type)
+                        (!matrix-type . ,(matrix-class :base :lisp-array
+                                                       element-type))
+                        (with-copies . with-pinned-copies))))
+                `((defmethod ,name
+                      ,(sublis fa-replacements lambda-list)
+                    (with-blapack
+                      ,@(sublis fa-replacements body)))
+                  (defmethod ,name
+                      ,(sublis la-replacements lambda-list)
+                    (with-blapack
+                      ,@(sublis la-replacements body)))))))))
 
 (defun orientation->letter (orientation)
   "Return the LAPACK letter corresponding to ORIENTATION."

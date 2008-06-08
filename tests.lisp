@@ -279,6 +279,86 @@
                            :row-offset row-offset
                            :col-offset col-offset))))))
 
+;;; Matrix creation
+
+(def-suite matrix-creation :in tests
+           :description "tests for functions that create matrices.")
+
+(in-suite matrix-creation)
+
+(test ones
+  (for-all-implementations
+    (is (m= (ones 2 2 :element-type 'single-float)
+            (make-matrix 2 2
+                         :element-type 'single-float
+                         :initial-contents '((1.0 1.0)
+                                             (1.0 1.0)))))
+    (is (m= (ones 2 2 :element-type 'double-float)
+            (make-matrix 2 2
+                         :element-type 'double-float
+                         :initial-contents '((1d0 1d0)
+                                             (1d0 1d0)))))
+    (is (m= (ones 2 2 :element-type '(complex single-float))
+            (make-matrix 2 2
+                         :element-type '(complex single-float)
+                         :initial-contents '((#C(1.0 0.0) #C(1.0 0.0))
+                                             (#C(1.0 0.0) #C(1.0 0.0))))))
+    (is (m= (ones 2 2 :element-type '(complex double-float))
+            (make-matrix 2 2
+                         :element-type '(complex double-float)
+                         :initial-contents
+                         '((#C(1d0 0d0) #C(1d0 0d0))
+                           (#C(1d0 0d0) #C(1d0 0d0))))))))
+
+(test zeros
+  (for-all-implementations
+    (is (m= (zeros 2 2 :element-type 'single-float)
+            (make-matrix 2 2
+                         :element-type 'single-float
+                         :initial-contents '((0.0 0.0)
+                                             (0.0 0.0)))))
+    (is (m= (zeros 2 2 :element-type 'double-float)
+            (make-matrix 2 2
+                         :element-type 'double-float
+                         :initial-contents '((0d0 0d0)
+                                             (0d0 0d0)))))
+    (is (m= (zeros 2 2 :element-type '(complex single-float))
+            (make-matrix 2 2
+                         :element-type '(complex single-float)
+                         :initial-contents
+                         '((#C(0.0 0.0) #C(0.0 0.0))
+                           (#C(0.0 0.0) #C(0.0 0.0))))))
+    (is (m= (zeros 2 2 :element-type '(complex double-float))
+            (make-matrix 2 2
+                         :element-type '(complex double-float)
+                         :initial-contents
+                         '((#C(0d0 0d0) #C(0d0 0d0))
+                           (#C(0d0 0d0) #C(0d0 0d0))))))))
+
+(test eye
+  (for-all-implementations
+    (is (m= (eye 2 2 :element-type 'single-float)
+            (make-matrix 2 2
+                         :element-type 'single-float
+                         :initial-contents '((1.0 0.0)
+                                             (0.0 1.0)))))
+    (is (m= (eye 2 2 :element-type 'double-float)
+            (make-matrix 2 2
+                         :element-type 'double-float
+                         :initial-contents '((1d0 0d0)
+                                             (0d0 1d0)))))
+    (is (m= (eye 2 2 :element-type '(complex single-float))
+            (make-matrix 2 2
+                         :element-type '(complex single-float)
+                         :initial-contents
+                         '((#C(1.0 0.0) #C(0.0 0.0))
+                           (#C(0.0 0.0) #C(1.0 0.0))))))
+    (is (m= (eye 2 2 :element-type '(complex double-float))
+            (make-matrix 2 2
+                         :element-type '(complex double-float)
+                         :initial-contents '((#C(1d0 0d0) #C(0d0 0d0))
+                                             (#C(0d0 0d0) #C(1d0 0d0))))))))
+
 (test rand
   (for-all-implementations
     (let* ((state1 (make-random-state))
@@ -325,28 +405,132 @@
   (is (string= (datatype->letter 'complex-double) "Z")))
 
 (test scal
-  (is
-   (m=
-    (scal 1.5d0 (ones 2 2 :element-type 'double-float))
-    (make-matrix 2 2 :element-type 'double-float
-                     :initial-element 1.5d0)))
-  (is
-   (m=
-    (scal 1.5 (ones 2 2 :element-type 'single-float))
-    (make-matrix 2 2 :element-type 'single-float
-                     :initial-element 1.5)))
-  (is
-   (m=
-    (scal #C(1.5 1.5)
-          (ones 2 2 :element-type '(complex single-float)))
-    (make-matrix 2 2 :element-type '(complex single-float)
-                     :initial-element #C(1.5 1.5))))
-  (is
-   (m=
-    (scal #C(1.5d0 1.5d0)
-          (ones 2 2 :element-type '(complex double-float)))
-    (make-matrix 2 2 :element-type '(complex double-float)
-                     :initial-element #C(1.5d0 1.5d0)))))
+  (for-all-implementations
+    (is
+     (m=
+      (scal 1.5d0 (ones 2 2 :element-type 'double-float))
+      (make-matrix 2 2 :element-type 'double-float
+                       :initial-element 1.5d0)))
+    (is
+     (m=
+      (scal 1.5 (ones 2 2 :element-type 'single-float))
+      (make-matrix 2 2 :element-type 'single-float
+                       :initial-element 1.5)))
+    (is
+     (m=
+      (scal #C(1.5 1.5)
+            (ones 2 2 :element-type '(complex single-float)))
+      (make-matrix 2 2 :element-type '(complex single-float)
+                       :initial-element #C(1.5 1.5))))
+    (is
+     (m=
+      (scal #C(1.5d0 1.5d0)
+            (ones 2 2 :element-type '(complex double-float)))
+      (make-matrix 2 2 :element-type '(complex double-float)
+                       :initial-element #C(1.5d0 1.5d0))))))
+
+(test axpy
+  (for-all-implementations
+    (let ((*default-element-type* 'single-float))
+      (is (m= (axpy 1.0 (ones 2 2) (scal 1.5 (ones 2 2)))
+              (scal 2.5 (ones 2 2))))
+      (is (m= (axpy -1.0 (ones 2 2) (scal 1.5 (ones 2 2)))
+              (scal 0.5 (ones 2 2)))))
+    (let ((*default-element-type* 'double-float))
+      (is (m= (axpy 1d0 (ones 2 2) (scal 1.5d0 (ones 2 2)))
+              (scal 2.5d0 (ones 2 2))))
+      (is (m= (axpy -1d0 (ones 2 2) (scal 1.5d0 (ones 2 2)))
+              (scal 0.5d0 (ones 2 2)))))
+    (let* ((*default-element-type* '(complex single-float)))
+      (is (m= (axpy #C(1.0 0.0)
+                    (ones 2 2)
+                    (scal #C(1.5 0.0) (ones 2 2)))
+              (scal #C(2.5 0.0) (ones 2 2))))
+      (is (m= (axpy #C(-1.0 0.0)
+                    (ones 2 2)
+                    (scal #C(1.5 0.0) (ones 2 2)))
+              (scal #C(0.5 0.0) (ones 2 2)))))
+    (let* ((*default-element-type* '(complex double-float)))
+      (is (m= (axpy #C(1.0d0 0.0d0)
+                    (ones 2 2)
+                    (scal #C(1.5d0 0.0d0) (ones 2 2)))
+              (scal #C(2.5d0 0.0d0) (ones 2 2))))
+      (is (m= (axpy #C(-1.0d0 0.0d0)
+                    (ones 2 2)
+                    (scal #C(1.5d0 0.0d0) (ones 2 2)))
+              (scal #C(0.5d0 0.0d0) (ones 2 2)))))))
+
+(test dot
+  (for-all-implementations
+    (is (= (dot (ones 2 2)
+                (scal 0.5d0 (ones 2 2)))
+           2d0))
+    (is (= (dot (ones 2 2 :element-type 'single-float)
+                (scal 0.5 (ones 2 2 :element-type 'single-float)))
+           2.0))))
+
+;; FIXME: test DOTU, DOTC
+#+(or)
+(test dotu
+ (is (= (dotu (ones 2 2 :element-type '(complex single-float))
+              (scal #C(0.5 0.0) (ones 2 2 :element-type
+                                      '(complex single-float))))
+        #C(2.0 0.0))))
+
+#+(or)
+(test dotc
+ (is (= (dotc (ones 2 2 :element-type '(complex single-float))
+              (scal #C(0.5 0.0) (ones 2 2 :element-type
+                                      '(complex single-float))))
+        #C(2.0 0.0))))
+
+(test nrm2
+  (for-all-implementations
+    (is (= (nrm2 (ones 2 2))
+           2d0))
+    (is (= (nrm2 (ones 2 2 :element-type 'single-float))
+           2.0))
+    (is (= (nrm2 (ones 2 2 :element-type '(complex single-float)))
+           #C(2.0 0.0)))
+    (is (= (nrm2 (ones 2 2 :element-type '(complex double-float)))
+           #C(2d0 0d0)))))
+
+(test asum
+  (for-all-implementations
+    (is (= (asum (ones 2 2))
+           4d0))
+    (is (= (asum (ones 2 2 :element-type 'single-float))
+           4.0))
+    (is (= (asum (ones 2 2 :element-type '(complex single-float)))
+           #C(4.0 0.0)))
+    (is (= (asum (ones 2 2 :element-type '(complex double-float)))
+           #C(4d0 0d0)))))
+
+(test iamax
+  (for-all-implementations
+    (is (= (iamax (make-matrix 2 2 :initial-contents '((1d0 2d0)
+                                                       (1d0 1d0))))
+           2))
+    (is (= (iamax (make-matrix 2 2 :element-type 'single-float
+                                   :initial-contents '((1.0 2.0)
+                                                       (1.0 1.0))))
+           2))
+    (is (= (iamax (make-matrix 2 2 :element-type '(complex single-float)
+                                   :initial-contents '((#C(1.0 0.0) #C(2.0 0.0))
+                                                       (#C(1.0 0.0) #C(1.0 0.0)))))
+           2))
+    (is (= (iamax (make-matrix 2 2 :element-type '(complex double-float)
+                                   :initial-contents '((#C(1d0 0d0) #C(2d0 0d0))
+                                                       (#C(1d0 0d0) #C(1d0 0d0)))))
+           2))
+    (is (= (iamax (ones 1 1))
+           0))
+    (is (= (iamax (ones 1 1 :element-type 'single-float))
+           0))
+    (is (= (iamax (ones 1 1 :element-type '(complex single-float)))
+           0))
+    (is (= (iamax (ones 1 1 :element-type '(complex double-float)))
+           0))))
 
 (def-suite gemm :in lapack
            :description "tests of the M* function")
@@ -596,3 +780,57 @@
       (make-matrix 2 2 :element-type '(complex double-float)
                        :initial-contents '((#C(19d0 0d0) #C(22d0 0d0))
                                            (#C(43d0 0d0) #C(50d0 0d0))))))))
+
+(in-suite lapack)
+
+(test m+
+  (for-all-implementations
+    (let* ((a (ones 2 2))
+           (b (scal 2d0 (ones 2 2))))
+      (is (m= a (ones 2 2)))
+      (is (m= b (scal 2d0 (ones 2 2))))
+      (is (m= (m+ a b) (scal 3d0 (ones 2 2)))))
+    (let* ((*default-element-type* 'single-float)
+           (a (ones 2 2))
+           (b (scal 2.0 (ones 2 2))))
+      (is (m= a (ones 2 2)))
+      (is (m= b (scal 2.0 (ones 2 2))))
+      (is (m= (m+ a b) (scal 3.0 (ones 2 2)))))
+    (let* ((*default-element-type* '(complex single-float))
+           (a (ones 2 2))
+           (b (scal #C(2.0 2.0) (ones 2 2))))
+      (is (m= a (ones 2 2)))
+      (is (m= b (scal #C(2.0 2.0) (ones 2 2))))
+      (is (m= (m+ a b) (scal #C(3.0 2.0) (ones 2 2)))))
+    (let* ((*default-element-type* '(complex double-float))
+           (a (ones 2 2))
+           (b (scal #C(2d0 2d0) (ones 2 2))))
+      (is (m= a (ones 2 2)))
+      (is (m= b (scal #C(2d0 2d0) (ones 2 2))))
+      (is (m= (m+ a b) (scal #C(3d0 2d0) (ones 2 2)))))))
+
+(test m-
+  (for-all-implementations
+    (let* ((a (ones 2 2))
+           (b (scal 2d0 (ones 2 2))))
+      (is (m= a (ones 2 2)))
+      (is (m= b (scal 2d0 (ones 2 2))))
+      (is (m= (m- a b) (scal -1d0 (ones 2 2)))))
+    (let* ((*default-element-type* 'single-float)
+           (a (ones 2 2))
+           (b (scal 2.0 (ones 2 2))))
+      (is (m= a (ones 2 2)))
+      (is (m= b (scal 2.0 (ones 2 2))))
+      (is (m= (m- a b) (scal -1.0 (ones 2 2)))))
+    (let* ((*default-element-type* '(complex single-float))
+           (a (ones 2 2))
+           (b (scal #C(2.0 2.0) (ones 2 2))))
+      (is (m= a (ones 2 2)))
+      (is (m= b (scal #C(2.0 2.0) (ones 2 2))))
+      (is (m= (m- a b) (scal #C(-1.0 -2.0) (ones 2 2)))))
+    (let* ((*default-element-type* '(complex double-float))
+           (a (ones 2 2))
+           (b (scal #C(2d0 2d0) (ones 2 2))))
+      (is (m= a (ones 2 2)))
+      (is (m= b (scal #C(2d0 2d0) (ones 2 2))))
+      (is (m= (m- a b) (scal #C(-1d0 -2d0) (ones 2 2)))))))
