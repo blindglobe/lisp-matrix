@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-11 14:57:16 Evan Monroig>
+;;; Time-stamp: <2008-06-11 15:51:25 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -168,14 +168,15 @@
 
 (defgeneric real-nrows (matrix)
   (:documentation "Return the actual number of rows of the matrix into
-  which A is stored, i.e. the number of rows of the ancestor of A.")
+  which MATRIX is stored, i.e. the number of rows of the ancestor of
+  MATRIX.")
   (:method ((matrix matrix-like)) (nrows matrix))
   (:method ((matrix matview)) (nrows (ancestor matrix))))
 
 (defgeneric real-ncols (matrix)
   (:documentation "Return the actual number of columns of the matrix
-  into which A is stored, i.e. the number of columns of the ancestor
-  of A.")
+  into which MATRIX is stored, i.e. the number of columns of the
+  ancestor of MATRIX.")
   (:method ((matrix matrix-like)) (ncols matrix))
   (:method ((matrix matview)) (ncols (ancestor matrix))))
 
@@ -329,9 +330,9 @@
 (defgeneric make-matrix* (nrows ncols implementation &key element-type
                                 initial-element)
   (:documentation "Create a NROWS x NCOLS matrix with IMPLEMENTATION
-  as underlying matrix implementation.  ELEMENT-TYPE is the lisp type
-  to be stored in the matrix, and INITIAL-ELEMENT an element that may
-  be used to initially fill the matrix.
+  as underlying implementation.  ELEMENT-TYPE is the lisp type to be
+  stored in the matrix, and INITIAL-ELEMENT an element that may be
+  used to initially fill the matrix.
 
   If INITIAL-ELEMENT is not specified, the matrix is not initialized,
   and accessing its elements will thus return spurious values."))
@@ -352,7 +353,7 @@
   If INITIAL-CONTENTS is specified, it is used to initialize the
   matrix, by using the generic function COPY!.
 
-  MATRIX-IMPLEMENTATION can be one of :LISP-ARRAY and :FOREIGN-ARRAY"
+  IMPLEMENTATION can be one of :LISP-ARRAY and :FOREIGN-ARRAY"
   (when (and initial-element-p initial-contents-p)
     (error "Both INITIAL-ELEMENT and INITIAL-CONTENTS should not be ~
     specified"))

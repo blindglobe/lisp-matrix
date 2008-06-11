@@ -1,5 +1,8 @@
 2008-06-11  Evan Monroig  <evan.monroig@gmail.com>
 
+	* experimental/vector.lisp: try at separate vector type -> also
+	lots of code duplication
+	
 	* experimental/vector.lisp: added more necessary things for the
 	case of vector type derived from matrix type -> ugly code
 	duplication
