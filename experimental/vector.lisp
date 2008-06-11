@@ -3,8 +3,9 @@
 ;;;; * Vectors
 ;;;;
 ;;;; Vector can be viewed as matrices that happen to have one row (or
-;;;; one column), or as a separate type.  We will define vectors as
-;;;; a separate type.
+;;;; one column), or as a separate type.
+;;;;
+;;;; This is a try at defining vectors as a separate type.
 ;;;;
 ;;;; One advantage of having vectors be subtypes of matrices is that
 ;;;; we don't need to re-specialize many generic functions (e.g., m*,

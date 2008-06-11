@@ -2,7 +2,8 @@
 
 	* experimental/vector.lisp: try at separate vector type -> also
 	lots of code duplication
-	
+	minor change
+
 	* experimental/vector.lisp: added more necessary things for the
 	case of vector type derived from matrix type -> ugly code
 	duplication
