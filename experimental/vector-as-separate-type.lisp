@@ -5,8 +5,6 @@
 ;;;; Vector can be viewed as matrices that happen to have one row (or
 ;;;; one column), or as a separate type.
 ;;;;
-;;;; This is a try at defining vectors as a separate type.
-;;;;
 ;;;; One advantage of having vectors be subtypes of matrices is that
 ;;;; we don't need to re-specialize many generic functions (e.g., m*,
 ;;;; m+, m-, etc.), we can just use those that are defined for
@@ -15,6 +13,8 @@
 ;;;; However, a big disadvantage is that we will have lots of code
 ;;;; duplication (two times as many classes) for the separation of
 ;;;; row- and column-vectors.
+;;;; 
+;;;; This is a try at defining vectors as a separate type.
 
 ;;;; ** Basic vector class
 

@@ -1,3 +1,11 @@
+2008-06-12  Evan Monroig  <evan.monroig@gmail.com>
+
+	* experimental/vector-as-separate-type.lisp: same as in previous
+	commit experimental/vector.lisp
+
+	* experimental/vector-as-subtype.lisp: from a previous commit --
+	updated to have the same class for row- and column- vectors
+
 2008-06-11  Evan Monroig  <evan.monroig@gmail.com>
 
 	* experimental/vector.lisp: try at separate vector type -> also
