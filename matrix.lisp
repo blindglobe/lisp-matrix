@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-08 09:25:05 Evan Monroig>
+;;; Time-stamp: <2008-06-11 14:57:16 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -37,10 +37,9 @@
    (ncols :initarg :ncols
           :reader ncols
           :initform 0))
-  (:documentation
-   "Abstract base class for 2-D matrices and matrix views.  We assume
-   for now that matrices are stored in column order (Fortran style),
-   for BLAS and LAPACK compatibility."))
+  (:documentation "Abstract base class for 2-D matrices and matrix
+   views.  We assume for now that matrices are stored in column
+   order (Fortran style), for BLAS and LAPACK compatibility."))
 
 (defgeneric nrows (matrix)
   (:documentation "Number of rows in the matrix."))
@@ -122,13 +121,13 @@
     (+ i (* j (nrows matrix)))))
 
 (defgeneric mref (matrix i j)
-  (:documentation "(MREF MATRIX i j) gives you the (i,j)-th element of
+  (:documentation "(MREF MATRIX I J) gives you the (I,J)-th element of
   MATRIX.  This method is slow as it requires CLOS method dispatch and
   index calculation(s), and should thus be replaced with vectorized or
   block operations whenever possible."))
 
 (defgeneric (setf mref) (value matrix i j)
-  (:documentation "Set the (i,j)-th element of MATRIX to VALUE.  This
+  (:documentation "Set the (I,J)-th element of MATRIX to VALUE.  This
   method is slow as it requires CLOS method dispatch and index
   calculation(s), and should thus be replaced with vectorized or block
   operations whenever possible."))
@@ -411,45 +410,45 @@
   stride of MATRIX.")
   (:method ((matrix matrix-like)) 'strided-matview))
 
-(defgeneric transpose (parent)
+(defgeneric transpose (matrix)
   (:documentation "Creates a transpose view of the given matrix-like
-  object PARENT.")
-  (:method ((parent matrix-like))
-    (make-instance (transpose-class parent)
-                   :parent parent
-                   :nrows (ncols parent)
-                   :ncols (nrows parent))))
+  object MATRIX.")
+  (:method ((matrix matrix-like))
+    (make-instance (transpose-class matrix)
+                   :parent matrix
+                   :nrows (ncols matrix)
+                   :ncols (nrows matrix))))
 
-(defgeneric window (parent &key nrows ncols row-offset col-offset)
+(defgeneric window (matrix &key nrows ncols row-offset col-offset)
   (:documentation "Creates a window view of the given matrix-like
-  object PARENT.  Note that window views always have the same
+  object MATRIX.  Note that window views always have the same
   orientation as their parents.")
-  (:method ((parent matrix-like) 
-            &key (nrows (nrows parent))
-            (ncols (ncols parent))
+  (:method ((matrix matrix-like) 
+            &key (nrows (nrows matrix))
+            (ncols (ncols matrix))
             (row-offset 0)
             (col-offset 0))
     (check-type nrows (integer 0))
     (check-type ncols (integer 0))
     (check-type row-offset (integer 0))
     (check-type col-offset (integer 0))
-    (assert (<= (+ row-offset nrows) (nrows parent)))
-    (assert (<= (+ col-offset ncols) (ncols parent)))
-    (make-instance (window-class parent)
-                   :parent parent
+    (assert (<= (+ row-offset nrows) (nrows matrix)))
+    (assert (<= (+ col-offset ncols) (ncols matrix)))
+    (make-instance (window-class matrix)
+                   :parent matrix
                    :nrows nrows
                    :ncols ncols
                    :row-offset row-offset
                    :col-offset col-offset)))
 
-(defgeneric strides (parent &key nrows ncols row-offset col-offset row-stride
+(defgeneric strides (matrix &key nrows ncols row-offset col-offset row-stride
                             col-stride)
   (:documentation "Creates a strided view of the given matrix-like
-  object PARENT.")
-  (:method ((parent matrix-like)
+  object MATRIX.")
+  (:method ((matrix matrix-like)
             &key 
-            (nrows (nrows parent))
-            (ncols (ncols parent))
+            (nrows (nrows matrix))
+            (ncols (ncols matrix))
             (row-offset 0)
             (col-offset 0)
             (row-stride 1)
@@ -460,10 +459,10 @@
     (check-type col-offset (integer 0))
     (check-type row-stride (integer 1))
     (check-type col-stride (integer 1))
-    (assert (<= (+ row-offset (* row-stride (1- nrows))) (nrows parent)))
-    (assert (<= (+ col-offset (* col-stride (1- ncols))) (ncols parent)))
-    (make-instance (stride-class parent)
-                   :parent parent
+    (assert (<= (+ row-offset (* row-stride (1- nrows))) (nrows matrix)))
+    (assert (<= (+ col-offset (* col-stride (1- ncols))) (ncols matrix)))
+    (make-instance (stride-class matrix)
+                   :parent matrix
                    :nrows nrows
                    :ncols ncols
                    :row-offset row-offset

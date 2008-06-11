@@ -1,3 +1,12 @@
+2008-06-11  Evan Monroig  <evan.monroig@gmail.com>
+
+	* experimental/vector.lisp: added more necessary things for the
+	case of vector type derived from matrix type -> ugly code
+	duplication
+
+	* matrix.lisp (mref, setf mref): minor change in documentation
+	(window, strides, transpose): minor change in argument name
+
 2008-06-08  Evan Monroig  <evan.monroig@gmail.com>
 
 	* experimental/vector.lisp: just some 5-minute exploratory
