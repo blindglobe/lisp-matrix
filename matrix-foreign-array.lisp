@@ -56,7 +56,7 @@
            (make-fnv (make-symbol* "MAKE-FNV-" fnv-type)))
       `(progn
          
-         (make-class-hierarchy :foreign-array ,element-type)
+         (make-matrix-class-hierarchy :foreign-array ,element-type)
          
          (defclass ,fa-typed-class (,fa-typed-base-class)
            ((data :initarg :data

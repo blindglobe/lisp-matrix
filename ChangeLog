@@ -1,4 +1,40 @@
+2008-06-13  Evan Monroig  <evan.monroig@gmail.com>
+
+	* vector.lisp: renamed from experimental/vector-as-subtype.lisp
+
+	* old/fnv-vector.lisp: moved here from fnv-vector.lisp
+
+	* lisp-matrix.asd (lisp-matrix): add file vector.lisp, remove
+	fnv-vector.lisp
+
+	* matrix-implementations.lisp (vector-class): similar to
+	MATRIX-CLASS
+	(make-matrix-class-hierarchy): renamed from MAKE-CLASS-HIERARCHY
+	(make-vector-class-hierarchy): newly defined
+
+	* matrix-lisp-array.lisp (la-vector): base vector class
+	(vref, setf vref): defined
+	(make-matrix*): make a vector if NROWS or NCOLS are 1
+	(la-vector-class): similar to LA-MATRIX-CLASS
+	(construct-la-matrix): also define vector subclasses
+
+	* matrix.lisp (print-object): renamed variable
+	(rand): accept additional argument VALUE which is the same as for
+	the function RANDOM
+	(transpose): transposing two times returns the original
+	(window): define a window as a stride
+	(strides): generate a window if the strides are 1
+	(strides): stride on the parent of the argument matrix
+	(matview): PARENT is of type MATRIX-LIKE
+
+	* tests.lisp (transposed-p): update
+	(fun-transpose, fun-window, fun-strides, fun-matrix-views): new
+	test suite for matviews
+
 2008-06-12  Evan Monroig  <evan.monroig@gmail.com>
+
+	* lapack-utils.lisp (%clean-lambda-list, def-lapack-method): add
+	generic function generation
 
 	* experimental/vector-as-separate-type.lisp: same as in previous
 	commit experimental/vector.lisp

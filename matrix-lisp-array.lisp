@@ -11,6 +11,8 @@
 
 (defclass la-matrix (matrix-like) ())
 
+(defclass la-vector (vector-like la-matrix) ())
+
 (defmethod implementation ((matrix la-matrix))
   :lisp-array)
 
@@ -21,18 +23,37 @@
   (setf (aref (data matrix) (flatten-matrix-indices matrix i j))
         value))
 
+(defmethod vref ((vector la-matrix) i)
+  "We define VREF on LA-MATRIX instead of directly on LA-VECTOR since
+  we can view a matrix as its underlying vector."
+  (aref (data vector) i))
+
+(defmethod (setf vref) (value (vector la-matrix) i)
+  "We define (SETF VREF) on LA-MATRIX instead of directly on LA-VECTOR
+  since we can view a matrix as its underlying vector."
+  (setf (aref (data vector) i) value))
+
 (defmethod make-matrix* (nrows ncols
                          (matrix-implementation (eql :lisp-array))
                          &key element-type
                          (initial-element nil initial-element-p))
-  (make-instance
-   (la-matrix-class element-type)
-   :nrows nrows
-   :ncols ncols
-   :data (apply #'make-array (* nrows ncols)
-                :element-type element-type
-                (when initial-element-p
-                  (list :initial-element initial-element)))))
+  (if (or (= nrows 1) (= ncols 1))
+      (make-instance
+       (la-vector-class element-type)
+       :nrows nrows
+       :ncols ncols
+       :data (apply #'make-array (* nrows ncols)
+                    :element-type element-type
+                    (when initial-element-p
+                      (list :initial-element initial-element))))
+      (make-instance
+       (la-matrix-class element-type)
+       :nrows nrows
+       :ncols ncols
+       :data (apply #'make-array (* nrows ncols)
+                    :element-type element-type
+                    (when initial-element-p
+                      (list :initial-element initial-element))))))
 
 ;;;; Also, some lisps (e.g., CLISP) fill the matrix with NIL if we
 ;;;; don't provide INITIAL-ELEMENT or an INITIAL-CONTENTS, so for
@@ -75,25 +96,39 @@
   (defun la-matrix-class (element-type &optional (type :simple))
     "Return the LA-MATRIX class name corresponding to ELEMENT-TYPE."
     (matrix-class type :lisp-array element-type))
+
+  (defun la-vector-class (element-type &optional (type :simple))
+    "Return the LA-VECTOR class name corresponding to ELEMENT-TYPE."
+    (vector-class type :lisp-array element-type))
   
   (defmacro construct-la-matrix (element-type default-value)
     "Construct a matrix class holding elements of type ELEMENT-TYPE
     based on lisp arrays."
-    (let* ((la-typed-class (la-matrix-class element-type :simple))
-           (la-typed-base-class (la-matrix-class element-type :base)))
+    (let* ((la-typed-mclass (la-matrix-class element-type :simple))
+           (la-typed-base-mclass (la-matrix-class element-type :base))
+           (la-typed-vclass (la-vector-class element-type :simple))
+           (la-typed-base-vclass (la-vector-class element-type :base)))
       `(progn
 
          (add-la-default-value ',element-type ,default-value)
          
-         (make-class-hierarchy :lisp-array ,element-type)
+         (make-matrix-class-hierarchy :lisp-array ,element-type)
+         (make-vector-class-hierarchy :lisp-array ,element-type)
          
-         (defclass ,la-typed-class (,la-typed-base-class)
+         (defclass ,la-typed-mclass (,la-typed-base-mclass)
            ((data :initarg :data
                   :accessor data
                   :type (simple-array ,element-type (*))
                   :documentation "The lisp simple-array of rank 1
                   holding the elements."))
            (:documentation ,(format nil "Dense matrix holding ~
+           elements of type ~A, implemented as a lisp array."
+           element-type)))
+         
+         (defclass ,la-typed-vclass (,la-typed-base-vclass
+                                     ,la-typed-mclass)
+           ()
+           (:documentation ,(format nil "Dense vector holding ~
            elements of type ~A, implemented as a lisp array."
            element-type)))))))
 

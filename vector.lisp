@@ -1,5 +1,8 @@
 (in-package :lisp-matrix)
 
+(def-suite vector :in tests)
+(in-suite vector)
+
 ;;;; * Vectors
 ;;;;
 ;;;; Vector can be viewed as matrices that happen to have one row (or
@@ -142,26 +145,6 @@
   of MATRIX.")
   (:method ((matrix matrix-like)) 'slice-vecview))
 
-#+(or)
-(defgeneric slice (vector &key offset stride nelts)
-  (:documentation "Create a slice view of VECTOR.")
-  (:method ((vector vector-like)
-            &key (offset 0) (stride 1) (nelts (nelts vector)))
-    (make-instance (slice-class vector)
-                   :parent vector
-                   :nelts nelts
-                   :offset offset
-                   :stride stride))
-  (:method ((vector slice-vecview)
-            &key (offset 0) (stride 1) (nelts (nelts vector)))
-    "For a slice on a slice-vecview, we can directly compute the slice
-    parameters based on the parent of VECTOR."
-    (make-instance (slice-class vector)
-                   :parent (parent vector)
-                   :nelts nelts
-                   :offset (+ offset (offset vector))
-                   :stride (* stride (stride vector)))))
-
 (defgeneric slice (matrix &key offset stride nelts type)
   (:documentation "Create a slice view of MATRIX.")
   (:method (matrix &key (offset 0) (stride 1) (nelts (nelts matrix))
@@ -173,12 +156,30 @@
                    :offset offset
                    :stride stride)))
 
-;; FIXME: not finished
+(defmethod slice ((matrix slice-vecview) &key (offset 0) (stride 1)
+                  (nelts (nelts matrix)) (type :row))
+  "If MATRIX is a SLICE-VECVIEW, we can directly slice its parents by
+  slightly modifying the parameters."
+  (slice (parent matrix)
+         :offset (+ offset (offset matrix))
+         :stride (* stride (stride matrix))
+         :nelts nelts
+         :type type))
+  
+(defmethod slice ((matrix transpose-matview) &key (offset 0) (stride 1)
+                  (nelts (nelts matrix)) (type :row))
+  "For transposed matrices, the storage is the same, so we can slice
+  its parent with the same arguments."
+  (slice (parent matrix)
+         :offset offset
+         :stride stride
+         :nelts nelts
+         :type type))
+
 (defgeneric row (matrix i)
   (:documentation "Return a view on a given row of MATRIX.")
   (:method ((matrix matrix-like) (i integer))
     (assert (< -1 i (nrows matrix)))
-    ;; depending on the orientation of the matrix,
     (ecase (orientation matrix)
       (:column (slice matrix
                       :offset (flatten-matrix-indices matrix i 0)
@@ -191,12 +192,63 @@
                    :nelts (ncols matrix)
                    :type :row)))))
 
+(defgeneric col (matrix j)
+  (:documentation "Return a view on a given column of MATRIX.")
+  (:method ((matrix matrix-like) (j integer))
+    (assert (< -1 j (ncols matrix)))
+    (ecase (orientation matrix)
+      (:column (slice matrix
+                      :offset (flatten-matrix-indices matrix 0 j)
+                      :stride 1
+                      :nelts (nrows matrix)
+                      :type :column))
+      (:row (slice matrix
+                   :offset (flatten-matrix-indices matrix 0 j)
+                   :stride (ncols matrix)
+                   :nelts (nrows matrix)
+                   :type :column)))))
+
+(defgeneric v= (x y)
+  (:documentation "Test for strice equality of number of elements and
+  of the elements of the two vectors X and Y.  A row vector and a
+  column vector with the same number of elements are equal.  To
+  distinguish them, use M= instead.")
+  (:method ((a vector-like) (b vector-like))
+    (and (= (nelts a) (nelts b))
+         (dotimes (i (nelts a) t)
+           (unless (= (vref a i) (vref b i))
+             (return-from v= nil))))))
+
+(test v=
+  (let ((a (rand 3 4)))
+    ;; FIXME: this also tests ROW, COL, and their use on a transposed
+    ;; matrix
+    (is (v= (row a 0) (col (transpose a) 0)))
+    (is (v= (col a 0) (row (transpose a) 0)))))
+
+(defmethod print-object ((object vector-like) stream)
+  (print-unreadable-object (object stream :type t)
+    (format stream "(~d x ~d)" (nrows object) (ncols object))
+    (dotimes (i (nelts object))
+      (when (col-vector-p object)
+        (terpri stream))
+      (write-char #\space stream)
+      (write (vref object i) :stream stream))))
+
 #||
 
 (defparameter *a* (rand 3 4 :element-type 'single-float))
 
-(defmethod print-object ((object vector-like) stream)
-  (print-unreadable-object (object stream :type t :identity t)))
+(list (row *a* 0)
+      (parent (col (transpose *a*) 0)))
+(list *a*
+      (row *a* 0)
+      (row *a* 1)
+      (row *a* 2)
+      (col *a* 0)
+      (col *a* 1)
+      (col *a* 2)
+      (col *a* 3))
 
 (vref (row *a* 0) 0)
 

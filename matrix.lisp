@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-11 15:51:25 Evan Monroig>
+;;; Time-stamp: <2008-06-13 10:10:36 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -144,6 +144,7 @@
 (defclass matview (matrix-like) 
   ((parent :initarg :parent
 	   :reader parent
+           :type matrix-like
 	   :documentation "The \"parent\" object to which this matrix
 	   view relates."))
   (:documentation "An abstract class representing a \"view\" into a
@@ -413,12 +414,18 @@
 
 (defgeneric transpose (matrix)
   (:documentation "Creates a transpose view of the given matrix-like
-  object MATRIX.")
+  object MATRIX.  Returns the original matrix if transposed two
+  times.
+
+  (FIXME: is that a good idea?  It is probably ok since TRANSPOSE does
+  not copy the data anyway.)")
   (:method ((matrix matrix-like))
     (make-instance (transpose-class matrix)
                    :parent matrix
                    :nrows (ncols matrix)
-                   :ncols (nrows matrix))))
+                   :ncols (nrows matrix)))
+  (:method ((matrix transpose-matview))
+    (parent matrix)))
 
 (defgeneric window (matrix &key nrows ncols row-offset col-offset)
   (:documentation "Creates a window view of the given matrix-like
@@ -429,18 +436,9 @@
             (ncols (ncols matrix))
             (row-offset 0)
             (col-offset 0))
-    (check-type nrows (integer 0))
-    (check-type ncols (integer 0))
-    (check-type row-offset (integer 0))
-    (check-type col-offset (integer 0))
-    (assert (<= (+ row-offset nrows) (nrows matrix)))
-    (assert (<= (+ col-offset ncols) (ncols matrix)))
-    (make-instance (window-class matrix)
-                   :parent matrix
-                   :nrows nrows
-                   :ncols ncols
-                   :row-offset row-offset
-                   :col-offset col-offset)))
+    ;; a window is really just a stride
+    (strides matrix :nrows nrows :ncols ncols :row-offset row-offset
+             :col-offset col-offset)))
 
 (defgeneric strides (matrix &key nrows ncols row-offset col-offset row-stride
                             col-stride)
@@ -460,16 +458,53 @@
     (check-type col-offset (integer 0))
     (check-type row-stride (integer 1))
     (check-type col-stride (integer 1))
-    (assert (<= (+ row-offset (* row-stride (1- nrows))) (nrows matrix)))
-    (assert (<= (+ col-offset (* col-stride (1- ncols))) (ncols matrix)))
-    (make-instance (stride-class matrix)
-                   :parent matrix
-                   :nrows nrows
-                   :ncols ncols
-                   :row-offset row-offset
-                   :col-offset col-offset
-                   :row-stride row-stride
-                   :col-stride col-stride)))
+    (assert (<= (+ row-offset (* row-stride (1- nrows)))
+                (nrows matrix)))
+    (assert (<= (+ col-offset (* col-stride (1- ncols)))
+                (ncols matrix)))
+    (if (= 1 row-stride col-stride)
+        (make-instance (window-class matrix)
+                       :parent matrix
+                       :nrows nrows
+                       :ncols ncols
+                       :row-offset row-offset
+                       :col-offset col-offset)
+        (make-instance (stride-class matrix)
+                       :parent matrix
+                       :nrows nrows
+                       :ncols ncols
+                       :row-offset row-offset
+                       :col-offset col-offset
+                       :row-stride row-stride
+                       :col-stride col-stride)))
+  (:method ((matrix window-matview)
+            &key (nrows (nrows matrix))
+            (ncols (ncols matrix))
+            (row-offset 0)
+            (col-offset 0)
+            (row-stride 1)
+            (col-stride 1))
+    "A strided view on a windowed view is the same as a window on its
+    parent but with modified parameters."
+    (strides (parent matrix) :nrows nrows :ncols ncols
+             :row-offset (+ row-offset (row-offset matrix))
+             :col-offset (+ col-offset (col-offset matrix))
+             :row-stride row-stride
+             :col-stride col-stride))
+  (:method ((matrix strided-matview)
+            &key (nrows (nrows matrix))
+            (ncols (ncols matrix))
+            (row-offset 0)
+            (col-offset 0)
+            (row-stride 1)
+            (col-stride 1))
+    "A strided view on a strided view is the same as a stride on its
+    parent but with modified parameters."
+    (strides (parent matrix) :nrows nrows :ncols ncols
+             :row-offset (+ row-offset (row-offset matrix))
+             :col-offset (+ col-offset (col-offset matrix))
+             :row-stride (* row-stride (row-stride matrix))
+             :col-stride (* col-stride (col-stride matrix)))))
 
 ;;;; ** Specific matrices
 
@@ -505,18 +540,19 @@
 (defun rand (nrows ncols &key
              (implementation *default-implementation*)
              (element-type *default-element-type*)
-             (state *random-state*))
+             (state *random-state*)
+             (value 1))
   "Create a NROWS x NCOLs matrix filled with uniformly distributed
-  pseudo-random numbers between 0 and 1."
+  pseudo-random numbers between 0 and VALUE."
   ;; FIXME: doesn't work for complex types
   (check-type state random-state)
   (let ((matrix (make-matrix nrows ncols
                              :implementation implementation
                              :element-type element-type))
-        (one (coerce 1 element-type)))
+        (value (coerce value element-type)))
     (dotimes (i nrows)
       (dotimes (j ncols)
-        (setf (mref matrix i j) (random one state))))
+        (setf (mref matrix i j) (random value state))))
     matrix))
 
 ;;;; * Matrix operations
@@ -622,14 +658,14 @@
 
 ;;;; ** Printing
 
-(defmethod print-object ((a matrix-like) stream)
-  (print-unreadable-object (a stream :type t)
-    (format stream " ~d x ~d" (nrows a) (ncols a))
-    (dotimes (i (nrows a))
+(defmethod print-object ((object matrix-like) stream)
+  (print-unreadable-object (object stream :type t)
+    (format stream " ~d x ~d" (nrows object) (ncols object))
+    (dotimes (i (nrows object))
       (terpri stream)
-      (dotimes (j (ncols a))
+      (dotimes (j (ncols object))
         (write-char #\space stream)
-        (write (mref a i j) :stream stream)))))
+        (write (mref object i j) :stream stream)))))
 
 ;;; Local Variables:
 ;;; outline-regexp: ";;;; \\*\\|("

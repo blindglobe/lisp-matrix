@@ -163,7 +163,32 @@
             (t
              (make-symbol* type-string))))))
 
-(defmacro make-class-hierarchy (implementation element-type)
+(defun vector-class (class-type &optional implementation element-type)
+  "Return the vector class name corresponding to CLASS-TYPE.  When
+  IMPLEMENTATION-SHORTNAME is given, it gives the class for the given
+  implementation, and when ELEMENT-TYPE-SHORTNAME is given, a
+  specialized class for that element type."
+  (let ((is (when implementation
+              (implementation-short-name implementation)))
+        (es (when element-type
+              (symbol-name (lisp-type->lisp-matrix-type element-type)))))
+    (let ((type-string
+           (ecase class-type
+             (:base "VECTOR")
+             (:simple "SIMPLE-VECTOR")
+             (:vecview "VECVIEW")
+             (:transpose "TRANSPOSE-VECVIEW")
+             (:slice "SLICE-VECVIEW"))))
+      (cond ((and is es)
+             (make-symbol* is "-" type-string "-" es))
+            (is
+             (make-symbol* is "-" type-string))
+            (es
+             (make-symbol* type-string "-" es))
+            (t
+             (make-symbol* type-string))))))
+
+(defmacro make-matrix-class-hierarchy (implementation element-type)
   (let* ((impl-base-class (matrix-class :base implementation nil))
          (typed-base-class (matrix-class :base nil element-type))
          (typed-impl-base-class
@@ -219,3 +244,50 @@
 
        (defmethod element-type-size ((matrix ,typed-base-class))
          ,(lisp-type-size element-type)))))
+
+(defmacro make-vector-class-hierarchy (implementation element-type)
+  (let* ((impl-base-vclass (vector-class :base implementation nil))
+         (typed-base-mclass (matrix-class :base nil element-type))
+         (typed-base-vclass (vector-class :base nil element-type))
+         (typed-impl-base-vclass
+          (vector-class :base implementation element-type))
+         (typed-impl-base-mclass
+          (matrix-class :base implementation element-type))
+         (typed-vclass
+          (vector-class :simple implementation element-type))
+         (typed-transpose-vclass
+          (vector-class :transpose implementation element-type))
+         (typed-slice-vclass
+          (vector-class :slice implementation element-type)))
+    `(progn
+
+       (defclass ,typed-base-vclass (vector-like ,typed-base-mclass)
+         ()
+         (:documentation ,(format nil "Base class for vectors ~
+         holding elements of type ~A." element-type)))
+       
+       (defclass ,typed-impl-base-vclass (,impl-base-vclass
+                                          ,typed-base-vclass
+                                          ,typed-impl-base-mclass)
+         ()
+         (:documentation ,(format nil "Base class for dense ~
+           vectors holding elements of type ~A for the ~
+           implementation ~A." element-type implementation)))
+         
+       (defclass ,typed-transpose-vclass (transpose-vecview
+                                         ,typed-impl-base-vclass)
+         ()
+         (:documentation ,(format nil "Transposed view of a ~A ~
+           vector." typed-vclass)))
+
+       (defclass ,typed-slice-vclass (slice-vecview
+                                      ,typed-impl-base-vclass)
+         ()
+         (:documentation ,(format nil "Slice view of a ~A ~
+           vector." typed-vclass)))
+
+       (defmethod transpose-class ((matrix ,typed-impl-base-vclass))
+         ',typed-transpose-vclass)
+         
+       (defmethod slice-class ((matrix ,typed-impl-base-mclass))
+         ',typed-slice-vclass))))

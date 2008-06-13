@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-07 20:15:19 Evan Monroig>
+;;;; Time-stamp: <2008-06-12 15:38:52 Evan Monroig>
 ;;;;
 ;;;;
 ;;;;
@@ -186,6 +186,17 @@
 ;;                    (%scnrm2 (complex single-float))
 ;;                    (%dznrm2 (complex double-float)))))
 
+(defun %clean-lambda-list (lambda-list)
+  "Helper for DEF-LAPACK-METHOD.
+
+  Clean LAMBDA-LIST so that it can be the lambda-list of a generic
+  function."
+  (mapcar (lambda (item)
+            (etypecase item
+              (symbol item)
+              (list (car item))))
+          lambda-list))
+
 (defmacro def-lapack-method (name-and-options (&rest lambda-list) &body body)
   "Define methods for supported datatypes for the lapack method named
   NAME.  The symbols !FUNCTION, !DATA-TYPE, and !MATRIX-TYPE are
@@ -215,6 +226,11 @@
   (let ((name (%get-name name-and-options))
         (functions (%get-functions name-and-options)))
    `(progn
+      (defgeneric ,name ,(%clean-lambda-list lambda-list)
+        (:documentation
+         ,(format nil "Wrapper for lapack methods ~
+                      ~{~A~^,~^ ~}."
+                  (mapcar #'car functions))))
       ,@(loop for (function-name element-type) in functions
               append
               (let* ((type (element-type->fnv-type element-type))

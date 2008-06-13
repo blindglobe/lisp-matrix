@@ -213,8 +213,11 @@
     (let ((m (make-matrix 1 1)))
       (is (null (transposed-p m)))
       (is (transposed-p (transpose m)))
-      (is (transposed-p (transpose (transpose m))))
-      (is (transposed-p (window (transpose m)))))))
+      (is (transposed-p (window (transpose m))))
+      ;; the last one was removed because now the transpose of a
+      ;; transpose returns the original matrix
+      #+(or)
+      (is (transposed-p (transpose (transpose m)))))))
 
 (test zero-offset-p
   (for-all-implementations
@@ -368,6 +371,28 @@
       (is (not (m= (rand 2 3 :state state1)
                    (rand 2 3 :state state1)))))))
 
+;;; Fun with matrix views
+
+(def-suite fun-matrix-views :in tests)
+(in-suite fun-matrix-views)
+
+(test fun-transpose
+  (let ((a (rand 3 4 :element-type 'integer :value 10)))
+    (is (eq a (transpose (transpose a))))))
+
+(test fun-window
+  (let ((a (rand 3 4 :element-type 'integer :value 10)))
+    (is (eq a (parent (window (window a :ncols 2)
+                              :nrows 2))))
+    (is (m= (window (window a :ncols 2) :nrows 2)
+            (window a :ncols 2 :nrows 2)))))
+
+(test fun-strides
+  (let ((a (rand 3 4 :element-type 'integer :value 10)))
+    (is (eql (class-name (class-of (strides a :nrows 2)))
+             (window-class a)))
+    (is (eq a (parent (strides (strides a :ncols 2 :col-stride 2)))))))
+
 ;;; Test lapack
 
 (def-suite lapack :in tests
@@ -403,6 +428,9 @@
   (is (string= (datatype->letter 'double) "D"))
   (is (string= (datatype->letter 'complex-float) "C"))
   (is (string= (datatype->letter 'complex-double) "Z")))
+
+;; FIXME: tests below up to IAMAX fail on SBCL versions before and
+;; including 1.0.11, but succeed after and including 1.0.12
 
 (test scal
   (for-all-implementations

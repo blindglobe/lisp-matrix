@@ -24,23 +24,21 @@
      (:file "utils" :depends-on ("package"))
      (:file "macros" :depends-on ("package"))
      (:file "matrix" :depends-on ("package"))
-     (:file "matrix-implementations" :depends-on ("matrix"))
+     (:file "vector" :depends-on ("matrix"))
+     (:file "matrix-implementations" :depends-on ("matrix" "vector"))
      (:file "matrix-lisp-array" :depends-on ("matrix"
                                              "matrix-implementations"
                                              "utils"))
      (:file "matrix-foreign-array" :depends-on ("matrix"
                                                 "matrix-implementations"
                                                 "utils"))
-     (:file "fnv-vector" :depends-on ("package" "macros" "utils"))
      (:file "lapack-utils" :depends-on ("matrix-foreign-array"
-                                        "matrix-lisp-array"
-                                        "fnv-vector"))
+                                        "matrix-lisp-array"))
      (:file "lapack-methods" :depends-on ("lapack-utils"))
      (:file "matrix-operations" :depends-on ("lapack-methods"))
      (:file "tests" :depends-on ("matrix" "matrix-lisp-array"
                                           "matrix-foreign-array"
                                           "matrix-operations"
-                                          "fnv-vector"
                                           "lapack-utils"
                                           "lapack-methods")))
     :in-order-to ((test-op (load-op lisp-matrix)))
