@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-12 15:38:52 Evan Monroig>
+;;;; Time-stamp: <2008-06-13 17:31:56 Evan Monroig>
 ;;;;
 ;;;;
 ;;;;
@@ -405,6 +405,8 @@
   (error "Don't know how to pass a lisp array to a foreign function ~
   for this lisp."))
 
+;; FIXME: OFFSET only returns the immediate offset => use a function
+;; like REAL-OFFSET
 (defmethod translate-to-foreign ((val fa-matrix) name)
   (cffi:inc-pointer (fnv-foreign-pointer (data val))
                     (* (offset val)

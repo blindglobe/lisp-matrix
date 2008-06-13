@@ -12,6 +12,8 @@
 
 (defclass fa-matrix (matrix-like) ())
 
+(defclass fa-vector (vector-like fa-matrix) ())
+
 (defmethod implementation ((matrix fa-matrix))
   :foreign-array)
 
@@ -49,41 +51,60 @@
   
   (defmacro construct-fa-matrix (element-type)
     (let* ((fnv-type (element-type->fnv-type element-type))
-           (fa-typed-class (matrix-class :simple :foreign-array element-type))
-           (fa-typed-base-class (matrix-class :base :foreign-array element-type))
-           (fnv-class (make-symbol* "FNV-" fnv-type))
+           (fa-typed-mclass (matrix-class :simple :foreign-array element-type))
+           (fa-typed-vclass (vector-class :simple :foreign-array element-type))
+           (fa-typed-base-mclass (matrix-class :base :foreign-array element-type))
+           (fa-typed-base-vclass (vector-class :base :foreign-array element-type))
+           (fnv-mclass (make-symbol* "FNV-" fnv-type))
            (fnv-ref (make-symbol* "FNV-" fnv-type "-REF"))
            (make-fnv (make-symbol* "MAKE-FNV-" fnv-type)))
       `(progn
          
          (make-matrix-class-hierarchy :foreign-array ,element-type)
+         (make-vector-class-hierarchy :foreign-array ,element-type)
          
-         (defclass ,fa-typed-class (,fa-typed-base-class)
+         (defclass ,fa-typed-mclass (,fa-typed-base-mclass)
            ((data :initarg :data
                   :accessor data
-                  :type ,fnv-class
+                  :type ,fnv-mclass
                   :documentation "The FNV object holding the
                   elements."))
            (:documentation ,(format nil "Dense matrix holding ~
             elements of type ~A, implemented as a foreign array."
                                     element-type)))
+
+         (defclass ,fa-typed-vclass (,fa-typed-base-vclass
+                                     ,fa-typed-mclass)
+           ()
+           (:documentation ,(format nil "Dense vector holding ~
+            elements of type ~A, implemented as a foreign array."
+                                    element-type)))
          
-         (defmethod mref ((matrix ,fa-typed-class) i j)
+         (defmethod mref ((matrix ,fa-typed-mclass) i j)
            (,fnv-ref (data matrix)
                      (flatten-matrix-indices matrix i j)))
 
-         (defmethod (setf mref) (value (matrix ,fa-typed-class) i j)
+         (defmethod (setf mref) (value (matrix ,fa-typed-mclass) i j)
            (setf (,fnv-ref (data matrix)
                            (flatten-matrix-indices matrix i j))
                  value))
+
+         (defmethod vref ((vector ,fa-typed-mclass) i)
+           (,fnv-ref (data vector) i))
+
+         (defmethod (setf vref) (value (vector ,fa-typed-mclass) i)
+           (setf (,fnv-ref (data vector) i) value))
          
          (defmethod make-fa-matrix (nrows ncols
                                     (fnv-type (eql ',fnv-type))
                                     &key initial-element)
            (let ((data (,make-fnv (* nrows ncols)
                                   :initial-value initial-element)))
-             (make-instance ',fa-typed-class :nrows nrows :ncols ncols
-                            :data data)))))))
+             (if (or (= nrows 1) (= ncols 1))
+                 (make-instance ',fa-typed-vclass :nrows nrows
+                                :ncols ncols :data data)
+                 (make-instance ',fa-typed-mclass :nrows nrows
+                                :ncols ncols :data data))))))))
 
 (construct-fa-matrix single-float)
 (construct-fa-matrix double-float)

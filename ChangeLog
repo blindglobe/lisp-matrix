@@ -1,5 +1,48 @@
 2008-06-13  Evan Monroig  <evan.monroig@gmail.com>
 
+	* tests.lisp (transposed-p): fixed matrix size - cannot be 1
+	because it doesn't transpose
+	(unit-strides-p): use UNIT-STRIDES-P
+	(fun-transpose, fun-window, fun-strides): also test :FOREIGN-ARRAY
+	implementation
+	(vectors, construct-vectors, row-of-strided-matrix)
+	(col-of-strided-matrix, v=, row-of-window, real-stride): tests for
+	vectors and vector views
+	(make-predicate): use UNIT-STRIDES-P
+	(m*-vectors): matrix multiplication for vectors - should work as
+	is vecause they are subtypes of matrices but there are some corner
+	cases for slices
+
+	* lapack-methods.lisp: update all to use UNIT-STRIDES-P instead of
+	UNIT-STRIDE-P
+	(scal): new method for LA-VECTOR-DOUBLE just to show how to do it
+	for vectors - need to think about harmonizing it with matrix cases
+	(call-with-work): update to use the new MAKE-VECTOR interface
+
+	* matrix-foreign-array.lisp: added vector subtypes
+
+	* matrix-implementations.lisp (make-matrix-class-hierarchy):
+	changed superclass order for MATVIEWs
+
+	* vector.lisp (real-stride): return real stride for use with
+	lapack wrappers
+	(zero-offset-p, unit-strides-p): added for SLICE-VECVIEW
+	(mref): added for SLICE-VECVIEW
+	(make-vector): created - equivalent to MAKE-MATRIX
+	(row): added specific methods to directly slice on the original
+	matrix for cases of window and stride views
+	(col): removed reference to FLATTEN-MATRIX-INDICES; needs more
+	work
+
+	* matrix.lisp (unit-strides-p): renamed because for a vector the
+	meaning is different
+	(flatten-matrix-indices-1): added for case where we want to know
+	an offset but only with respect to the immediately parent matrix
+	(transpose): return original matrix if no need for transpose
+	(strides): automatically create vector slices instead where
+	appropriate
+	(copy!): check for equality before doing anything
+
 	* vector.lisp: renamed from experimental/vector-as-subtype.lisp
 
 	* old/fnv-vector.lisp: moved here from fnv-vector.lisp

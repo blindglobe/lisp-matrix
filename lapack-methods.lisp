@@ -3,7 +3,7 @@
 ;;; This file contains actual LAPACK methods.  See functions in
 ;;; lapack-utils.lisp for how supporting utility macros and functions.
 ;;;
-;;; Time-stamp: <2008-06-07 20:31:19 Evan Monroig>
+;;; Time-stamp: <2008-06-13 17:50:11 Evan Monroig>
 
 ;;;; * Blas methods
 ;;;;
@@ -17,18 +17,33 @@
 
 (def-lapack-method scal (alpha (x !matrix-type))
   (assert (typep alpha '!element-type))
-  (with-copies ((x (or (not unit-stride-p)
+  (with-copies ((x (or (not unit-strides-p)
                        (not zero-offset-p))
                    t))
       x
     (!function (nelts x) alpha x 1)))
 
+;; FIXME: need to harmonize with matrix cases
+(defmethod scal (alpha (x la-vector-double))
+  (assert (typep alpha 'double-float))
+  (with-copies ((x (not real-stride) t))
+      x
+    (%dscal (nelts x) alpha x (real-stride x))))
+
+#+nil
+(let ((x (ones 5 5)))
+  (time
+   (progn
+     (scal 2d0 (row x 1))
+     (scal 3d0 (col x 3))
+     x)))
+
 (def-lapack-method axpy (alpha (x !matrix-type) (y !matrix-type))
   (assert (typep alpha '!element-type))
   (assert (= (nelts x) (nelts y)))
-  (with-copies ((x (or (not unit-stride-p)
+  (with-copies ((x (or (not unit-strides-p)
                        (not zero-offset-p)))
-                (y (or (not unit-stride-p)
+                (y (or (not unit-strides-p)
                        (not zero-offset-p))
                    t))
       y
@@ -36,27 +51,27 @@
 
 (def-lapack-method dot ((x !matrix-type) (y !matrix-type))
   (assert (= (nelts x) (nelts y)))
-  (with-copies ((x (or (not unit-stride-p)
+  (with-copies ((x (or (not unit-strides-p)
                        (not zero-offset-p)))
-                (y (or (not unit-stride-p)
+                (y (or (not unit-strides-p)
                        (not zero-offset-p))))
       nil
     (!function (nelts x) x 1 y 1)))
 
 (def-lapack-method dotu ((x !matrix-type) (y !matrix-type))
   (assert (= (nelts x) (nelts y)))
-  (with-copies ((x (or (not unit-stride-p)
+  (with-copies ((x (or (not unit-strides-p)
                        (not zero-offset-p)))
-                (y (or (not unit-stride-p)
+                (y (or (not unit-strides-p)
                        (not zero-offset-p))))
       nil
     (!function (nelts x) x 1 y 1)))
 
 (def-lapack-method dotc ((x !matrix-type) (y !matrix-type))
   (assert (= (nelts x) (nelts y)))
-  (with-copies ((x (or (not unit-stride-p)
+  (with-copies ((x (or (not unit-strides-p)
                        (not zero-offset-p)))
-                (y (or (not unit-stride-p)
+                (y (or (not unit-strides-p)
                        (not zero-offset-p))))
       nil
     (!function (nelts x) x 1 y 1)))
@@ -67,7 +82,7 @@
                           (%scnrm2 (complex single-float))
                           (%dznrm2 (complex double-float))))
     ((x !matrix-type))
-  (with-copies ((x (or (not unit-stride-p)
+  (with-copies ((x (or (not unit-strides-p)
                        (not zero-offset-p))))
       nil
     (!function (nelts x) x 1)))
@@ -78,7 +93,7 @@
                           (%scasum (complex single-float))
                           (%dzasum (complex double-float))))
     ((x !matrix-type))
-  (with-copies ((x (or (not unit-stride-p)
+  (with-copies ((x (or (not unit-strides-p)
                        (not zero-offset-p))))
       nil
     (!function (nelts x) x 1)))
@@ -89,7 +104,7 @@
                            (%icamax (complex single-float))
                            (%izamax (complex double-float))))
     ((x !matrix-type))
-  (with-copies ((x (or (not unit-stride-p)
+  (with-copies ((x (or (not unit-strides-p)
                        (not zero-offset-p))))
       nil
     ;; LAPACK element numbering starts from 1, so we correct this to
@@ -115,9 +130,9 @@
   (assert (= (ncols a) (nrows b)))
   (assert (= (nrows a) (nrows c)))
   (assert (= (ncols b) (ncols c)))
-  (with-copies ((a (or (not unit-stride-p)))
-                (b (or (not unit-stride-p)))
-                (c (or (not unit-stride-p)
+  (with-copies ((a (or (not unit-strides-p)))
+                (b (or (not unit-strides-p)))
+                (c (or (not unit-strides-p)
                        transposed-p)
                    t))
       c
@@ -145,12 +160,13 @@
 
 (defmacro call-with-work ((lwork work type) call)
   (let ((element-type (fnv-type->element-type type)))
-    `(let ((work (make-matrix 1 1 :element-type ',element-type
-                              :implementation :foreign-array))
+    `(let ((work (make-vector 1 :element-type ',element-type
+                                :implementation :foreign-array))
            (,lwork -1))
        ,call
        (setq ,lwork (floor (mref ,work 0 0)))
-       (setq ,work (make-vector ,lwork ',type))
+       (setq ,work (make-vector ,lwork :element-type ',element-type
+                                :implementation :foreign-array))
        ,call)))
 
 (defun check-info (info function-name)
@@ -168,9 +184,9 @@
     ;; rows, to allow for enough storage for the result matrix =>
     ;; quick fix: disallow this
     (assert (<= (ncols a) (nrows a)))
-    (with-copies ((a (or (not unit-stride-p)
+    (with-copies ((a (or (not unit-strides-p)
                          transposed-p))
-                  (b (or (not unit-stride-p)
+                  (b (or (not unit-strides-p)
                          transposed-p)))
         ;; FIXME: the value RANK is not correct because the cffi type
         ;; :FORTRAN-INT does not define a TRANSLATE-FROM-FOREIGN method?

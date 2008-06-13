@@ -214,18 +214,18 @@
            matrices holding elements of type ~A for the ~
            implementation ~A." element-type implementation)))
          
-       (defclass ,typed-transpose-class (,typed-impl-base-class
-                                         transpose-matview)
+       (defclass ,typed-transpose-class (transpose-matview
+                                         ,typed-impl-base-class)
          ()
          (:documentation ,(format nil "Transposed view of a ~A ~
            matrix." typed-class)))
 
-       (defclass ,typed-window-class (,typed-impl-base-class window-matview)
+       (defclass ,typed-window-class (window-matview ,typed-impl-base-class)
          ()
          (:documentation ,(format nil "Windowed view of a ~A ~
            matrix." typed-class)))
 
-       (defclass ,typed-strided-class (,typed-impl-base-class strided-matview)
+       (defclass ,typed-strided-class (strided-matview ,typed-impl-base-class)
          ()
          (:documentation ,(format nil "Strided view of a ~A ~
            matrix." typed-class)))

@@ -1,8 +1,5 @@
 (in-package :lisp-matrix)
 
-(def-suite vector :in tests)
-(in-suite vector)
-
 ;;;; * Vectors
 ;;;;
 ;;;; Vector can be viewed as matrices that happen to have one row (or
@@ -110,6 +107,10 @@
 (defmethod (setf vref) (value (vector transpose-vecview) i)
   (setf (vref (parent vector) i) value))
 
+
+;;;; *** sliced  view
+
+
 (defclass slice-vecview (vecview)
   ((offset :initarg :offset
            :reader offset
@@ -118,9 +119,51 @@
            :reader stride
            :initform 1)))
 
-(defmethod unit-stride-p ((vector slice-vecview))
-  (and (= 1 (stride vector))
-       (unit-stride-p (parent vector))))
+(defgeneric real-stride (vector)
+  (:documentation "Return the stride that VECTOR has when considering
+  the ancestor matrix as base.  If VECTOR is constructed so that it
+  has no simple stride (for example a slice on a windowed matrix
+  considered as a vector may have a different stride when jumping
+  columns of the matrix), then return NIL.")
+  (:method ((vector matrix-like)) 1)
+  (:method ((vector matview))
+    "For MATVIEW vectors, in the general case I don't know how to
+    compute the real stride."
+    nil)
+  (:method ((vector transpose-matview)) (real-stride (parent vector)))
+  (:method ((vector slice-vecview))
+    (let ((parent-stride (real-stride (parent vector))))
+      (when parent-stride
+        (* parent-stride (stride vector))))))
+
+(defmethod zero-offset-p ((matrix slice-vecview))
+  (and (= 0 (offset matrix))
+       (zero-offset-p (parent matrix))))
+
+(defmethod unit-strides-p ((matrix slice-vecview))
+  (and (unit-strides-p (parent matrix))
+       (etypecase (parent matrix)
+         (vector-like t)
+         ;; We have to reconstruct the corresponding row-stride and
+         ;; col-stride of this view -- do this by inverting the code
+         ;; in the function STRIDES for the case of 1 row or 1 column
+         ;; 
+         ;; FIXME: need to take into account orientation of MATRIX
+         ;; (and its parent?)
+         (matrix-like
+          (ecase (vector-type matrix)
+            (:row (= 1 (/ (stride matrix) (nrows (parent matrix)))))
+            (:column (= 1 (stride matrix))))))))
+
+;; FIXME: ugly
+(defmethod mref ((matrix slice-vecview) i j)
+  (ecase (vector-type matrix)
+    (:row
+     (assert (zerop i))
+     (vref matrix j))
+    (:column
+     (assert (zerop j))
+     (vref matrix i))))
 
 (defmethod vref ((vector slice-vecview) i)
   (vref (parent vector)
@@ -131,10 +174,41 @@
               (+ (offset vector) (* i (stride vector))))
         value))
 
+;; FIXME: should not be here
+(defmethod vref ((matrix matview) i)
+  (mref matrix (rem i (nrows matrix)) (truncate i (nrows matrix))))
+
+
 ;;;; ** Creating vectors
 ;;;;
 ;;;; Vectors are automatically created by matrix creation methods when
-;;;; one of the dimensions is 1 (one), or
+;;;; one of the dimensions is 1 (one), but we can also create them
+;;;; explicitly by MAKE-VECTOR.
+
+(defun make-vector (nelts &key (type :row)
+                    (implementation *default-implementation*)
+                    (element-type *default-element-type*)
+                    (initial-element nil initial-element-p)
+                    (initial-contents nil initial-contents-p))
+  "Make a vector containing NELTS elements of type ELEMENT-TYPE, and
+  with IMPLEMENTATION as underlying implementation.  The vector is a
+  row vector if TYPE is :ROW, and a column vector if TYPE is :COLUMN.
+
+  If INITIAL-ELEMENT is not specified, the vector is not initialized,
+  and accessing its elements will thus return spurious values.
+
+  If INITIAL-CONTENTS is specified, it is used to initialize the
+  vector, by using the generic function COPY!.
+
+  IMPLEMENTATION can be one of :LISP-ARRAY and :FOREIGN-ARRAY"
+  (apply #'make-matrix (ecase type (:row 1) (:column nelts))
+         (ecase type (:row nelts) (:column 1))
+         :implementation implementation
+         :element-type element-type
+         (append (when initial-element-p
+                   (list :initial-element initial-element))
+                 (when initial-contents-p
+                   (list :initial-contents initial-contents)))))
 
 ;;;; *** Vector views
 
@@ -182,28 +256,59 @@
     (assert (< -1 i (nrows matrix)))
     (ecase (orientation matrix)
       (:column (slice matrix
-                      :offset (flatten-matrix-indices matrix i 0)
+                      :offset i
                       :stride (nrows matrix)
                       :nelts (ncols matrix)
                       :type :row))
       (:row (slice matrix
-                   :offset (flatten-matrix-indices matrix i 0)
+                   :offset i
                    :stride 1
+                   :nelts (ncols matrix)
+                   :type :row))))
+  (:method ((matrix window-matview) (i integer))
+    (assert (< -1 i (nrows matrix)))
+    (ecase (orientation matrix)
+      (:column (slice (parent matrix)
+                      :offset (+ (offset matrix) i)
+                      :stride (nrows (parent matrix))
+                      :nelts (ncols matrix)
+                      :type :row))
+      (:row (slice (parent matrix)
+                   :offset (+ (offset matrix)
+                              (* i (ncols (parent matrix))))
+                   :stride 1
+                   :nelts (ncols matrix)
+                   :type :row))))
+  (:method ((matrix strided-matview) (i integer))
+    (assert (< -1 i (nrows matrix)))
+    (ecase (orientation matrix)
+      (:column (slice (parent matrix)
+                      :offset (+ (offset matrix)
+                                 (* i (row-stride matrix)))
+                      :stride (* (nrows (parent matrix))
+                                 (col-stride matrix))
+                      :nelts (ncols matrix)
+                      :type :row))
+      (:row (slice (parent matrix)
+                   :offset (+ (offset matrix)
+                              (* i (ncols (parent matrix))))
+                   :stride (row-stride matrix)
                    :nelts (ncols matrix)
                    :type :row)))))
 
+;; TODO: similar to ROW
 (defgeneric col (matrix j)
   (:documentation "Return a view on a given column of MATRIX.")
   (:method ((matrix matrix-like) (j integer))
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
       (:column (slice matrix
-                      :offset (flatten-matrix-indices matrix 0 j)
+                      :offset (* j (nrows matrix))
                       :stride 1
                       :nelts (nrows matrix)
                       :type :column))
       (:row (slice matrix
-                   :offset (flatten-matrix-indices matrix 0 j)
+                   :offset (* j (nrows matrix))
                    :stride (ncols matrix)
                    :nelts (nrows matrix)
                    :type :column)))))
@@ -219,13 +324,6 @@
            (unless (= (vref a i) (vref b i))
              (return-from v= nil))))))
 
-(test v=
-  (let ((a (rand 3 4)))
-    ;; FIXME: this also tests ROW, COL, and their use on a transposed
-    ;; matrix
-    (is (v= (row a 0) (col (transpose a) 0)))
-    (is (v= (col a 0) (row (transpose a) 0)))))
-
 (defmethod print-object ((object vector-like) stream)
   (print-unreadable-object (object stream :type t)
     (format stream "(~d x ~d)" (nrows object) (ncols object))
@@ -234,22 +332,3 @@
         (terpri stream))
       (write-char #\space stream)
       (write (vref object i) :stream stream))))
-
-#||
-
-(defparameter *a* (rand 3 4 :element-type 'single-float))
-
-(list (row *a* 0)
-      (parent (col (transpose *a*) 0)))
-(list *a*
-      (row *a* 0)
-      (row *a* 1)
-      (row *a* 2)
-      (col *a* 0)
-      (col *a* 1)
-      (col *a* 2)
-      (col *a* 3))
-
-(vref (row *a* 0) 0)
-
-||#

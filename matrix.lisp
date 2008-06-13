@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-13 10:10:36 Evan Monroig>
+;;; Time-stamp: <2008-06-13 17:36:36 Evan Monroig>
 
 (in-package :lisp-matrix)
 
@@ -119,6 +119,11 @@
   ORIENTATION.")
   (:method ((matrix matrix-like) i j)
     (+ i (* j (nrows matrix)))))
+
+(defun flatten-matrix-indices-1 (matrix i j)
+  (ecase (orientation matrix)
+    (:column (+ i (* j (nrows matrix))))
+    (:row (+ j (* i (ncols matrix))))))
 
 (defgeneric mref (matrix i j)
   (:documentation "(MREF MATRIX I J) gives you the (I,J)-th element of
@@ -280,15 +285,15 @@
   a particular stride in each direction (the stride can be different
   in each direction)."))
 
-(defgeneric unit-stride-p (matrix)
+(defgeneric unit-strides-p (matrix)
   (:documentation "Tests for \"unit stride.\" (The strided matrix view
   is the only view which causes itself and its children possibly not
   to have unit stride.)")
   (:method ((matrix matrix-like)) t)
-  (:method ((matrix matview)) (unit-stride-p (parent matrix)))
+  (:method ((matrix matview)) (unit-strides-p (parent matrix)))
   (:method ((matrix strided-matview))
     (and (= 1 (row-stride matrix) (col-stride matrix))
-         (unit-stride-p (parent matrix)))))
+         (unit-strides-p (parent matrix)))))
 
 (defmethod flatten-matrix-indices ((matrix strided-matview) i j)
   (flatten-matrix-indices (parent matrix)
@@ -420,10 +425,12 @@
   (FIXME: is that a good idea?  It is probably ok since TRANSPOSE does
   not copy the data anyway.)")
   (:method ((matrix matrix-like))
-    (make-instance (transpose-class matrix)
-                   :parent matrix
-                   :nrows (ncols matrix)
-                   :ncols (nrows matrix)))
+    (if (= 1 (nrows matrix) (ncols matrix))
+        matrix
+        (make-instance (transpose-class matrix)
+                       :parent matrix
+                       :nrows (ncols matrix)
+                       :ncols (nrows matrix))))
   (:method ((matrix transpose-matview))
     (parent matrix)))
 
@@ -443,7 +450,8 @@
 (defgeneric strides (matrix &key nrows ncols row-offset col-offset row-stride
                             col-stride)
   (:documentation "Creates a strided view of the given matrix-like
-  object MATRIX.")
+  object MATRIX.  The resulting matrix may be a WINDOW-MATVIEW, a
+  STRIDED-MATVIEW or a SLICE-VECVIEW depending on the parameters.")
   (:method ((matrix matrix-like)
             &key 
             (nrows (nrows matrix))
@@ -462,21 +470,52 @@
                 (nrows matrix)))
     (assert (<= (+ col-offset (* col-stride (1- ncols)))
                 (ncols matrix)))
-    (if (= 1 row-stride col-stride)
-        (make-instance (window-class matrix)
-                       :parent matrix
-                       :nrows nrows
-                       :ncols ncols
-                       :row-offset row-offset
-                       :col-offset col-offset)
-        (make-instance (stride-class matrix)
-                       :parent matrix
-                       :nrows nrows
-                       :ncols ncols
-                       :row-offset row-offset
-                       :col-offset col-offset
-                       :row-stride row-stride
-                       :col-stride col-stride)))
+    (cond ((= 1 nrows)
+           (ecase (orientation matrix)
+             (:column
+              (slice matrix
+                     :offset (flatten-matrix-indices-1 matrix row-offset
+                                                       col-offset)
+                     :stride (* col-stride (nrows matrix))
+                     :nelts ncols))
+             (:row
+              (slice matrix
+                     :offset (flatten-matrix-indices-1 matrix row-offset
+                                                       col-offset)
+                     :stride col-stride
+                     :nelts ncols))))
+          ((= 1 ncols)
+           (ecase (orientation matrix)
+             (:column
+              (slice matrix
+                     :offset (flatten-matrix-indices-1 matrix row-offset
+                                                       col-offset)
+                     :stride row-stride
+                     :nelts nrows
+                     :type :column))
+             (:row
+              (slice matrix
+                     :offset (flatten-matrix-indices-1 matrix row-offset
+                                                       col-offset)
+                     :stride (* row-stride (ncols matrix))
+                     :nelts nrows
+                     :type :column))))
+          ((= 1 row-stride col-stride)
+           (make-instance (window-class matrix)
+                          :parent matrix
+                          :nrows nrows
+                          :ncols ncols
+                          :row-offset row-offset
+                          :col-offset col-offset))
+          (t
+           (make-instance (stride-class matrix)
+                          :parent matrix
+                          :nrows nrows
+                          :ncols ncols
+                          :row-offset row-offset
+                          :col-offset col-offset
+                          :row-stride row-stride
+                          :col-stride col-stride))))
   (:method ((matrix window-matview)
             &key (nrows (nrows matrix))
             (ncols (ncols matrix))
@@ -568,11 +607,11 @@
   not necessarily of the same implementation."))
 
 (defmethod copy! ((a matrix-like) (b matrix-like))
-  (assert (= (ncols a) (ncols b)))
-  (assert (= (nrows a) (nrows b)))
-  (assert (subtypep (element-type a) (element-type b)))
-  ;; FIXME: care about fast copy once everything is working
   (unless (eq a b)
+    ;; FIXME: care about fast copy once everything is working
+    (assert (= (ncols a) (ncols b)))
+    (assert (= (nrows a) (nrows b)))
+    (assert (subtypep (element-type a) (element-type b)))
     (dotimes (i (nrows a))
       (dotimes (j (ncols a))
         (setf (mref b i j) (mref a i j)))))

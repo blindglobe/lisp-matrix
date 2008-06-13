@@ -130,7 +130,7 @@
            ()
            (:documentation ,(format nil "Dense vector holding ~
            elements of type ~A, implemented as a lisp array."
-           element-type)))))))
+                                    element-type)))))))
 
 (construct-la-matrix single-float 0.0)
 (construct-la-matrix double-float 0d0)

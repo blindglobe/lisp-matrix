@@ -210,7 +210,7 @@
 
 (test transposed-p
   (for-all-implementations
-    (let ((m (make-matrix 1 1)))
+    (let ((m (make-matrix 2 2)))
       (is (null (transposed-p m)))
       (is (transposed-p (transpose m)))
       (is (transposed-p (window (transpose m))))
@@ -234,22 +234,22 @@
       (is (not (zero-offset-p (window (strides m :col-offset 1 :ncols 1)))))
       (is (zero-offset-p (strides m :row-stride 2 :nrows 2))))))
 
-(test unit-stride-p
+(test unit-strides-p
   (for-all-implementations
     (let ((m (make-matrix 3 3)))
-      (is (unit-stride-p m))
-      (is (unit-stride-p (transpose m)))
-      (is (unit-stride-p (transpose (transpose m))))
-      (is (unit-stride-p (window m :nrows 1)))
-      (is (unit-stride-p (strides m :ncols 1)))
-      (is (unit-stride-p (window m :row-offset 1 :nrows 1)))
-      (is (unit-stride-p (window m :col-offset 1 :ncols 1)))
-      (is (unit-stride-p (strides m :row-offset 1 :nrows 1)))
-      (is (unit-stride-p (strides m :col-offset 1 :ncols 1)))
-      (is (not (unit-stride-p (strides m :row-stride 2 :nrows 2))))
-      (is (not (unit-stride-p (transpose (strides m :row-stride 2 :nrows 2)))))
-      (is (not (unit-stride-p (window (strides m :row-stride 2 :nrows 2)))))
-      (is (not (unit-stride-p (strides (strides m :row-stride 2 :nrows 2))))))))
+      (is (unit-strides-p m))
+      (is (unit-strides-p (transpose m)))
+      (is (unit-strides-p (transpose (transpose m))))
+      (is (unit-strides-p (window m :nrows 1)))
+      (is (unit-strides-p (strides m :ncols 1)))
+      (is (unit-strides-p (window m :row-offset 1 :nrows 1)))
+      (is (unit-strides-p (window m :col-offset 1 :ncols 1)))
+      (is (unit-strides-p (strides m :row-offset 1 :nrows 1)))
+      (is (unit-strides-p (strides m :col-offset 1 :ncols 1)))
+      (is (not (unit-strides-p (strides m :row-stride 2 :nrows 2))))
+      (is (not (unit-strides-p (transpose (strides m :row-stride 2 :nrows 2)))))
+      (is (not (unit-strides-p (window (strides m :row-stride 2 :nrows 2)))))
+      (is (not (unit-strides-p (strides (strides m :row-stride 2 :nrows 2))))))))
 
 (test copy
   (for-all-implementations
@@ -377,21 +377,134 @@
 (in-suite fun-matrix-views)
 
 (test fun-transpose
-  (let ((a (rand 3 4 :element-type 'integer :value 10)))
-    (is (eq a (transpose (transpose a))))))
+  (for-all-implementations
+    (let ((a (rand 3 4)))
+      (is (eq a (transpose (transpose a)))))))
 
 (test fun-window
-  (let ((a (rand 3 4 :element-type 'integer :value 10)))
-    (is (eq a (parent (window (window a :ncols 2)
-                              :nrows 2))))
-    (is (m= (window (window a :ncols 2) :nrows 2)
-            (window a :ncols 2 :nrows 2)))))
+  (for-all-implementations
+    (let ((a (rand 3 4)))
+      (is (eq a (parent (window (window a :ncols 2)
+                                :nrows 2))))
+      (is (m= (window (window a :ncols 2) :nrows 2)
+              (window a :ncols 2 :nrows 2))))))
 
 (test fun-strides
-  (let ((a (rand 3 4 :element-type 'integer :value 10)))
-    (is (eql (class-name (class-of (strides a :nrows 2)))
-             (window-class a)))
-    (is (eq a (parent (strides (strides a :ncols 2 :col-stride 2)))))))
+  (for-all-implementations
+    (let ((a (rand 3 4)))
+      (is (eql (class-name (class-of (strides a :nrows 2)))
+               (window-class a)))
+      (is (eq a (parent (strides (strides a :ncols 2 :col-stride 2))))))))
+
+;;; Vectors
+
+(def-suite vectors :in tests)
+(in-suite vectors)
+
+(test construct-vectors
+  (for-all-implementations
+    (is (m= (make-vector 3 :initial-element 0d0)
+            (make-matrix 1 3 :initial-element 0d0)))
+    (is (m= (make-vector 3 :initial-element 0d0 :type :column)
+            (make-matrix 3 1 :initial-element 0d0)))
+    (is (col-vector-p (rand 3 1)))
+    (is (row-vector-p (rand 1 3)))
+    (let ((a (rand 3 5)))
+      (is (v= (row a 0) (col (transpose a) 0)))
+      (is (not (m= (row a 0) (col (transpose a) 0))))
+      (is (row-vector-p (row a 0)))
+      (is (col-vector-p (col a 0)))
+      (is (row-vector-p (row (transpose a) 0)))
+      (is (col-vector-p (col (transpose a) 0)))
+      ;; strides and window should return vectors when appropriate
+      (is (row-vector-p (window a :nrows 1)))
+      (is (col-vector-p (window a :ncols 1)))
+      ;; transpose should return the original matrix if dimensions are
+      ;; 1 x 1
+      (let ((m (rand 1 1)))
+        (is (eq m (transpose m))))
+      ;; FIXME: M x 1 or 1 x M matrices should not be considered
+      ;; transposed when we think of their storage.  But we cannot
+      ;; transpose them without resorting to a TRANSPOSE-VECVIEW.  So
+      ;; it would be best to introduce a function like
+      ;; STORAGE-TRANSPOSED-P.
+      #||
+      (is (not (transposed-p (transpose (make-matrix 1 10)))))
+      (is (not (transposed-p (transpose (make-matrix 10 1)))))
+      ||#)))
+
+(test row-of-strided-matrix
+  (let* ((a (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+                                                 (6d0  7d0  8d0  9d0  10d0)
+                                                 (11d0 12d0 13d0 14d0 15d0)
+                                                 (16d0 17d0 18d0 19d0 20d0)
+                                                 (21d0 22d0 23d0 24d0 25d0)
+                                                 (26d0 27d0 28d0 29d0 30d0))))
+         (b (strides a :nrows 2 :row-stride 2)))
+    (is (m= (row b 0)
+            (make-matrix 1 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)))))
+    (is (m= (row b 1)
+            (make-matrix 1 5 :initial-contents '((11d0 12d0 13d0 14d0 15d0)))))))
+
+(test col-of-strided-matrix
+  (let* ((a (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+                                                 (6d0  7d0  8d0  9d0  10d0)
+                                                 (11d0 12d0 13d0 14d0 15d0)
+                                                 (16d0 17d0 18d0 19d0 20d0)
+                                                 (21d0 22d0 23d0 24d0 25d0)
+                                                 (26d0 27d0 28d0 29d0 30d0))))
+         (b (strides a :nrows 2 :row-stride 2)))
+    (is (m= (col b 0)
+            (make-matrix 2 1 :initial-contents '((1d0) (11d0)))))
+    (is (m= (col b 1)
+            (make-matrix 2 1 :initial-contents '((2d0) (12d0)))))
+    (is (m= (col b 2)
+            (make-matrix 2 1 :initial-contents '((3d0) (13d0)))))
+    (is (m= (col b 3)
+            (make-matrix 2 1 :initial-contents '((4d0) (14d0)))))
+    (is (m= (col b 4)
+            (make-matrix 2 1 :initial-contents '((5d0) (15d0)))))))
+
+(test v=
+  (let ((a (rand 3 4)))
+    ;; FIXME: this also tests ROW, COL, and their use on a transposed
+    ;; matrix
+    (is (v= (row a 0) (col (transpose a) 0)))
+    (is (v= (col a 0) (row (transpose a) 0)))))
+
+(test row-of-window
+  (let* ((a (rand 5 10 :element-type 'integer :value 10))
+         (b (window a :row-offset 1 :nrows 4 :col-offset 2 :ncols 5)))
+    (is (m= (row b 0)
+            (window a :row-offset 1 :nrows 1 :col-offset 2 :ncols 5)))
+    (is (m= (row b 1)
+            (window a :row-offset 2 :nrows 1 :col-offset 2 :ncols 5)))
+    (is (m= (row b 2)
+            (window a :row-offset 3 :nrows 1 :col-offset 2 :ncols 5)))
+    (is (m= (row b 3)
+            (window a :row-offset 4 :nrows 1 :col-offset 2 :ncols 5))))
+  (let* ((a (rand 10 5 :element-type 'integer :value 10))
+         (b (window (transpose a) :row-offset 1 :nrows 4 :col-offset 2 :ncols 5)))
+    (is (m= (row b 0)
+            (window (transpose a) :row-offset 1 :nrows 1 :col-offset 2
+                                                         :ncols 5)))
+    (is (m= (row b 1)
+            (window (transpose a) :row-offset 2 :nrows 1 :col-offset 2
+                                                         :ncols 5)))
+    (is (m= (row b 2)
+            (window (transpose a) :row-offset 3 :nrows 1 :col-offset 2
+                                                         :ncols 5)))
+    (is (m= (row b 3)
+            (window (transpose a) :row-offset 4 :nrows 1 :col-offset 2
+                                                         :ncols 5)))))
+
+(test real-stride
+  (is (= 1 (real-stride (zeros 2 2))))
+  (is (= 2 (real-stride (row (zeros 2 2) 0))))
+  (is (= 1 (real-stride (col (zeros 2 2) 0))))
+  (is (= 1 (real-stride (row (transpose (zeros 2 2)) 0))))
+  (is (= 2 (real-stride (col (transpose (zeros 2 2)) 0))))
+  (is (null (real-stride (window (zeros 4 4) :nrows 2)))))
 
 ;;; Test lapack
 
@@ -401,21 +514,21 @@
 (in-suite lapack)
 
 (test make-predicate
-  (is (equal (make-predicate 'unit-stride-p)
-             'unit-stride-p))
-  (is (equal (make-predicate '(not unit-stride-p))
+  (is (equal (make-predicate 'unit-strides-p)
+             'unit-strides-p))
+  (is (equal (make-predicate '(not unit-strides-p))
              '(lambda (a)
-               (not (unit-stride-p a)))))
-  (is (equal (make-predicate '(or (not unit-stride-p)
+               (not (unit-strides-p a)))))
+  (is (equal (make-predicate '(or (not unit-strides-p)
                                (not zero-offset-p)))
              '(lambda (a)
-               (or (not (unit-stride-p a))
+               (or (not (unit-strides-p a))
                 (not (zero-offset-p a))))))
-  (is (equal (make-predicate '(or (not unit-stride-p)
+  (is (equal (make-predicate '(or (not unit-strides-p)
                                (not zero-offset-p)
                                transposed-p))
              '(lambda (a)
-               (or (not (unit-stride-p a))
+               (or (not (unit-strides-p a))
                 (not (zero-offset-p a))
                 (transposed-p a)))))
   (is (equal (make-predicate 't)
@@ -807,7 +920,29 @@
                              (#C(7d0 0d0) #C(8d0 0d0)))))
       (make-matrix 2 2 :element-type '(complex double-float)
                        :initial-contents '((#C(19d0 0d0) #C(22d0 0d0))
-                                           (#C(43d0 0d0) #C(50d0 0d0))))))))
+                                           (#C(43d0 0d0) #C(50d0
+  0d0))))))))
+
+
+(test m*-vectors
+  (for-all-implementations
+    (let* ((a (make-matrix 4 4 :initial-contents '((0d0 1d0 2d0 3d0)
+                                                   (1d0 2d0 3d0 4d0)
+                                                   (2d0 3d0 4d0 5d0)
+                                                   (3d0 4d0 5d0 6d0))))
+           (x (slice (col a 3) :stride 2 :nelts 2 :type :row))
+           (y (slice (col a 2) :stride 2 :nelts 2 :type :column)))
+      (is (m= x (make-matrix 1 2 :initial-contents '((3d0 5d0)))))
+      (is (m= y (make-matrix 2 1 :initial-contents '((2d0) (4d0)))))
+      (is (m= (m* x y) (scal 26d0 (ones 1 1))))
+      (is (m= (m* y x) (make-matrix 2 2 :initial-contents '((6d0 10d0)
+                                                         (12d0 20d0))))))
+    (is (m= (m* (ones 1 10) (ones 10 1))
+            (scal 10d0 (ones 1 1))))
+    (is (m= (m* (ones 10 1)
+                (scal 2d0 (ones 1 10)))
+            (scal 2d0 (ones 10 10))))))
+
 
 (in-suite lapack)
 
