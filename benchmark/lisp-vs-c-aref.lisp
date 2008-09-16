@@ -1,3 +1,16 @@
+(in-package :cl-user)
+
+
+(defpackage :matrix-benchmarks
+  (:use :cl
+	:cffi
+	:lisp-matrix
+	:matlisp)
+  (:export :run-benchmark :run-benchmarks))
+
+
+(in-package :matrix-benchmarks)
+
 ;;; Pull out all the optimization stops.
 (declaim (optimize (safety 0) (debug 0) (speed 3)))
 
@@ -40,7 +53,10 @@
      (setf (cffi:mem-aref ,array-name ,type i) ,with-what)))
 |#   
 
-(defmacro with-foreign-alloc ((array-name type count &optional (init-elt 0 init-elt-supplied-p)) &body body)
+(defmacro with-foreign-alloc ((array-name
+			       type count
+			       &optional (init-elt 0 init-elt-supplied-p))
+			      &body body)
   "Allocates a foreign array (on the heap) named ARRAY-NAME of 
    CFFI type TYPE containing COUNT elements.  If INIT-ELT is 
    supplied, all the elements of ARRAY-NAME are set to INIT-ELT.  
