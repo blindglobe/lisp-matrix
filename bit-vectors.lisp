@@ -4,9 +4,13 @@
 ;;;;
 ;;;; Fun with bit vectors!
 
-;;; an in-place cascade bit incrementer, assuming that the least
-;;; signficant bit is (bit bv 0).
+;;; Functions for working with 'em.
+
+(in-package :lisp-matrix)
+
 (defun bvinc! (bv)
+  "an in-place cascade bit incrementer, assuming that the least
+signficant bit is (bit bv 0)."
   (let ((L (array-dimension bv 0)))
     (cond ((= L 0)
 	   bv)
@@ -15,8 +19,10 @@
 		 (psetf (bit bv i) (logxor (bit bv i) c)
 			c          (logand (bit bv i) c))
 		 finally (return bv))))))
-;; same as above, but (bit bv 0) is the most significant bit.
+
+
 (defun bvinc1! (bv)
+  "same as above, but (bit bv 0) is the most significant bit."
   (let ((L (array-dimension bv 0)))
     (cond ((= L 0)
 	   bv)
@@ -25,9 +31,11 @@
 		 (psetf (bit bv i) (logxor (bit bv i) c)
 			c          (logand (bit bv i) c))
 		 finally (return bv))))))
-;; converts the given bit vector to an integer, assuming that the least
-;; significant bit is (bit bv 0).
+
+
 (defun bv2int (bv)
+  "converts the given bit vector to an integer, assuming that the
+least significant bit is (bit bv 0)."
   (let ((L (array-dimension bv 0)))
     	(cond ((= L 0) 0)
 	      (t
@@ -37,8 +45,9 @@
 		      (incf x (* (bit bv i) p))
 		      (setf p (* 2 p))
 		      finally (return x))))))
-;; same as above except (bit bv 0) is msb.
+
 (defun bv2int1 (bv)
+  "same as above except (bit bv 0) is msb."
   (let ((L (array-dimension bv 0)))
     	(cond ((= L 0) 0)
 	      (t
@@ -48,6 +57,3 @@
 		      (incf x (* (bit bv i) p))
 		      (setf p (* 2 p))
 		      finally (return x))))))
-
-
-
