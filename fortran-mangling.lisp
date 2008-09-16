@@ -54,7 +54,7 @@
 
 ;; string-upcase, string-downcase, string-capitalize
 
-(asdf:oos 'asdf:load-op 'cffi)
+;;(asdf:oos 'asdf:load-op 'cffi)
 
 (defun prepend-one-underscore (s)
   (concatenate 'string "_" s))
@@ -138,7 +138,3 @@
 	  #'(lambda (s) (funcall (symbol-function modif)
 				 (funcall (symbol-function capit)
 					  s)))))))
-
-
-
-
