@@ -14,11 +14,12 @@
     LAPACK.  Should run on any ANSI CL implementation that supports
     CFFI."
     :serial t  ;; the dependencies are linear
-    :depends-on ("cffi"
-		 "org.middleangle.foreign-numeric-vector"
-		 "org.middleangle.cl-blapack"
-                 "fiveam"
-                 "cl-utilities")
+    :depends-on (:cffi
+                 :fiveam
+		 :org.middleangle.foreign-numeric-vector
+		 :org.middleangle.cl-blapack
+		 :ffa
+                 :cl-utilities)
     :components
     ((:file "package")
      (:file "utils" :depends-on ("package"))
