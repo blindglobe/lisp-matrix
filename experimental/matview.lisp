@@ -22,6 +22,11 @@
 
 ;;;; FUNCTIONS FOR HANDLING :orientation
 
+;;; since we only consider matrices, orientations only denote the
+;;; approach for creating a true ordering for mapping between an
+;;; "abstracted" array data structure to/from a vector storing an
+;;; array (i.e. LAPACK/BLAS and similar fortran storage)
+
 (defun valid-orientation-p (orientation)
   "Returns T iff ORIENTATION is a valid orientation for a MATRIX-LIKE object."
   (or (eq orientation :column) (eq orientation :row)))
@@ -49,7 +54,8 @@
      ;; SAFETY is set low enough).
      (defmethod initialize-instance :before ((x ,classname) &key)
        (if (typep x ,classname)
-	   (error "~A is an abstract base class and not to be instantiated." (quote ,classname))))))
+	   (error "~A is an abstract base class and not to be instantiated."
+		  (quote ,classname))))))
 
 
 (define-abstract-class data-container ()
@@ -62,8 +68,8 @@
 		:reader element-type)))
 
 (defmethod initialize-instance :after ((x data-container) &key)
-  ;; Canonicalize the element type to the appropriate Lisp type.
-  ;; This will report an error if the element type isn't valid.
+  "Canonicalize the element type to the appropriate Lisp type.  This
+will report an error if the element type isn't valid."
   (setf (slot-value x 'element-type) (cffitype->lisp (element-type x))))
 
 (define-abstract-class vector-like (data-container)
@@ -74,8 +80,14 @@
 
 (defmethod initialize-instance :after ((x vector-like) &key)
   (if (< (nelts x) 0)
-      (error "VECTOR-LIKE objects cannot have a negative number ~A of elements." (nelts x))))
+      (error "VECTOR-LIKE objects cannot have a negative number ~A of elements."
+	     (nelts x))))
 
+
+;; Defn: Stride refers to an offset which is used to handle the mapping
+;; of vectors (actual storage) to matrices (presented-to-user data
+;; structure type).  Commonly used to offset to adjacent rows
+;; (columns) in a column-oriented (row-oriented) mapping.
 
 (defclass vec (vector-like)
   (:documentation "A 1-D vector with unit stride storage."))
@@ -258,11 +270,17 @@
 
 
 (defclass matrix (matrix-like)
-  (:documentation "A (2-D) matrix.  Has ownership of the underlying data (unlike MATRIX-VIEW objects).  Depending upon how the specific Lisp implementation handles passing Lisp arrays to foreign functions, the underlying data may be either a Lisp 1-D array or a C pointer to a 1-D array."))
+  (:documentation "A (2-D) matrix.  Has ownership of the underlying
+  data (unlike MATRIX-VIEW objects).  Depending upon how the specific
+  Lisp implementation handles passing Lisp arrays to foreign
+  functions, the underlying data may be either a Lisp 1-D array or a C
+  pointer to a 1-D array.")) 
 
   
 (defclass matview (matrix-like) 
-  (:documentation "An abstract class representing a \"view\" into a matrix.  That view may be treated as a (readable and writeable) reference to the elements of the matrix.")
+  (:documentation "An abstract class representing a \"view\" into a
+  matrix.  That view may be treated as a (readable and writeable)
+  reference to the elements of the matrix.") 
   ((dim0 :initarg :dim0
 	 :initform nrows
 	 :reader dim0
@@ -307,7 +325,13 @@
 ;;;; WINDOW-MATVIEW
     
 (defclass window-matview (matview)
-  (:documentation "A WINDOW-MATVIEW views a block of elements in the underlying matrix that is conceptually 2-D contiguous.  If the underlying matrix is column-oriented, the elements in each column of a WINDOW-MATVIEW are stored contiguously, and horizontally adjacent elements are separated by a constant stride (\"LDA\" in BLAS terms).")
+  (:documentation
+   "A WINDOW-MATVIEW views a block of elements in the underlying
+   matrix that is conceptually 2-D contiguous.  If the underlying
+   matrix is column-oriented, the elements in each column of a
+   WINDOW-MATVIEW are stored contiguously, and horizontally adjacent
+   elements are separated by a constant stride (\"LDA\" in BLAS
+   terms).")
   ((offset0 :initarg :offset0
 	    :initform 0
 	    :reader offset0)

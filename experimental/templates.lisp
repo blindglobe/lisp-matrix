@@ -162,7 +162,9 @@
 	   
 	   (with-gensyms (mangled the-super-list the-body)
 	     (let ((,mangled (mangle ,classname ,template-value-list))
-		   (,the-super-list (mapcar #'(lambda (cl) (find-mangled-name (cons cl template-value-list)))))
+		   (,the-super-list (mapcar #'(lambda (cl)
+						(find-mangled-name
+						 (cons cl template-value-list)))))
 		   (,the-body (sublis (two-list-to-alist ,template-param-list
 							 template-value-list))))
 	       `(progn

@@ -244,5 +244,3 @@
 			     "mangling of ~A after ~A iterations")
 			   type-list +mangle-iteration-limit+)
 		  (register-mangling symb type-list :package package)))))
-
- 
