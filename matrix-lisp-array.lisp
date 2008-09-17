@@ -91,6 +91,8 @@
 
 ;;;; ** Typed matrices
 
+;; LA = lisp-array, vs foreign-array.
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
 
   (defun la-matrix-class (element-type &optional (type :simple))
@@ -132,6 +134,7 @@
            elements of type ~A, implemented as a lisp array."
                                     element-type)))))))
 
+;; Make all of our matrix types
 (construct-la-matrix single-float 0.0)
 (construct-la-matrix double-float 0d0)
 (construct-la-matrix (complex single-float) #C(0.0 0.0))

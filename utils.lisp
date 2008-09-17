@@ -1,3 +1,7 @@
+;; License: MH, BSD/MIT -- fill in details!
+
+;; DSL support tools.
+
 (in-package :lisp-matrix)
 
 (defun make-symbol* (&rest args)
@@ -9,3 +13,8 @@
                              (symbol (symbol-name arg))
                              (string arg)))
                          args))))
+
+
+;;; (make-symbol* "test" "me")        =>   |testme| , :INTERNAL
+;;; (make-symbol* "test" 'metoo "me") =>   |testMETOOme| , :INTERNAL
+;;; (make-symbol* "TEsT" 'metoo "me") =>   |TEsTMETOOme| , :INTERNAL

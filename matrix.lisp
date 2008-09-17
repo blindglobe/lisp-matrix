@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-06-13 17:36:36 Evan Monroig>
+;;; Time-stamp: <2008-09-15 17:37:24 tony>
 
 (in-package :lisp-matrix)
 
@@ -26,7 +26,7 @@
 ;;;; provide them documentation and make more explicit the fact that
 ;;;; they will be shared for other functions as well.
 ;;;;
-;;;; Note that we live all error checking of class instanciation to
+;;;; Note that we leave all error checking of class instanciation to
 ;;;; the functions that create such matrices.  (see the section
 ;;;; "Creating Matrices")
 
@@ -144,7 +144,13 @@
 ;;;; call A the "parent" matrix of the view.
 ;;;;
 ;;;; Also, it is common that a MATVIEW matrix does not have the same
-;;;; number of rows and columns as its parent, but we wish 
+;;;; number of rows and columns as its parent, but we wish
+;;;;(... original thought truncated ...)
+
+;;; I (AJR) think the intent of this was to consider that there is a
+;;; mapping from the original matrix to the new one on an
+;;; element-by-element basis; ideally, this would be a simple
+;;; specification. 
 
 (defclass matview (matrix-like) 
   ((parent :initarg :parent
@@ -238,7 +244,7 @@
   underlying matrix is column-oriented, the elements in each column of
   a WINDOW-MATVIEW are stored contiguously, and horizontally adjacent
   elements are separated by a constant stride (\"LDA\" in BLAS
-  terms)."))
+  terms). (vice-verse for row-oriented)"))
 
 (defgeneric zero-offset-p (matrix)
   (:documentation "Has MATRIX a zero offset (as for window and stride
@@ -319,6 +325,14 @@
 ;;;; are :LISP-ARRAY (matrices based on lisp arrays) and
 ;;;; :FOREIGN-ARRAY (matrices based on foreign arrays allocated
 ;;;; through FFI).
+;;;;
+
+;;;; Modification of above from Mark and Evan's initial work -- we now
+;;;; consider the potential use of integrating Tamas Papp's work with
+;;;; foriegn-friendly-arrays (ffa package) here, as a more mature
+;;;; starting basis -- after all, it was created based on discussions
+;;;; held during the/before/after this package development.
+
 ;;;;
 ;;;; ** Simple matrices
 ;;;; 
