@@ -1,1 +1,3 @@
 /.clbuild-skip-update
+*.so
+*~
