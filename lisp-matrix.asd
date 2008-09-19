@@ -12,10 +12,12 @@
     :long-description "Linear algebra library for ANSI Common Lisp;
     implemented at the lowest level using CFFI to call the BLAS and
     LAPACK.  Should run on any ANSI CL implementation that supports
-    CFFI."
-    :serial t  ;; the dependencies are linear
+    CFFI.  Also considers lisp-centric and foreign-centric storage, in
+    a manner friendly to the other storage facility."
+    :serial t
     :depends-on (:cffi
                  :fiveam
+		 :lift ;; yes, Tony (me) is a PITA...
 		 :org.middleangle.foreign-numeric-vector
 		 :org.middleangle.cl-blapack
 		 :ffa
