@@ -111,6 +111,6 @@
 (construct-fa-matrix (complex single-float))
 (construct-fa-matrix (complex double-float))
 
-;;; Will these work or bomb?
-(construct-fa-matrix fixnum)
-(construct-fa-matrix integer)
+;;; These don't exist yet...!
+;;(construct-fa-matrix fixnum)
+;;(construct-fa-matrix integer)

@@ -119,6 +119,7 @@
   ORIENTATION.")
   (:method ((matrix matrix-like) i j)
     (+ i (* j (nrows matrix)))))
+;;; FIXME!  Need error checking and idiot-proofing in above/below.
 
 (defun flatten-matrix-indices-1 (matrix i j)
   (ecase (orientation matrix)
