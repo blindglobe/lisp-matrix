@@ -1,5 +1,3 @@
-(in-package :cl-user)
-
 ;;; Precursor systems
 
 ;;  (asdf:oos 'asdf:compile-op 'ffa :force t)
@@ -10,11 +8,9 @@
 ;;; The maing thing...
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix :force t)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
-(defpackage :lisp-matrix-user-ex
-  (:use :cl
-	:lisp-matrix))
 
-(in-package :lisp-matrix-user-ex)
+(in-package :lisp-matrix-unittests)
+
 
 (progn ;; THESE WORK!
   
@@ -137,6 +133,9 @@
   (transpose m3)
   (v= (col m3 1) (row (transpose m3) 1))
   (v= (row m3 1) (col (transpose m3) 1))
+
+  (v+ (row m3 1) (row m3 2))
+  (v- (row m3 1) (row m3 2))
 
   )
 
