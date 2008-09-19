@@ -1,5 +1,13 @@
 (in-package :cl-user)
 
+;;; Precursor systems
+
+;;  (asdf:oos 'asdf:compile-op 'ffa :force t)
+
+;;  (asdf:oos 'asdf:compile-op 'org.middleangle.foreign-numeric-vector :force t)
+;;  (asdf:oos 'asdf:compile-op 'org.middleangle.cl-blapack :force t)
+
+;;; The maing thing...
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix :force t)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
 (defpackage :lisp-matrix-user-ex
@@ -8,11 +16,9 @@
 
 (in-package :lisp-matrix-user-ex)
 
-
 (progn ;; THESE WORK!
   
   ;; make some matrices
-
   (defvar m1 nil
     "placeholder 1")
   (setf m1 (make-matrix 2 5
@@ -38,6 +44,16 @@
 					      ( 6 7 8 9 10))))
 
 
+
+  ;; Currently we can make a foriegn matrix of doubles, but not a
+  ;; foriegn matrix of integers.
+  (defvar m2b nil
+    "placeholder 2")
+  (setf m2b (make-matrix 2 5
+			:implementation :foreign-array 
+			:element-type 'double-float
+			:initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+					      ( 6d0 7d0 8d0 9d0 10d0))))
 
 
   (mref m2 0 2) ;; -> 3
@@ -66,7 +82,6 @@
   m3
   (transpose m3)
 
-
   (defvar m4 nil
     "yet another placeholder.")
   (setf m4 (strides m3 :nrows 2 :row-stride 2))
@@ -93,12 +108,13 @@
   ;; FIXME: need to get the foriegn-friendly arrays package involved. 
   (defvar m2a nil
     "placeholder 2")
+
   (setf m2a (make-matrix 2 5
-			:implementation :foreign-array ;; :lisp-array
-			:element-type 'integer ; 'double-float
-			;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
+			:implementation :foreign-array 
+			:element-type 'integer 
 			:initial-contents #2A(( 1 2 3 4 5)
 					      ( 6 7 8 9 10))))
+
 
   ;; FIXME -- bad error!!
   ;; This index isn't correct, and it doesn't barf correctly. 
@@ -127,7 +143,9 @@
 
 
 
-;; manipulate
+;;; manipulate
+
+;; in particular convert between foriegn-array and lisp-array.
 
 ;; operate 
 
