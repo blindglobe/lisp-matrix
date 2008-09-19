@@ -23,27 +23,41 @@
 		 :ffa
                  :cl-utilities)
     :components
-    ((:file "package")
-     (:file "utils" :depends-on ("package"))
-     (:file "macros" :depends-on ("package"))
-     (:file "matrix" :depends-on ("package"))
-     (:file "vector" :depends-on ("matrix"))
-     (:file "matrix-implementations" :depends-on ("matrix" "vector"))
-     (:file "matrix-lisp-array" :depends-on ("matrix"
-                                             "matrix-implementations"
-                                             "utils"))
-     (:file "matrix-foreign-array" :depends-on ("matrix"
-                                                "matrix-implementations"
-                                                "utils"))
-     (:file "lapack-utils" :depends-on ("matrix-foreign-array"
-                                        "matrix-lisp-array"))
-     (:file "lapack-methods" :depends-on ("lapack-utils"))
-     (:file "matrix-operations" :depends-on ("lapack-methods"))
-     (:file "tests" :depends-on ("matrix" "matrix-lisp-array"
-                                          "matrix-foreign-array"
-                                          "matrix-operations"
-                                          "lapack-utils"
-                                          "lapack-methods")))
+    ((:module
+      "package-init"
+      :pathname #p "src/"
+      :components
+      ((:file "package")))
+
+     (:module
+      "basics"
+      :pathname #p"src/"
+      :depends-on ("package-init") 
+      :components
+      ((:file "utils"  )
+       (:file "macros" )
+       (:file "matrix" )
+       (:file "vector" :depends-on ("matrix"))
+       (:file "matrix-implementations" :depends-on ("matrix" "vector"))))
+
+     (:module
+      "implementations"
+      :pathname #p"src/"
+      :depends-on ("package-init" "basics")
+      :components
+      ((:file "matrix-lisp-array")
+       (:file "matrix-foreign-array")
+       (:file "lapack-utils" :depends-on ("matrix-foreign-array"
+					  "matrix-lisp-array"))
+       (:file "lapack-methods" :depends-on ("lapack-utils"))
+       (:file "matrix-operations" :depends-on ("lapack-methods"))))
+
+     (:module
+      "testing"
+      :pathname #p "src/unittests/"
+      :depends-on ("implementations")
+      :components
+      ((:file "tests" ))))
     :in-order-to ((test-op (load-op lisp-matrix)))
     :perform (test-op :after (op c)
                       (funcall (intern "RUN!" 'fiveam)
