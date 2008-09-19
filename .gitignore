@@ -1,3 +1,5 @@
 /.clbuild-skip-update
 *.so
 *~
+*.fasl
+run-emacs.sh
