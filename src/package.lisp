@@ -43,8 +43,20 @@
 	   fa-simple-matrix-complex  fa-simple-matrix-float 
 	   fa-simple-vector-double fa-simple-vector-integer
 	   fa-simple-matrix-fixnum 
+
+	   *implementations*
 	   ))
 
+
 (defpackage :lisp-matrix-user
+  (:documentation "Experimentation package for lisp-matrix")
   (:use :cl
 	:lisp-matrix))
+
+
+(defpackage :lisp-matrix-unittests
+  (:documentation "Unit, validation, and regression testing for lisp-matrix")
+  (:use :common-lisp
+	:lift
+	:lisp-matrix)
+  (:export run-lisp-matrix-tests))

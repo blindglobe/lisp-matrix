@@ -57,7 +57,8 @@
       :pathname #p "src/unittests/"
       :depends-on ("implementations")
       :components
-      ((:file "tests" ))))
+      ((:file "tests")
+       (:file "unittests"))))
     :in-order-to ((test-op (load-op lisp-matrix)))
     :perform (test-op :after (op c)
                       (funcall (intern "RUN!" 'fiveam)
