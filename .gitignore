@@ -3,3 +3,4 @@
 *~
 *.fasl
 run-emacs.sh
+test-results/
