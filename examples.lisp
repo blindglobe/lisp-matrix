@@ -7,9 +7,13 @@
 
 ;;; The maing thing...
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix :force t)
+;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
 
 (in-package :lisp-matrix-unittests)
+
+
+(run-lisp-matrix-tests)
 
 
 (progn ;; THESE WORK!
@@ -98,6 +102,9 @@
   )
 
 
+m4
+(row m4 0)
+(col m4 5)
 
 (progn ;; FIX ALL THE ERRORS
 
