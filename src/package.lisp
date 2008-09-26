@@ -14,7 +14,7 @@
   (:import-from :fnv)
   (:export make-matrix make-matrix*  ;; basic instantiations
 	   strides-class window-class transpose-class
-	   strides window transpose 
+	   strides window transpose transposed-p
 	   ones zeros eye rand ;; types 
 	   copy copy! copy*
 	   copy-maybe copy-maybe*
