@@ -13,8 +13,13 @@
 	:fiveam)
   (:import-from :fnv)
   (:export make-matrix make-matrix*  ;; basic instantiations
-	   strides-class window-class transpose-class
-	   strides window transpose transposed-p
+	   strides-class
+	   strides unit-strides-p
+	   window-class window
+	   transpose-class transpose transposed-p
+	   
+	   zero-offset-p
+
 	   ones zeros eye rand ;; types 
 	   copy copy! copy*
 	   copy-maybe copy-maybe*
@@ -31,8 +36,9 @@
 	   flatten-matrix-indices flatten-matrix-indices-1
 
 	   la-simple-matrix-double  la-simple-matrix-integer
-	   ;; Next 3 symbols are guesses at... wrong?
-	   la-simple-matrix-complex  la-simple-matrix-float 
+	   la-simple-matrix-single
+	   ;; Next 2 symbols are guesses at... wrong?
+	   la-simple-matrix-complex 
 	   la-simple-matrix-fixnum 
 	   
 	   la-simple-vector-double
@@ -45,6 +51,13 @@
 	   fa-simple-matrix-fixnum 
 
 	   *implementations*
+
+	   col-vector-p
+	   make-vector
+	   parent
+	   real-stride
+	   row-vector-p
+
 	   ))
 
 
