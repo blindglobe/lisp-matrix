@@ -12,10 +12,11 @@
 
 (in-package :lisp-matrix-unittests)
 
-
 (run-lisp-matrix-tests)
 
+(in-package :lisp-matrix-user)
 
+(lisp-matrix-unittests:run-lisp-matrix-tests)
 (progn ;; THESE WORK!
   
   ;; make some matrices
