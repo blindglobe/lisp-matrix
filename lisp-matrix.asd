@@ -16,12 +16,12 @@
     a manner friendly to the other storage facility."
     :serial t
     :depends-on (:cffi
-                 :fiveam
+		 :cl-utilities
+                 ;; :fiveam
 		 :lift ;; yes, Tony (me) is a PITA...
 		 :org.middleangle.foreign-numeric-vector
 		 :org.middleangle.cl-blapack
-		 :ffa
-                 :cl-utilities)
+		 :ffa)
     :components
     ((:module
       "package-init"
@@ -57,15 +57,16 @@
       :pathname #p "src/unittests/"
       :depends-on ("implementations")
       :components
-      ((:file "tests")
-       (:file "unittests"))))
-    :in-order-to ((test-op (load-op lisp-matrix)))
-    :perform (test-op :after (op c)
-                      (funcall (intern "RUN!" 'fiveam)
-                               (intern "TESTS" 'lisp-matrix))))
+      ((:file "unittests"))))
+       ;; (:file "tests")
+;;     :in-order-to ((test-op (load-op lisp-matrix)))
+;;     :perform (test-op :after (op c)
+;;                       (funcall (intern "RUN!" 'fiveam)
+;;                                (intern "TESTS" 'lisp-matrix)))
+    )
 
-;; keep ASDF thinking that the test operation hasn't been done
-(defmethod operation-done-p 
-           ((o test-op)
-            (c (eql (find-system 'lisp-matrix))))
-  (values nil))
+;;;; keep ASDF thinking that the test operation hasn't been done
+;; (defmethod operation-done-p 
+;;            ((o test-op)
+;;             (c (eql (find-system 'lisp-matrix))))
+;;   (values nil))
