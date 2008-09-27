@@ -8,6 +8,9 @@
 ;;; tests.  However, where they will end up is still to be
 ;;; determined. 
 
+;; (asdf:oos 'asdf:compile-op 'lift :force t)o
+;; (asdf:oos 'asdf:load-op 'lift)
+
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
 (in-package :lisp-matrix-unittests)
@@ -177,14 +180,14 @@ are discarded \(that is, the body is an implicit PROGN)."
 
 
 
-;;; TEST SUITE
+;;; TEST SUITES
 
 (deftestsuite lisp-matrix-ut () ())
-(deftestsuite lisp-matrix-ut-matrix (lisp-matrix-ut) ())
-(deftestsuite lisp-matrix-ut-matrix-views (lisp-matrix-ut-matrix) ())
-(deftestsuite lisp-matrix-ut-matrix-lapack (lisp-matrix-ut-matrix) ())
 (deftestsuite lisp-matrix-ut-vectors (lisp-matrix-ut) ())
-;; (deftestsuite lisp-matrix-ut-matrix-lisp (lisp-matrix-ut) ())
+(deftestsuite lisp-matrix-ut-matrix  (lisp-matrix-ut) ())
+(deftestsuite lisp-matrix-ut-matrix-views  (lisp-matrix-ut-matrix) ())
+(deftestsuite lisp-matrix-ut-matrix-lapack (lisp-matrix-ut-matrix) ())
+(deftestsuite lisp-matrix-ut-matrix-gemm   (lisp-matrix-ut-matrix) ())
 
 ;;; TESTS
 
@@ -753,10 +756,9 @@ are discarded \(that is, the body is an implicit PROGN)."
     (ensure (= (iamax (ones 1 1 :element-type '(complex double-float)))
            0))))
 
-(def-suite gemm :in lapack
-           :description "tests of the M* function")
 
-(in-suite gemm)
+;;;; GEMM tests
+
 
 (defun check-m* (a b)
   (let ((result (make-matrix 2 2 :initial-contents
@@ -765,7 +767,7 @@ are discarded \(that is, the body is an implicit PROGN)."
     (ensure (m= result (m* a b)))))
 
 (defmacro def-m*-test (name a b)
-  `(addtest (lisp-matrix-ut) ,name
+  `(addtest (lisp-matrix-ut-matrix-gemm) ,name
      (for-all-implementations
        (check-m* ,a ,b))))
 
@@ -881,7 +883,8 @@ are discarded \(that is, the body is an implicit PROGN)."
                '((5d0 6d0)
                  (7d0 8d0))))
 
-(addtest (lisp-matrix-ut) gemm-window-c-copy
+(addtest (lisp-matrix-ut-matrix-gemm)
+  gemm-window-c-copy
   (for-all-implementations
     (let* ((result (make-matrix 2 2 :initial-contents
                                 '((19d0 22d0)
@@ -905,7 +908,8 @@ are discarded \(that is, the body is an implicit PROGN)."
       (ensure (m= (window c :ncols 1 :col-offset 2)
               (zeros 3 1))))))
 
-(addtest (lisp-matrix-ut) gemm-window-c-copy-copyback
+(addtest (lisp-matrix-ut-matrix-gemm)
+  gemm-window-c-copy-copyback
   (for-all-implementations
     (let* ((result (make-matrix 2 2 :initial-contents
                                 '((19d0 22d0)
@@ -930,7 +934,7 @@ are discarded \(that is, the body is an implicit PROGN)."
       (ensure (m= (window c :ncols 2) (zeros 4 2))))))
 
 
-(addtest (lisp-matrix-ut-matrix)
+(addtest (lisp-matrix-ut-matrix-gemm)
   m*-double
   (for-all-implementations
     (ensure
@@ -948,7 +952,7 @@ are discarded \(that is, the body is an implicit PROGN)."
                        :initial-contents '((19d0 22d0)
                                            (43d0 50d0)))))))
 
-(addtest (lisp-matrix-ut-matrix)
+(addtest (lisp-matrix-ut-matrix-gemm)
   m*-single
   (for-all-implementations
     (ensure
@@ -966,7 +970,7 @@ are discarded \(that is, the body is an implicit PROGN)."
                        :initial-contents '((19.0 22.0)
                                            (43.0 50.0)))))))
 
-(addtest (lisp-matrix-ut)
+(addtest (lisp-matrix-ut-matrix-gemm)
   m*-complex-single
   (for-all-implementations
     (ensure
@@ -986,7 +990,7 @@ are discarded \(that is, the body is an implicit PROGN)."
                        :initial-contents '((#C(19.0 0.0) #C(22.0 0.0))
                                            (#C(43.0 0.0) #C(50.0 0.0))))))))
 
-(addtest (lisp-matrix-ut-matrix)
+(addtest (lisp-matrix-ut-matrix-gemm)
   m*-complex-double
   (for-all-implementations
     (ensure
@@ -1007,8 +1011,7 @@ are discarded \(that is, the body is an implicit PROGN)."
                                            (#C(43d0 0d0) #C(50d0
   0d0))))))))
 
-
-(addtest (lisp-matrix-ut-matrix)
+(addtest (lisp-matrix-ut-matrix-gemm)
   m*-vectors
   (for-all-implementations
     (let* ((a (make-matrix 4 4 :initial-contents '((0d0 1d0 2d0 3d0)

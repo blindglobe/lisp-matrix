@@ -37,11 +37,13 @@
 
 	   la-simple-matrix-double  la-simple-matrix-integer
 	   la-simple-matrix-single
-	   ;; Next 2 symbols are guesses at... wrong?
-	   la-simple-matrix-complex 
+	   la-simple-matrix-complex-single 
+	   la-simple-matrix-complex-double
+	   ;; Next  symbols are guesses at... wrong?
 	   la-simple-matrix-fixnum 
 	   
 	   la-simple-vector-double
+	   la-simple-vector-single
 	   la-simple-vector-integer
 
 	   ;; Next paragrah of symbols are guesses... wrong?
@@ -57,6 +59,10 @@
 	   parent
 	   real-stride
 	   row-vector-p
+
+	   gemm scal
+	   make-predicate
+	   iamax asum nrm2 axpy slice
 
 	   ))
 
