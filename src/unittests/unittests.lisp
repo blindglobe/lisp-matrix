@@ -10,10 +10,15 @@
 
 ;; (asdf:oos 'asdf:compile-op 'lift :force t)o
 ;; (asdf:oos 'asdf:load-op 'lift)
-
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
+
 (in-package :lisp-matrix-unittests)
+
+;;(run-lisp-matrix-tests)
+;;(describe (run-lisp-matrix-tests))
+
+;;(remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
 
 ;;; EXTERNAL
 
@@ -23,8 +28,16 @@
 
 ;;(defun run-lisp-matrix-test (&rest x) (run-test x))
 
-;;(run-lisp-matrix-tests)
-;;(describe (run-lisp-matrix-tests))
+
+
+;;; TEST SUITES
+
+(deftestsuite lisp-matrix-ut () ())
+(deftestsuite lisp-matrix-ut-vectors (lisp-matrix-ut) ())
+(deftestsuite lisp-matrix-ut-matrix  (lisp-matrix-ut) ())
+(deftestsuite lisp-matrix-ut-matrix-views  (lisp-matrix-ut-matrix) ())
+(deftestsuite lisp-matrix-ut-matrix-lapack (lisp-matrix-ut-matrix) ())
+(deftestsuite lisp-matrix-ut-matrix-gemm   (lisp-matrix-ut-matrix) ())
 
 ;;; SUPPORT FUNCTIONS
 
@@ -180,15 +193,6 @@ are discarded \(that is, the body is an implicit PROGN)."
 
 
 
-;;; TEST SUITES
-
-(deftestsuite lisp-matrix-ut () ())
-(deftestsuite lisp-matrix-ut-vectors (lisp-matrix-ut) ())
-(deftestsuite lisp-matrix-ut-matrix  (lisp-matrix-ut) ())
-(deftestsuite lisp-matrix-ut-matrix-views  (lisp-matrix-ut-matrix) ())
-(deftestsuite lisp-matrix-ut-matrix-lapack (lisp-matrix-ut-matrix) ())
-(deftestsuite lisp-matrix-ut-matrix-gemm   (lisp-matrix-ut-matrix) ())
-
 ;;; TESTS
 
 (addtest (lisp-matrix-ut)
@@ -233,19 +237,18 @@ are discarded \(that is, the body is an implicit PROGN)."
 					  (6d0 7 8 9 10)))))
       m1))
   (ensure
-   ;; because data is double-float, nil-return is success
-   (not
-    (let ((m1 (make-matrix 2 5
-			   :implementation :lisp-array 
-			   :element-type 'double-float
-			   :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-					       (6d0 7d0 8d0 9d0 10d0)))))
-      m1))))
+   ;; correct initial data
+   (let ((m1 (make-matrix 2 5
+			  :implementation :lisp-array 
+			  :element-type 'double-float
+			  :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+					      (6d0 7d0 8d0 9d0 10d0)))))
+     m1)))
 
 
 ;; combination + progn
 (addtest (lisp-matrix-ut)
-  data-initialize
+  data-initialize-2
   (progn
     (ensure-error  
       ;; because data is integer, not double-float!
@@ -256,20 +259,18 @@ are discarded \(that is, the body is an implicit PROGN)."
 						  (6d0 7 8 9 10)))))
 	m1))
     (ensure
-     ;; because data is double-float, nil-return is success
-     (not
-      (let ((m1 (make-matrix 2 5
-			     :implementation :lisp-array 
-			     :element-type 'double-float
-			     :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-						 (6d0 7d0 8d0 9d0 10d0)))))
-	m1)))))
+     ;; correct data input
+     (let ((m1 (make-matrix 2 5
+			    :implementation :lisp-array 
+			    :element-type 'double-float
+			    :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+						(6d0 7d0 8d0 9d0 10d0)))))
+       m1))))
 
 
 (addtest (lisp-matrix-ut)
   silly-macro-test-1
   (ensure (silly-test 2 5)))
-
 
 (addtest (lisp-matrix-ut)
   silly-macro-test-2
@@ -281,7 +282,7 @@ are discarded \(that is, the body is an implicit PROGN)."
 
 (addtest (lisp-matrix-ut)
   silly-macro-test-4
-  (ensure (silly-test2 2 5)))
+  (ensure (not (silly-test2 2 5))))
 
 
 (addtest (lisp-matrix-ut)
@@ -619,7 +620,8 @@ are discarded \(that is, the body is an implicit PROGN)."
   (ensure (equal (make-predicate 'nil)
              '(constantly nil))))
 
-(addtest (lisp-matrix-ut) datatypes
+(addtest (lisp-matrix-ut)
+  datatypes
   (ensure (string= (datatype->letter 'float) "S"))
   (ensure (string= (datatype->letter 'double) "D"))
   (ensure (string= (datatype->letter 'complex-float) "C"))
@@ -628,7 +630,8 @@ are discarded \(that is, the body is an implicit PROGN)."
 ;; FIXME: tests below up to IAMAX fail on SBCL versions before and
 ;; including 1.0.11, but succeed after and including 1.0.12
 
-(addtest (lisp-matrix-ut) scal
+(addtest (lisp-matrix-ut)
+  scal
   (for-all-implementations
     (ensure
      (m=
@@ -684,15 +687,17 @@ are discarded \(that is, the body is an implicit PROGN)."
                     (scal #C(1.5d0 0.0d0) (ones 2 2)))
               (scal #C(0.5d0 0.0d0) (ones 2 2)))))))
 
-(addtest (lisp-matrix-ut) dot
+
+(addtest (lisp-matrix-ut-matrix) dot
   (for-all-implementations
     (ensure (= (dot (ones 2 2)
-                (scal 0.5d0 (ones 2 2)))
-           2d0))
+		    (scal 0.5d0 (ones 2 2)))
+	       2d0))
     (ensure (= (dot (ones 2 2 :element-type 'single-float)
-                (scal 0.5 (ones 2 2 :element-type 'single-float)))
-           2.0))))
+		    (scal 0.5 (ones 2 2 :element-type 'single-float)))
+	       2.0))))
 
+#|
 ;; FIXME: test DOTU, DOTC
 #+(or)
 (addtest (lisp-matrix-ut) dotu
@@ -707,6 +712,7 @@ are discarded \(that is, the body is an implicit PROGN)."
               (scal #C(0.5 0.0) (ones 2 2 :element-type
                                       '(complex single-float))))
         #C(2.0 0.0))))
+|#
 
 (addtest (lisp-matrix-ut) nrm2
   (for-all-implementations
@@ -1079,7 +1085,7 @@ are discarded \(that is, the body is an implicit PROGN)."
            (a (ones 2 2))
            (b (scal #C(2.0 2.0) (ones 2 2))))
       (ensure (m= a (ones 2 2)))
-      (ensure (m= b (scal #C(2.0 2.0) (ones 2 2))))
+      (ensure (m= b (scal #C(2.0 2.0) (ones 2 2)))) 
       (ensure (m= (m- a b) (scal #C(-1.0 -2.0) (ones 2 2)))))
     (let* ((*default-element-type* '(complex double-float))
            (a (ones 2 2))
