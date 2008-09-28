@@ -72,6 +72,8 @@
        ((nil) '(constantly nil))
        (t form)))
     (list
+     ;; FIXME: we are getting scope capture according to SBCL.  See
+     ;; unittests for make-predicate 
      (labels ((aux (arg)
                 (etypecase arg
                   (symbol (list arg 'a))
