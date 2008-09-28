@@ -274,7 +274,7 @@ are discarded \(that is, the body is an implicit PROGN)."
 
 (addtest (lisp-matrix-ut)
   silly-macro-test-2
-  (ensure (silly-test 4 4)))
+  (ensure-error (silly-test 4 4)))
 
 (addtest (lisp-matrix-ut)
   silly-macro-test-3
@@ -595,7 +595,6 @@ are discarded \(that is, the body is an implicit PROGN)."
 
 ;;; Test lapack
 
-
 (addtest (lisp-matrix-ut-matrix-lapack)
   make-predicate
   (ensure (equal (make-predicate 'unit-strides-p)
@@ -615,6 +614,11 @@ are discarded \(that is, the body is an implicit PROGN)."
                (or (not (unit-strides-p a))
                 (not (zero-offset-p a))
                 (transposed-p a)))))
+#| 
+
+
+|#
+
   (ensure (equal (make-predicate 't)
              '(constantly t)))
   (ensure (equal (make-predicate 'nil)
