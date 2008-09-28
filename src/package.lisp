@@ -6,11 +6,11 @@
 (defpackage :lisp-matrix
   (:use :cl
         :cffi
+	;; :fiveam
         :cl-utilities
         :org.middleangle.foreign-numeric-vector
         :org.middleangle.cl-blapack
-	:ffa
-	:fiveam)
+	:ffa)
   (:import-from :fnv)
   (:export make-matrix make-matrix*  ;; basic instantiations
 	   strides-class
@@ -45,6 +45,9 @@
 	   la-simple-vector-double
 	   la-simple-vector-single
 	   la-simple-vector-integer
+	   la-simple-vector-complex-single
+	   la-simple-vector-complex-double
+
 
 	   ;; Next paragrah of symbols are guesses... wrong?
 	   fa-simple-matrix-double  fa-simple-matrix-integer
@@ -52,7 +55,6 @@
 	   fa-simple-vector-double fa-simple-vector-integer
 	   fa-simple-matrix-fixnum 
 
-	   *implementations*
 
 	   col-vector-p
 	   make-vector
@@ -63,12 +65,18 @@
 	   gemm scal
 	   make-predicate
 	   iamax asum nrm2 axpy slice
+	   dot dotc dotu
 
+	   *supported-datatypes* datatype->letter
+
+	   *implementations*
+
+	   *default-element-type* *default-implementation*
 	   ))
 
 
 (defpackage :lisp-matrix-user
-  (:documentation "Experimentation package for lisp-matrix")
+  (:documentation "User experimentation package for lisp-matrix")
   (:use :cl
 	:lisp-matrix))
 
