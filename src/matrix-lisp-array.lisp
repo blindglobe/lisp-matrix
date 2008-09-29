@@ -16,6 +16,8 @@
 (defmethod implementation ((matrix la-matrix))
   :lisp-array)
 
+;; FIXME: need to throw appropriate error when the indices are
+;; illegal.   error?  or a condition?
 (defmethod mref ((matrix la-matrix) i j)
   (aref (data matrix) (flatten-matrix-indices matrix i j)))
 
