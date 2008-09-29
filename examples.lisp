@@ -120,6 +120,21 @@ m4
 					      ( 6 7 8 9 10))))
 
 
+    (let* ((*default-element-type* '(complex double-float))
+	   (m1 (axpy #C(1.0d0 0.0d0)
+		     (ones 2 2)
+		     (scal #C(1.5d0 0.0d0)
+			   (ones 2 2))))
+	   (m2 (scal #C(2.5d0 0.0d0) (ones 2 2)))
+	   (m3 (axpy #C(-1.0d0 0.0d0)
+		     (ones 2 2)
+		     (scal #C(1.5d0 0.0d0) (ones 2 2))))
+	   (m4 (scal #C(0.5d0 0.0d0) (ones 2 2))))
+      (format t "~A ~A ~%"
+	      (m= m1 m2)
+	      (m= m3 m4)))
+
+
   ;; FIXME -- bad error!!
   ;; This index isn't correct, and it doesn't barf correctly. 
   (mref m1 2 3)
