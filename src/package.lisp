@@ -69,6 +69,7 @@
 
 	   *supported-datatypes* datatype->letter
 	   float double complex-float complex-double
+	   single-float double-float
 
 	   *implementations*
 
