@@ -624,12 +624,24 @@ are discarded \(that is, the body is an implicit PROGN)."
   (ensure (equal (make-predicate 'nil)
              '(constantly nil))))
 
+
 (addtest (lisp-matrix-ut)
   datatypes
   (ensure (string= (datatype->letter 'float) "S"))
   (ensure (string= (datatype->letter 'double) "D"))
   (ensure (string= (datatype->letter 'complex-float) "C"))
-  (ensure (string= (datatype->letter 'complex-double) "Z")))
+  (ensure (string= (datatype->letter 'complex-double) "Z"))
+  ;; export issue...  fixed, but be careful!
+  ;;   (ensure-error (string= (datatype->letter 'double) "D"))
+  ;;   (ensure (string= (datatype->letter 'lisp-matrix::double) "D"))
+  ;;   (ensure (string= (datatype->letter 'lisp-matrix::complex-float) "C"))
+  ;;   (ensure (string= (datatype->letter 'lisp-matrix::complex-double) "Z"))
+  ;;   (ensure-error (string= (datatype->letter 'complex-float) "C"))
+  ;;   (ensure-error (string= (datatype->letter 'complex-double) "Z"))
+  ;;   (ensure (string= (datatype->letter 'complex-double) "Z"))
+  )
+
+
 
 ;; FIXME: tests below up to IAMAX fail on SBCL versions before and
 ;; including 1.0.11, but succeed after and including 1.0.12

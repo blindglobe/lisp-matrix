@@ -68,6 +68,7 @@
 	   dot dotc dotu
 
 	   *supported-datatypes* datatype->letter
+	   float double complex-float complex-double
 
 	   *implementations*
 
