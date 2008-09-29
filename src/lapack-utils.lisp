@@ -139,6 +139,11 @@
   (or (cdr (assoc datatype *supported-datatypes* :test #'equal))
       (error "LAPACK does not support the datatype ~A" datatype)))
 
+
+;; (string= "D" (cdr (assoc 'double *supported-datatypes* :test #'equal)))
+;; (string= "D" (datatype->letter 'double))
+
+
 (defun %get-name (name-and-options)
   "Used in DEF-LAPACK-METHOD.
 
