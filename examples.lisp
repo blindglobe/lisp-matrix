@@ -16,7 +16,9 @@
 
 (in-package :lisp-matrix-user)
 
-(lisp-matrix-unittests:run-lisp-matrix-tests)
+;; (lisp-matrix-unittests:run-lisp-matrix-tests)
+;; (describe (lisp-matrix-unittests:run-lisp-matrix-tests))
+
 (progn ;; THESE WORK!
   
   ;; make some matrices
@@ -100,40 +102,41 @@
   (v= (row m4 0) (col (transpose m4) 0))
   (v= (col m4 0) (row (transpose m4) 0))
 
+  m4
+  (row m4 0)
+  (col m4 4)
+
+
+  (let* ((*default-element-type* '(complex double-float))
+	 (m1 (axpy #C(1.0d0 0.0d0)
+		   (ones 2 2)
+		   (scal #C(1.5d0 0.0d0)
+			 (ones 2 2))))
+	 (m2 (scal #C(2.5d0 0.0d0) (ones 2 2)))
+	 (m3 (axpy #C(-1.0d0 0.0d0)
+		   (ones 2 2)
+		   (scal #C(1.5d0 0.0d0) (ones 2 2))))
+	 (m4 (scal #C(0.5d0 0.0d0) (ones 2 2))))
+    (format t "~A ~A ~%"
+	    (m= m1 m2)
+	    (m= m3 m4)))
+
+  (m+ (row m3 1) (row m3 2))
+  (m- (row m3 1) (row m3 2))
+
   )
 
-
-m4
-(row m4 0)
-(col m4 5)
 
 (progn ;; FIX ALL THE ERRORS
 
   ;; FIXME: need to get the foriegn-friendly arrays package involved. 
   (defvar m2a nil
     "placeholder 2")
-
   (setf m2a (make-matrix 2 5
 			:implementation :foreign-array 
 			:element-type 'integer 
 			:initial-contents #2A(( 1 2 3 4 5)
 					      ( 6 7 8 9 10))))
-
-
-    (let* ((*default-element-type* '(complex double-float))
-	   (m1 (axpy #C(1.0d0 0.0d0)
-		     (ones 2 2)
-		     (scal #C(1.5d0 0.0d0)
-			   (ones 2 2))))
-	   (m2 (scal #C(2.5d0 0.0d0) (ones 2 2)))
-	   (m3 (axpy #C(-1.0d0 0.0d0)
-		     (ones 2 2)
-		     (scal #C(1.5d0 0.0d0) (ones 2 2))))
-	   (m4 (scal #C(0.5d0 0.0d0) (ones 2 2))))
-      (format t "~A ~A ~%"
-	      (m= m1 m2)
-	      (m= m3 m4)))
-
 
   ;; FIXME -- bad error!!
   ;; This index isn't correct, and it doesn't barf correctly. 
@@ -144,12 +147,12 @@ m4
   ;; FIXME: the following has no applicable method!
   (m* m2 (transpose m2))
 
-
   m4
   (transpose m4)
   ;; given the above...
   ;; FIXME: Big Barf!
-  (v= (row m4 1) (col (transpose m4) 1)) ;; fails ???
+  (v= (row m4 1)
+      (col (transpose m4) 1) ) ;; fails ???
 
   ;; and the same problem.
   m3 
@@ -157,19 +160,15 @@ m4
   (v= (col m3 1) (row (transpose m3) 1))
   (v= (row m3 1) (col (transpose m3) 1))
 
-  (v+ (row m3 1) (row m3 2))
-  (v- (row m3 1) (row m3 2))
 
   )
 
 
+;;; EXAMPLES TO DEMONSTRATE
 
+;; convert between foriegn-array and lisp-array.
 
-;;; manipulate
-
-;; in particular convert between foriegn-array and lisp-array.
-
-;; operate 
+;; operate ()
 
 ;; do some blas/lapack
 
