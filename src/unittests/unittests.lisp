@@ -940,18 +940,18 @@ are discarded \(that is, the body is an implicit PROGN)."
            (windowed-c (window c :nrows 2 :ncols 2 :row-offset 2
                                                    :col-offset 2)))
       (ensure (eq windowed-c
-              (gemm 1d0
-                    (make-matrix 2 2 :initial-contents
-                                 '((1d0 2d0)
-                                   (3d0 4d0)))
-                    (make-matrix 2 2 :initial-contents
-                                 '((5d0 6d0)
-                                   (7d0 8d0)))
-                    0d0
-                    windowed-c)))
+		  (gemm 1d0
+			(make-matrix 2 2 :initial-contents
+				     '((1d0 2d0)
+				       (3d0 4d0)))
+			(make-matrix 2 2 :initial-contents
+				     '((5d0 6d0)
+				       (7d0 8d0)))
+			0d0
+			windowed-c)))
       (ensure (m= windowed-c result))
       (ensure (m= windowed-c (window c :nrows 2 :ncols 2 :row-offset 2
-                                                     :col-offset 2)))
+				     :col-offset 2)))
       (ensure (m= (window c :nrows 2) (zeros 2 4)))
       (ensure (m= (window c :ncols 2) (zeros 4 2))))))
 
