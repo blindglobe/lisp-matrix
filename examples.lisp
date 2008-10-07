@@ -13,6 +13,7 @@
 (in-package :lisp-matrix-unittests)
 
 (run-lisp-matrix-tests)
+(describe  (run-lisp-matrix-tests))
 
 (in-package :lisp-matrix-user)
 
