@@ -63,7 +63,6 @@
 	   row-vector-p
 
 	   gemm scal
-	   make-predicate
 	   iamax asum nrm2 axpy slice
 	   dot dotc dotu
 
@@ -74,6 +73,8 @@
 	   *implementations*
 
 	   *default-element-type* *default-implementation*
+
+	   make-predicate make-predicate-macro
 	   ))
 
 

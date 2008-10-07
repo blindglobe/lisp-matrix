@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-06-13 17:31:56 Evan Monroig>
+;;;; Time-stamp: <2008-10-07 16:57:10 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -84,6 +84,33 @@
                      (not (list 'not (aux (cadr arg)))))))))
        `(lambda (a)
           ,(aux form))))))
+
+(defmacro make-predicate-macro (form)
+  "Trying to fix make-predicate."
+  (typecase form
+    (symbol
+     (case form
+       ((t) '(constantly t))
+       ((nil) '(constantly nil))
+       (t form)))
+    (list
+     (labels ((aux (arg)
+                (etypecase arg
+                  (symbol (list arg 'a))
+                  (list
+                   (ecase (car arg)
+                     (or (cons 'or (mapcar #'aux (cdr arg))))
+                     (and (cons 'and (mapcar #'aux (cdr arg))))
+                     (not (list 'not (aux (cadr arg)))))))))
+       `(lambda (a)
+          ,(aux form))))))
+
+#|
+(make-predicate-macro )
+(make-predicate )
+
+|#
+
 
 (defmacro with-copies ((&rest forms) result &body body)
   "Each form in FORMS is a lambda-list defined as (VARIABLE PREDICATE
@@ -186,12 +213,14 @@
            (declare (ignore name))
            (or function-names default-function-names))))))))
 
-;; (%get-functions 'gemm)
-;; (%get-functions '(nrm2 :function-names
-;;                   ((%snrm2 single-float)
-;;                    (%dnrm2 double-float)
-;;                    (%scnrm2 (complex single-float))
-;;                    (%dznrm2 (complex double-float)))))
+#|
+ (%get-functions 'gemm)
+ (%get-functions '(nrm2 :function-names
+                   ((%snrm2 single-float)
+                    (%dnrm2 double-float)
+                    (%scnrm2 (complex single-float))
+                    (%dznrm2 (complex double-float)))))
+|#
 
 (defun %clean-lambda-list (lambda-list)
   "Helper for DEF-LAPACK-METHOD.

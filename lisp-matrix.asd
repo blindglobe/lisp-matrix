@@ -3,7 +3,14 @@
 ;;; TODO: wrap this in a #+(or <supported-systems>) with an error if 
 ;;; the system isn't supported.
 ;;;
-(asdf:defsystem lisp-matrix
+(in-package :cl-user)
+
+(defpackage :lisp-matrix-asd
+  (:use :cl :asdf))
+
+(in-package :lisp-matrix-asd)
+
+(defsystem lisp-matrix
     :name "lisp-matrix"
     :version "0.0.1"
     :author "Mark Hoemmen <mhoemmen@cs.berkeley.edu>"
@@ -17,7 +24,8 @@
     :serial t
     :depends-on (:cffi
 		 :cl-utilities
-                 ;; :fiveam
+
+                 ;; :fiveam  ;;see below for its replacement...
 		 :lift ;; yes, Tony (me) is a PITA...
 		 :org.middleangle.foreign-numeric-vector
 		 :org.middleangle.cl-blapack
