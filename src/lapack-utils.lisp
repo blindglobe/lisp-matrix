@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-10-07 16:57:10 tony>
+;;;; Time-stamp: <2008-10-08 09:08:45 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -87,23 +87,27 @@
 
 (defmacro make-predicate-macro (form)
   "Trying to fix make-predicate."
-  (typecase form
-    (symbol
-     (case form
+  (list null)
+#|
+  (typecase ,form
+    (symbol ;; fine.			;
+     (case ,form
        ((t) '(constantly t))
        ((nil) '(constantly nil))
-       (t form)))
-    (list
+       (t ,form)))
+    (list ;; variable capture in the defun version. ;
      (labels ((aux (arg)
-                (etypecase arg
-                  (symbol (list arg 'a))
-                  (list
-                   (ecase (car arg)
-                     (or (cons 'or (mapcar #'aux (cdr arg))))
-                     (and (cons 'and (mapcar #'aux (cdr arg))))
-                     (not (list 'not (aux (cadr arg)))))))))
+		(etypecase arg
+		  (symbol (list arg 'a))
+		  (list
+		   (ecase (car arg)
+		     (or (cons 'or (mapcar #'aux (cdr arg))))
+		     (and (cons 'and (mapcar #'aux (cdr arg))))
+		     (not (list 'not (aux (cadr arg)))))))))
        `(lambda (a)
-          ,(aux form))))))
+	  ,(aux ,form)))))
+|#
+  )
 
 #|
 (make-predicate-macro )
