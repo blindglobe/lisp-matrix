@@ -294,6 +294,18 @@ are discarded \(that is, the body is an implicit PROGN)."
 						     (6d0 7d0 8d0 9d0 10d0)))
 		    2 5))
 
+(addtest (lisp-matrix-ut)
+  indexing-access-matrix
+  (let (( m1 (make-matrix 2 5
+			  :implementation :lisp-array 
+			  :element-type 'double-float
+			  :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+					      (6d0 7d0 8d0 9d0 10d0)))))
+    (ensure (mref m1 1 1))
+    (ensure (mref m1 0 0))
+    (ensure-error (mref m1 2 5))))
+
+
 
 (addtest (lisp-matrix-ut)
  make-matrix-double-zero-size
@@ -365,9 +377,6 @@ are discarded \(that is, the body is an implicit PROGN)."
       (ensure (not (unit-strides-p (window (strides m :row-stride 2 :nrows 2)))))
       (ensure (not (unit-strides-p (strides (strides m :row-stride 2 :nrows 2))))))))
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;; FIXME starts here!
 
 
 ;;; Matrix creation
@@ -625,7 +634,7 @@ are discarded \(that is, the body is an implicit PROGN)."
 
 
 
-
+#|
 (addtest (lisp-matrix-ut-matrix-lapack)
   make-predicate-macro
   (ensure (equal (make-predicate-macro 'unit-strides-p)
@@ -645,15 +654,12 @@ are discarded \(that is, the body is an implicit PROGN)."
                (or (not (unit-strides-p a))
                 (not (zero-offset-p a))
                 (transposed-p a)))))
-#| 
-
-
-|#
-
   (ensure (equal (make-predicate-macro 't)
              '(constantly t)))
   (ensure (equal (make-predicate-macro 'nil)
              '(constantly nil))))
+|#
+
 
 
 (addtest (lisp-matrix-ut)
