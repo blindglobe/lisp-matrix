@@ -35,9 +35,14 @@ From Tomas:
 
 In general:
 
-** cffi
+** cffi  (depends on babel, alexandria )
 ** cl-utilities
-	
+** iterate
+** metabang-bind
+** asdf-system-connections
+** lift (depends on trivial-timeout)
+
+These dependencies need to be better worked out.
 
 * Usage
 
