@@ -8,7 +8,7 @@
 ;;; tests.  However, where they will end up is still to be
 ;;; determined. 
 
-;; (asdf:oos 'asdf:compile-op 'lift :force t)o
+;; (asdf:oos 'asdf:compile-op 'lift :force t)
 ;; (asdf:oos 'asdf:load-op 'lift)
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
@@ -60,17 +60,10 @@
                (or (not (unit-strides-p a))
                 (not (zero-offset-p a))
                 (transposed-p a)))))
-#| 
-
-
-|#
-
   (ensure (equal (make-predicate 't)
              '(constantly t)))
   (ensure (equal (make-predicate 'nil)
              '(constantly nil))))
-
-
 
 #|
 (addtest (lisp-matrix-ut-matrix-lapack)
@@ -622,3 +615,4 @@
                            :row-offset row-offset
                            :col-offset col-offset))))))
 
+|#

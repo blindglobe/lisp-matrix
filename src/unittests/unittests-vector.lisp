@@ -27,8 +27,8 @@
 
 ;;; TEST SUITES in file.
 
-(deftestsuite lisp-matrix-ut-vectors (lisp-matrix-ut) ())
-(deftestsuite lisp-matrix-ut-vectors-gemm (lisp-matrix-ut-vectors-gemm) ())
+(deftestsuite lisp-matrix-ut-vectors      (lisp-matrix-ut) ())
+(deftestsuite lisp-matrix-ut-vectors-gemm (lisp-matrix-ut-vectors) ())
 
 ;;; SUPPORT FUNCTIONS
 
@@ -145,9 +145,6 @@
   (ensure (= 1 (real-stride (row (transpose (zeros 2 2)) 0))))
   (ensure (= 2 (real-stride (col (transpose (zeros 2 2)) 0))))
   (ensure (null (real-stride (window (zeros 4 4) :nrows 2)))))
-
-
-
 
 
 (addtest (lisp-matrix-ut-vectors-gemm)
