@@ -65,7 +65,12 @@
       :pathname #p "src/unittests/"
       :depends-on ("implementations")
       :components
-      ((:file "unittests"))))
+      ((:file "unittests")
+       (:file "unittests-matrix" :depends-on ("unittests"))
+       (:file "unittests-matrix-view" :depends-on ("unittests"))
+       (:file "unittests-matrix-lapack" :depends-on ("unittests"))
+       (:file "unittests-vector" :depends-on ("unittests")))))
+
        ;; (:file "tests")
 ;;     :in-order-to ((test-op (load-op lisp-matrix)))
 ;;     :perform (test-op :after (op c)
