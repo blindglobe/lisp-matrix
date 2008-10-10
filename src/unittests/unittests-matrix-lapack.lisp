@@ -42,57 +42,6 @@
 
 
 (addtest (lisp-matrix-ut-matrix-lapack)
-  make-predicate
-  (ensure (equal (make-predicate 'unit-strides-p)
-             'unit-strides-p))
-  (ensure (equal (make-predicate '(not unit-strides-p))
-             '(lambda (a)
-               (not (unit-strides-p a)))))
-  (ensure (equal (make-predicate '(or (not unit-strides-p)
-                               (not zero-offset-p)))
-             '(lambda (a)
-               (or (not (unit-strides-p a))
-                (not (zero-offset-p a))))))
-  (ensure (equal (make-predicate '(or (not unit-strides-p)
-                               (not zero-offset-p)
-                               transposed-p))
-             '(lambda (a)
-               (or (not (unit-strides-p a))
-                (not (zero-offset-p a))
-                (transposed-p a)))))
-  (ensure (equal (make-predicate 't)
-             '(constantly t)))
-  (ensure (equal (make-predicate 'nil)
-             '(constantly nil))))
-
-#|
-(addtest (lisp-matrix-ut-matrix-lapack)
-  make-predicate-macro
-  (ensure (equal (make-predicate-macro 'unit-strides-p)
-             'unit-strides-p))
-  (ensure (equal (make-predicate-macro '(not unit-strides-p))
-             '(lambda (a)
-               (not (unit-strides-p a)))))
-  (ensure (equal (make-predicate-macro '(or (not unit-strides-p)
-                               (not zero-offset-p)))
-             '(lambda (a)
-               (or (not (unit-strides-p a))
-                (not (zero-offset-p a))))))
-  (ensure (equal (make-predicate-macro '(or (not unit-strides-p)
-                               (not zero-offset-p)
-                               transposed-p))
-             '(lambda (a)
-               (or (not (unit-strides-p a))
-                (not (zero-offset-p a))
-                (transposed-p a)))))
-  (ensure (equal (make-predicate-macro 't)
-             '(constantly t)))
-  (ensure (equal (make-predicate-macro 'nil)
-             '(constantly nil))))
-|#
-
-
-(addtest (lisp-matrix-ut-matrix-lapack)
   datatypes
   (ensure (string= (datatype->letter 'float) "S"))
   (ensure (string= (datatype->letter 'double) "D"))

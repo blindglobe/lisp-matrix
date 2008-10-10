@@ -164,7 +164,7 @@
 		     (make-matrix 1 1 :initial-element 0d0))))))
 
 
-(addtest (lisp-matrix-ut-matri)
+(addtest (lisp-matrix-ut-matrix)
   zero-offset-p
   (for-all-implementations
     (let ((m (make-matrix 3 3)))
