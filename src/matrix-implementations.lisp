@@ -122,8 +122,10 @@
 ;;;; introduce a macro that will build classes for the matrix views.
 ;;;;
 ;;;; We will assume that the class dependencies are like this for each
-;;;; implementation element type, where we add a prefix "IMPL" for the
-;;;; implementation and a postfix "ET" for the element-type.
+;;;; implementation element type, where we add a prefix "IMPL" (eg, we
+;;;; use fa, la for respectively, foriegn-stored and lisp-stored
+;;;; arrays) for the implementation and a postfix "ET" (eg for real,
+;;;; complex, double, etc) for the element-type.
 ;;;;
 ;;;; - matrix-et-like
 ;;;;   -  impl-matrix-et
