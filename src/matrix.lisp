@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-09-15 17:37:24 tony>
+;;; Time-stamp: <2008-10-14 08:32:15 tony>
 
 (in-package :lisp-matrix)
 
@@ -30,6 +30,11 @@
 ;;;; the functions that create such matrices.  (see the section
 ;;;; "Creating Matrices")
 
+;;; Tony's guidance for this file:  basic generics and "virtual"
+;;; classes for supporting matrix work.  All the hard guts are found
+;;; in the implementations and subsets.  But the cool soft guts are
+;;; here, and as much as possible on a virtual level is done.
+
 (defclass matrix-like ()
   ((nrows :initarg :nrows
           :reader nrows
@@ -39,7 +44,11 @@
           :initform 0))
   (:documentation "Abstract base class for 2-D matrices and matrix
    views.  We assume for now that matrices are stored in column
-   order (Fortran style), for BLAS and LAPACK compatibility."))
+   order (Fortran style), for BLAS and LAPACK compatibility.  
+ 
+   Note that there is NO DATA in the base class! (storage comes upon
+   derived classes).  Matrix-like data only has nrows/ncols as
+   essential data -- derived classes will have additional slots."))
 
 (defgeneric nrows (matrix)
   (:documentation "Number of rows in the matrix."))
@@ -53,9 +62,9 @@
 ;;;; ** Dimensions
 ;;;; 
 ;;;; Based on this information, we can already define some generic
-;;;; functions which give us some information on the dimensions and
-;;;; number of elements.  We will model the functions as much as
-;;;; possible on the array interface.
+;;;; functions (and even non-specific methods!) which give us some
+;;;; information on the dimensions and number of elements.  We will
+;;;; model the functions as much as possible on the array interface.
 
 (defgeneric nelts (matrix)
   (:documentation "Default method for computing the number of elements
@@ -63,13 +72,19 @@
   subclasses that implement sparse matrices.")
   (:method ((matrix matrix-like)) (* (nrows matrix) (ncols matrix))))
 
+;; Is it worth subclassing a set of symbols or sub-range of integers
+;; to use here, so as to not have to worry about typing, and let CLOS
+;; do error checking?
 (defgeneric matrix-dimension (matrix axis-number)
   (:documentation "Like ARRAY-DIMENSION for matrix-like objects.")
   (:method ((matrix matrix-like) axis-number)
     (cond ((= axis-number 0) (nrows matrix))
           ((= axis-number 1) (ncols matrix))
+	  ;; ((= axis-number :row)    (nrows matrix))
+          ;; ((= axis-number :column) (ncols matrix))
           (t (error "Invalid AXIS-NUMBER for MATRIX ~A: ~A" matrix
                     axis-number)))))
+
 
 (defgeneric matrix-dimensions (matrix)
   (:documentation "Like ARRAY-DIMENSIONS for matrix-like objects.")
@@ -213,10 +228,9 @@
   least for input arguments."))
 
 (defgeneric transposed-p (matrix)
-  (:documentation "Is MATRIX a transposed view of its ancestor
-  matrix?")
+  (:documentation "Is MATRIX a transposed view of its ancestor matrix?")
   (:method ((matrix matrix-like)))
-  (:method ((matrix matview)) (transposed-p (parent matrix)))
+  (:method ((matrix matview))           (transposed-p (parent matrix)))
   (:method ((matrix transpose-matview)) t))
 
 (defmethod orientation ((matrix transpose-matview))
@@ -277,7 +291,35 @@
               (+ j (col-offset matrix)))
         value))
 
-;;;; ** Strided matrix
+;;; ** Strided matrix
+
+;; some prelim calcs for indexing.  Consider the 4x5 matrix:
+
+;; 1  2  3  4  5
+;; 6  7  8  9  10
+;; 11 12 13 14 15
+;; 16 17 18 19 20
+
+;; Assume storage in row-major form -- so we count 1..20 in a vector
+;; to index the columns. 
+;; 
+;; Assuming col-major form: 1,6,11,16,2,7,12,17,...
+;; 
+;; Offsets shift the column and row "0"'s over.
+;; i.e. (= (col 0)  (1 6 11 16))
+;;      (= (row 1)  (6 7 8 9 10)
+;; 
+;; stride, for calculating how to go down a column, is (ncols
+;; matrix). 
+;; 
+;; So to get a shifted matrix-view:
+;; 
+;;    12 13 14
+;;    17 18 19
+;; 
+;; we have row-offset 2, column-offset 1.
+;; stride across the rows is 0/1, while the down across the columns
+;; is (ncol (parent matrix)).   
 
 (defclass strided-matview (window-matview)  
   ((row-stride :initarg :row-stride
@@ -326,14 +368,17 @@
 ;;;; are :LISP-ARRAY (matrices based on lisp arrays) and
 ;;;; :FOREIGN-ARRAY (matrices based on foreign arrays allocated
 ;;;; through FFI).
-;;;;
 
 ;;;; Modification of above from Mark and Evan's initial work -- we now
-;;;; consider the potential use of integrating Tamas Papp's work with
+;;;; consider the POTENTIAL use of integrating Tamas Papp's work with
 ;;;; foriegn-friendly-arrays (ffa package) here, as a more mature
 ;;;; starting basis -- after all, it was created based on discussions
 ;;;; held during the/before/after this package development.
 
+;;;; Likewise, :FOREIGN-ARRAY is related to Rif's work.  Also part of
+;;;; the general strategy of allowing for multiple implementations to
+;;;; be useable, for internal benchmarking as well as for external
+;;;; (usable) flexibility.
 ;;;;
 ;;;; ** Simple matrices
 ;;;; 
@@ -434,11 +479,15 @@
 
 (defgeneric transpose (matrix)
   (:documentation "Creates a transpose view of the given matrix-like
-  object MATRIX.  Returns the original matrix if transposed two
-  times.
+                   object MATRIX.  Returns the original matrix if
+                   transposed two times.  
 
-  (FIXME: is that a good idea?  It is probably ok since TRANSPOSE does
-  not copy the data anyway.)")
+                   General approach is to ensure that we only change
+                   the class, not the matrix itself, and we rely on
+                   reference semantics for this to happen.
+
+                   (FIXME: is that a good idea?  It is probably ok
+                    since TRANSPOSE does not copy the data anyway.)") 
   (:method ((matrix matrix-like))
     (if (= 1 (nrows matrix) (ncols matrix))
         matrix
