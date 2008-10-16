@@ -12,7 +12,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-(run-lisp-matrix-tests)  ;; 54 2 1 ;; 14.10.2008
+(run-lisp-matrix-tests)  ;; 56 4 2 ;; 16.10.2008
 (describe  (run-lisp-matrix-tests))
 
 (in-package :lisp-matrix-user)
@@ -49,6 +49,19 @@
 			   :element-type 'double-float
 			   :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
 						 ( 6d0 7d0 8d0 9d0 10d0))))
+
+    (defvar m03 nil
+      "6x5 matrix with entries representing row+1,col+1 values, for
+      test purposes.")
+
+    (setf m03 (make-matrix
+	       6 5
+	       :initial-contents '((11d0 12d0 13d0 14d0 15d0)
+				   (21d0 22d0 23d0 24d0 25d0)
+				   (31d0 32d0 33d0 34d0 35d0)
+				   (41d0 42d0 43d0 44d0 45d0)
+				   (51d0 52d0 53d0 54d0 55d0)
+				   (61d0 62d0 63d0 64d0 65d0))))
 
     (defvar m3 nil
       "placeholder 3")
@@ -100,9 +113,9 @@
 
   ;; FIXME -- bad error!!
   ;; This index isn't correct, and it doesn't barf correctly. 
-  m1
-  (mref m1 2 3)
-  (setf (mref m1 2 3) 1.2d0)
+  m03
+  (mref m03 8 1) ; BAD! (mref m03 1 8) barfs, but the other way not... 
+  (setf (mref m03 7 7) 1.2d0)
   m1
   ;; Reason -- possibly related to the storage forward, i.e. lisp-
   ;; vs. foreign- centric arrays.
@@ -159,10 +172,14 @@
   m3
   ;; (slice m3 ...) -- strides provide sections of matrix; slicing provides vectors.
 
+
   ;; slicing isn't affected by transposition -- doesn't affect the
   ;; counting through.   Should this be the case?  (need to migrate to unit-tests
   (v=  (slice m3 :offset 5 :stride  2 :nelts 3 :type :row)
        (slice (transpose m3) :offset 5 :stride  2 :nelts 3 :type :row))
+  (v=  (slice m3 :offset 5 :stride  2 :nelts 3 :type :row)
+       (slice (transpose m3) :offset 5 :stride  2 :nelts 3 :type :column))
+  ;; and note the above -- vector equality doesn't depend on orientation...
 
   (slice m3 :offset 1 :stride  2 :nelts 3 :type :column)
   (slice m3 :offset 1 :stride  0 :nelts 3 :type :column)
