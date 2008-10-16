@@ -118,8 +118,11 @@
 						     (6d0 7d0 8d0 9d0 10d0)))
 		    2 5))
 
+;; FIXME: see comments after the next two tests, for additional issues
+;; slipping through the tests (enforced symmetry).
+
 (addtest (lisp-matrix-ut-matrix)
-  indexing-access-matrix
+  indexing-getting-matrix
   (let (( m1 (make-matrix 2 5
 			  :implementation :lisp-array 
 			  :element-type 'double-float
@@ -127,7 +130,29 @@
 					      (6d0 7d0 8d0 9d0 10d0)))))
     (ensure (mref m1 1 1))
     (ensure (mref m1 0 0))
-    (ensure-error (mref m1 2 5))))
+    (ensure (mref m1 2 4))
+    (ensure-error (mref m1 2 5)) ;; both above
+    (ensure-error (mref m1 1 5))
+    (ensure-error (mref m1 2 4))))
+
+
+(addtest (lisp-matrix-ut-matrix)
+  indexing-setting-matrix
+  (let (( m1 (make-matrix 2 5
+			  :implementation :lisp-array 
+			  :element-type 'double-float
+			  :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+					      (6d0 7d0 8d0 9d0 10d0)))))
+    (ensure (setf (mref m1 1 1) -1d0))
+    (ensure (setf (mref m1 0 0) -1d0))
+    (ensure (setf (mref m1 2 4) -1d0))
+    (ensure-error (setf  (mref m1 2 5) -1d0 ) ) ;; both above
+    (ensure-error (setf  (mref m1 1 5) -1d0 ) )
+    (ensure-error (setf  (mref m1 2 4) -1d0 ) )))
+
+;;; FIXME: The above 2 need to do a bit more verification when set
+;;; that we get the right result.  In particular, setting/getting
+;;; should mirror when errors occur.
 
 
 (addtest (lisp-matrix-ut-matrix)
