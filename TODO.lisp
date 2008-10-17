@@ -12,7 +12,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-(run-lisp-matrix-tests)  ;; 56 4 2 ;; 16.10.2008
+(run-lisp-matrix-tests)  ;; 55 3 2 ;; 16.10.2008
 (describe  (run-lisp-matrix-tests))
 
 (in-package :lisp-matrix-user)
@@ -24,37 +24,12 @@
 
   (progn ;; SETUP DATA
     ;; make some matrices
-    (defvar m1 nil
-      "placeholder 1")
-    (setf m1 (make-matrix 2 5
-			  :implementation :lisp-array  ;; :foreign-array
-			  :element-type 'double-float))
-    
 
-    (defvar m2 nil
-      "placeholder 2")
-    (setf m2 (make-matrix 2 5
-			  :implementation :lisp-array  ;; :foreign-array
-			  :element-type 'integer ; 'double-float
-			  ;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
-			  :initial-contents #2A(( 1 2 3 4 5)
-						( 6 7 8 9 10))))
-
-    ;; Currently we can make a foriegn matrix of doubles, but not a
-    ;; foriegn matrix of integers.
-    (defvar m2b nil
-      "placeholder 2")
-    (setf m2b (make-matrix 2 5
-			   :implementation :foreign-array 
-			   :element-type 'double-float
-			   :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
-						 ( 6d0 7d0 8d0 9d0 10d0))))
-
-    (defvar m03 nil
+    (defvar m01 nil
       "6x5 matrix with entries representing row+1,col+1 values, for
       test purposes.")
 
-    (setf m03 (make-matrix
+    (setf m01 (make-matrix
 	       6 5
 	       :initial-contents '((11d0 12d0 13d0 14d0 15d0)
 				   (21d0 22d0 23d0 24d0 25d0)
@@ -63,46 +38,46 @@
 				   (51d0 52d0 53d0 54d0 55d0)
 				   (61d0 62d0 63d0 64d0 65d0))))
 
-    (defvar m3 nil
-      "placeholder 3")
-
-    (setf m3 (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-						  (6d0  7d0  8d0  9d0  10d0)
-						  (11d0 12d0 13d0 14d0 15d0)
-						  (16d0 17d0 18d0 19d0 20d0)
-						  (21d0 22d0 23d0 24d0 25d0)
-						  (26d0 27d0 28d0 29d0 30d0))))
+    (defvar m1-ex nil
+      "quick variable initialized to zeros")
+    (setf m1-ex (make-matrix 2 5
+			  :implementation :lisp-array  ;; :foreign-array
+			  :element-type 'double-float))
     
-    (defvar m3-col nil
-      "placeholder 3")
+    (defvar m2-la nil
+      "placeholder 2")
+    ;; would an API similar to:
+    ;;    :initial-contents (:row-major (list 1 2 3 4 5 6 7 8 9 0))
+    ;; be useful?
+    (setf m2-la (make-matrix 2 5
+			  :implementation :lisp-array  ;; :foreign-array
+			  :element-type 'integer ; 'double-float
+			  ;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
+			  :initial-contents #2A(( 1 2 3 4 5)
+						( 6 7 8 9 10))))
 
-    (setf m3-col (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-						  (6d0  7d0  8d0  9d0  10d0)
-						  (11d0 12d0 13d0 14d0 15d0)
-						  (16d0 17d0 18d0 19d0 20d0)
-						  (21d0 22d0 23d0 24d0 25d0)
-						  (26d0 27d0 28d0 29d0 30d0))))
-    
+    ;; Currently we can make a foriegn matrix of doubles, but not a
+    ;; foriegn matrix of integers.
+    (defvar m2-fa nil
+      "placeholder 2")
+    (setf m2-fa (make-matrix 2 5
+			   :implementation :foreign-array 
+			   :element-type 'double-float
+			   :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+						 ( 6d0 7d0 8d0 9d0 10d0))))
 
-    (defvar m3-row nil
-      "placeholder 3")
 
-    (setf m3-row (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-						  (6d0  7d0  8d0  9d0  10d0)
-						  (11d0 12d0 13d0 14d0 15d0)
-						  (16d0 17d0 18d0 19d0 20d0)
-						  (21d0 22d0 23d0 24d0 25d0)
-						  (26d0 27d0 28d0 29d0 30d0))))
-    
 
-    (defvar m4 nil
-      "yet another placeholder.")
-    (setf m4 (strides m3 :nrows 2 :row-stride 2)))  ; EVAL HERE TO SETUP DATA
+    ;; extract a view of m01, but just rows 1 and 3.
+    (strides m01 :nrows 2 :row-stride 2)
+
+    )  ; EVAL HERE TO SETUP DATA
 
   ;;;;;;; FIX ALL THE ERRORS
 
   ;; FIXME: need to get the foriegn-friendly arrays package involved
-  ;; to create integer matrices.
+  ;; to create integer matrices.  Or do we just throw an error that
+  ;; says to use lisp-arrays?
   (defvar m2a nil
     "placeholder 2")
   (setf m2a (make-matrix 2 5
@@ -113,14 +88,16 @@
 
   ;; FIXME -- bad error!!
   ;; This index isn't correct, and it doesn't barf correctly. 
-  m03
-  (mref m03 8 1) ; BAD! (mref m03 1 8) barfs, but the other way not... 
-  (setf (mref m03 7 7) 1.2d0)
+  m01
+  (mref m01 1 8) ; good -- we throw an error... but
+  (mref m01 8 1) ; BAD! barfs, not protecting against first index...
+  (setf (mref m01 7 7) 1.2d0)
   m1
   ;; Reason -- possibly related to the storage forward, i.e. lisp-
   ;; vs. foreign- centric arrays.
 
 
+  (m* m01 (transpose m01))
   ;; FIXME: the following has no applicable method -- only for
   ;; doubles, not integers.  
   (m* m2 (transpose m2))
