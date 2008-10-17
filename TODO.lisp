@@ -12,7 +12,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-(run-lisp-matrix-tests)  ;; 56 4 2 ;; 16.10.2008
+(run-lisp-matrix-tests)  ;; 55 4 2 ;; 17.10.2008
 (describe  (run-lisp-matrix-tests))
 
 (in-package :lisp-matrix-user)
@@ -26,12 +26,14 @@
 ;; #  col / row  on transposed matrices
 ;; #  mref access, first index boundaries (second index is controlled,
 ;;    and errors thrown as needed
-;; #  
+;; #  creation of foriegn-array matrices which are integer valued
+;;    fails.
+;; # 
 
-(progn ;; THESE WORK!
+(progn
+  (progn ;; SETUP DATA, these work
 
-  (progn ;; SETUP DATA
-    ;; make some matrices
+    ;; make some matrices which we can debug as needed.
 
     (defvar m01 nil
       "6x5 matrix with entries representing row+1,col+1 values, for
@@ -52,110 +54,117 @@
 			  :implementation :lisp-array  ;; :foreign-array
 			  :element-type 'double-float))
     
-    (defvar m2-la nil
+    (defvar m2-la-int nil
       "placeholder 2")
-    ;; would an API similar to:
+    ;; would an API allowing for the following equal behaviours:
     ;;    :initial-contents (:row-major (list 1 2 3 4 5 6 7 8 9 0))
-    ;; be useful?
-    (setf m2-la (make-matrix 2 5
-			  :implementation :lisp-array  ;; :foreign-array
-			  :element-type 'integer ; 'double-float
-			  ;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
-			  :initial-contents #2A(( 1 2 3 4 5)
-						( 6 7 8 9 10))))
+    ;;    :initial-contents (:row-major (list 1 2 3 (list 4 5 6) 7 8 9 0))
+    ;; be useful for getting list-structured data into matrices?
+    (setf m2-la-int (make-matrix 2 5
+				 :implementation :lisp-array  ;; :foreign-array
+				 :element-type 'integer ; 'double-float
+				 ;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
+				 :initial-contents #2A((1 2 3 4 5)
+						       (6 7 8 9 10))))
+    ;; There is an argument for something like:
+    ;;    :initial-contents (:row-major-list-lists
+    ;;                           (list (list 1 2 3 4 5)
+    ;;                                 (list 6 7 8 9 10)))
+    ;; to exist as well.  
 
     ;; Currently we can make a foriegn matrix of doubles, but not a
     ;; foriegn matrix of integers.
     (defvar m2-fa nil
       "placeholder 2")
-    (setf m2-fa (make-matrix 2 5
-			   :implementation :foreign-array 
-			   :element-type 'double-float
-			   :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
-						 ( 6d0 7d0 8d0 9d0 10d0))))
+    (setf m2-fa
+	  (make-matrix
+	   2 5
+	   :implementation :foreign-array 
+	   :element-type 'double-float
+	   :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+				 ( 6d0 7d0 8d0 9d0 10d0))))) ; EVAL HERE TO SETUP DATA
+  
 
+  ;; extract a view of m01, but just rows 1 and 3.
+  (strides m01 :nrows 2 :row-stride 2)
 
-
-    ;; extract a view of m01, but just rows 1 and 3.
-    (strides m01 :nrows 2 :row-stride 2)
-
-    )  ; EVAL HERE TO SETUP DATA
-
-  ;;;;;;; FIX ALL THE ERRORS
+;;;;;;; FIX ALL THE ERRORS
 
   ;; FIXME: need to get the foriegn-friendly arrays package involved
   ;; to create integer matrices.  Or do we just throw an error that
   ;; says to use lisp-arrays?
-  (defvar m2a nil
-    "placeholder 2")
-  (setf m2a (make-matrix 2 5
-			:implementation :foreign-array 
-			:element-type 'integer 
-			:initial-contents #2A(( 1 2 3 4 5)
-					      ( 6 7 8 9 10))))
-
-  ;; FIXME -- bad error!!
-  ;; This index isn't correct, and it doesn't barf correctly. 
+  (make-matrix 2 5
+	       :implementation :foreign-array 
+	       :element-type 'integer 
+	       :initial-contents #2A(( 1 2 3 4 5)
+				     ( 6 7 8 9 10)))
+  
+  ;; FIXME -- indexing not checked against dims, doesn't barf
+  ;; correctly.
   m01
+  (assert-valid-matrix-index m01 1 8)
+  (assert-valid-matrix-index m01 8 1)
   (mref m01 1 8) ; good -- we throw an error... but
   (mref m01 8 1) ; BAD! barfs, not protecting against first index...
   (setf (mref m01 7 7) 1.2d0)
-  m1
+  m01
   ;; Reason -- possibly related to the storage forward, i.e. lisp-
   ;; vs. foreign- centric arrays.
-
-
-  (m* m01 (transpose m01))
+  
+  
   ;; FIXME: the following has no applicable method -- only for
   ;; doubles, not integers.  
   (m* m2 (transpose m2))
+  ;; but we can multiple doubles, but...
+  (m* m01 (transpose m01))
 
-
+  
   (v= (row m01 0)
       (col (transpose m01) 0)) ;; works
-
+  
   (m= (row m01 0)
       (col (transpose m01) 0)) ;; fails, since dims unequal
-
+  
   m01
   (transpose m01)
   ;; given the above...
   ;; FIXME: Big Barf!
   (v= (row m01 1)
       (col (transpose m01) 1) ) ;; fails badly.  Real badly.
-
+  
   (v= (col m01 1)
       (row (transpose m01) 1) ) ;; fails, but closer...
-
+  
   (col m4 1)
   (col (transpose m4) 1) ;; this is the problem, indexing issue...
-
-
+  
+  
   ;; and the same problem.
   m3 
   (transpose m3)
   (v= (col m3 1) (row (transpose m3) 1))
   (v= (row m3 1) (col (transpose m3) 1))
-
+	  
   ;; striding examples
 #|
   (let* ((a (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-                                                 (6d0  7d0  8d0  9d0  10d0)
-                                                 (11d0 12d0 13d0 14d0 15d0)
-                                                 (16d0 17d0 18d0 19d0 20d0)
-                                                 (21d0 22d0 23d0 24d0 25d0)
-                                                 (26d0 27d0 28d0 29d0 30d0))))
+   (6d0  7d0  8d0  9d0  10d0)
+   (11d0 12d0 13d0 14d0 15d0)
+   (16d0 17d0 18d0 19d0 20d0)
+   (21d0 22d0 23d0 24d0 25d0)
+   (26d0 27d0 28d0 29d0 30d0))))
          (b (strides a :nrows 2 :row-stride 2)))
-    (ensure (m= (col b 0)
-		(make-matrix 2 1 :initial-contents '((1d0) (11d0)))))
-    (ensure (m= (col b 1)
-		(make-matrix 2 1 :initial-contents '((2d0) (12d0)))))
-    (ensure (m= (col b 2)
-		(make-matrix 2 1 :initial-contents '((3d0) (13d0)))))
-    (ensure (m= (col b 3)
-		(make-matrix 2 1 :initial-contents '((4d0) (14d0)))))
-    (ensure (m= (col b 4)
-		(make-matrix 2 1 :initial-contents '((5d0) (15d0))))))
+
+  (ensure (m= (col b 0)
+  (make-matrix 2 1 :initial-contents '((1d0) (11d0)))))
+  (ensure (m= (col b 1)
+  (make-matrix 2 1 :initial-contents '((2d0) (12d0)))))
+  (ensure (m= (col b 2)
+  (make-matrix 2 1 :initial-contents '((3d0) (13d0)))))
+  (ensure (m= (col b 3)
+  (make-matrix 2 1 :initial-contents '((4d0) (14d0)))))
+  (ensure (m= (col b 4)
+  (make-matrix 2 1 :initial-contents '((5d0) (15d0))))))
 |#
   ;; examples of striding -- need more!
   m3

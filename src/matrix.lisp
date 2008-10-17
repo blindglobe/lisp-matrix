@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-10-16 08:22:11 tony>
+;;; Time-stamp: <2008-10-17 18:09:14 tony>
 
 (in-package :lisp-matrix)
 
@@ -91,6 +91,11 @@
   (:method ((matrix matrix-like)) 
     (list (nrows matrix) (ncols matrix))))
 
+
+(defun assert-valid-matrix-index (matrix i j)
+    (assert (< -1 i (matrix-dimension matrix 0)))
+    (assert (< -1 j (matrix-dimension matrix 1))))
+
 ;;;; ** Element indexing
 ;;;;
 ;;;; Now that we know the dimensions of a matrix, we want to know how
@@ -133,10 +138,12 @@
   corresponding to the default implementation of the generic function
   ORIENTATION.")
   (:method ((matrix matrix-like) i j)
+    (assert-valid-matrix-index matrix i j)
     (+ i (* j (nrows matrix)))))
 ;;; FIXME!  Need error checking and idiot-proofing in above/below.
 
 (defun flatten-matrix-indices-1 (matrix i j)
+  (assert-valid-matrix-index matrix i j)
   (ecase (orientation matrix)
     (:column (+ i (* j (nrows matrix))))
     (:row (+ j (* i (ncols matrix))))))
@@ -259,7 +266,11 @@
   underlying matrix is column-oriented, the elements in each column of
   a WINDOW-MATVIEW are stored contiguously, and horizontally adjacent
   elements are separated by a constant stride (\"LDA\" in BLAS
-  terms). (vice-verse for row-oriented)"))
+  terms). (vice-verse for row-oriented).
+ 
+  Tony adds: the basic idea is to offset row and column; we don't make
+  the size any smaller, i.e. by adding max row/column, or #
+  rows/cols."))
 
 (defgeneric zero-offset-p (matrix)
   (:documentation "Has MATRIX a zero offset (as for window and stride

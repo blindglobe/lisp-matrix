@@ -75,6 +75,8 @@
 	   *default-element-type* *default-implementation*
 
 	   make-predicate make-predicate-macro
+
+	   assert-valid-matrix-index
 	   ))
 
 

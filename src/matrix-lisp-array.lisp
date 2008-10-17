@@ -17,8 +17,11 @@
   :lisp-array)
 
 ;; FIXME: need to throw appropriate error when the indices are
-;; illegal.   error?  or a condition?
+;; illegal.   error?  or a condition?   
+;; SOLN: need to consider the following -- the right place to test
+;; will be in flatten-matrix-indices...?
 (defmethod mref ((matrix la-matrix) i j)
+  (assert-valid-matrix-index matrix i j)
   (aref (data matrix) (flatten-matrix-indices matrix i j)))
 
 (defmethod (setf mref) (value (matrix la-matrix) i j)
