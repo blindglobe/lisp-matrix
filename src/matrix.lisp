@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-10-14 08:32:15 tony>
+;;; Time-stamp: <2008-10-16 08:22:11 tony>
 
 (in-package :lisp-matrix)
 
@@ -369,17 +369,18 @@
 ;;;; :FOREIGN-ARRAY (matrices based on foreign arrays allocated
 ;;;; through FFI).
 
-;;;; Modification of above from Mark and Evan's initial work -- we now
-;;;; consider the POTENTIAL use of integrating Tamas Papp's work with
-;;;; foriegn-friendly-arrays (ffa package) here, as a more mature
-;;;; starting basis -- after all, it was created based on discussions
-;;;; held during the/before/after this package development.
+;;; Tony notes: Modification of above from Mark and Evan's initial
+;;; work -- we now consider the POTENTIAL use of integrating Tamas
+;;; Papp's work with foriegn-friendly-arrays (ffa package) here, as a
+;;; more mature starting basis -- after all, it was created based on
+;;; discussions held during the/before/after this package
+;;; development.
+;;;
+;;; Likewise, :FOREIGN-ARRAY is related to Rif's work.  Also part of
+;;; the general strategy of allowing for multiple implementations to
+;;; be useable, for internal benchmarking as well as for external
+;;; (usable) flexibility.
 
-;;;; Likewise, :FOREIGN-ARRAY is related to Rif's work.  Also part of
-;;;; the general strategy of allowing for multiple implementations to
-;;;; be useable, for internal benchmarking as well as for external
-;;;; (usable) flexibility.
-;;;;
 ;;;; ** Simple matrices
 ;;;; 
 ;;;; We define two functions to create simple matrices: MAKE-MATRIX*
