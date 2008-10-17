@@ -5,6 +5,13 @@
 ;;;; Vector can be viewed as matrices that happen to have one row (or
 ;;;; one column), or as a separate type.
 ;;;;
+;;; Tony comments: 1-d vectors are weird -- matrices, column vectors,
+;;; row vectors,  and scalars.  So we've got some overheard.  BUT, I
+;;; think we can afford this -- how many times do we do large scale
+;;; scalar arithmetic that can't be vectorized somehow to make it
+;;; faster/better?  However, Luke/Ross brought up some good arguments
+;;; for why we care about scalar computation.
+;;;; 
 ;;;; One advantage of having vectors be subtypes of matrices is that
 ;;;; we don't need to re-specialize many generic functions (e.g., m*,
 ;;;; m+, m-, etc.), we can just use those that are defined for
@@ -175,6 +182,7 @@
         value))
 
 ;; FIXME: should not be here
+;; Tony asks:  why not? (need to describe this better sooner).
 (defmethod vref ((matrix matview) i)
   (mref matrix (rem i (nrows matrix)) (truncate i (nrows matrix))))
 
@@ -220,9 +228,20 @@
   (:method ((matrix matrix-like)) 'slice-vecview))
 
 (defgeneric slice (matrix &key offset stride nelts type)
-  (:documentation "Create a slice view of MATRIX.")
-  (:method (matrix &key (offset 0) (stride 1) (nelts (nelts matrix))
-            (type :row))
+  (:documentation "Create a slice view of MATRIX.  To be precise, this
+  results in a vector which is done by
+      :type   : provides the form to provide output for
+      :offset : number of observations (in col/row major
+                matrix-dependent order) to skip over before starting
+                extraction
+      :stride : 0 = repeat same value; 1, as ordered, 2 every other, 
+                etc...  
+  one of the challenges is that this seems to prefer col-oriented
+  matrices, but we need to know whether we are column- or row-
+  oriented. Perhaps we should be checking so to decide how to walk
+  down the matrix.")
+  (:method (matrix &key (offset 0) (stride 1)
+	    (nelts (nelts matrix)) (type :row))
     (make-instance (slice-class matrix)
                    :parent matrix
                    :nrows (ecase type (:row 1) (:column nelts))
@@ -265,6 +284,7 @@
                    :stride 1
                    :nelts (ncols matrix)
                    :type :row))))
+
   (:method ((matrix window-matview) (i integer))
     (assert (< -1 i (nrows matrix)))
     (ecase (orientation matrix)
