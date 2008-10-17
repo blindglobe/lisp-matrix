@@ -12,13 +12,21 @@
 
 (in-package :lisp-matrix-unittests)
 
-(run-lisp-matrix-tests)  ;; 55 3 2 ;; 16.10.2008
+(run-lisp-matrix-tests)  ;; 56 4 2 ;; 16.10.2008
 (describe  (run-lisp-matrix-tests))
 
 (in-package :lisp-matrix-user)
 
 ;; (lisp-matrix-unittests:run-lisp-matrix-tests)
 ;; (describe (lisp-matrix-unittests:run-lisp-matrix-tests))
+
+
+;; Here is what we need to fix, based on the above:
+;; #  make-predicate (and variable-capture, see macro-expansion)
+;; #  col / row  on transposed matrices
+;; #  mref access, first index boundaries (second index is controlled,
+;;    and errors thrown as needed
+;; #  
 
 (progn ;; THESE WORK!
 
@@ -102,12 +110,22 @@
   ;; doubles, not integers.  
   (m* m2 (transpose m2))
 
-  m4
-  (transpose m4)
+
+  (v= (row m01 0)
+      (col (transpose m01) 0)) ;; works
+
+  (m= (row m01 0)
+      (col (transpose m01) 0)) ;; fails, since dims unequal
+
+  m01
+  (transpose m01)
   ;; given the above...
   ;; FIXME: Big Barf!
-  (v= (row m4 1)
-      (col (transpose m4) 1) ) ;; fails ???
+  (v= (row m01 1)
+      (col (transpose m01) 1) ) ;; fails badly.  Real badly.
+
+  (v= (col m01 1)
+      (row (transpose m01) 1) ) ;; fails, but closer...
 
   (col m4 1)
   (col (transpose m4) 1) ;; this is the problem, indexing issue...
