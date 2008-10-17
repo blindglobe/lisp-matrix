@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-10-08 09:08:45 tony>
+;;;; Time-stamp: <2008-10-17 18:29:58 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -87,7 +87,7 @@
 
 (defmacro make-predicate-macro (form)
   "Trying to fix make-predicate."
-  (list null)
+  (list form)
 #|
   (typecase ,form
     (symbol ;; fine.			;
