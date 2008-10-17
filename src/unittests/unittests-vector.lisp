@@ -40,9 +40,9 @@
   construct-vectors
   (for-all-implementations
     (ensure (m= (make-vector 3 :initial-element 0d0)
-            (make-matrix 1 3 :initial-element 0d0)))
+		(make-matrix 1 3 :initial-element 0d0)))
     (ensure (m= (make-vector 3 :initial-element 0d0 :type :column)
-            (make-matrix 3 1 :initial-element 0d0)))
+		(make-matrix 3 1 :initial-element 0d0)))
     (ensure (col-vector-p (rand 3 1)))
     (ensure (row-vector-p (rand 1 3)))
     (let ((a (rand 3 5)))
@@ -103,12 +103,15 @@
             (make-matrix 2 1 :initial-contents '((5d0) (15d0)))))))
 
 (addtest (lisp-matrix-ut-vectors)
-  v=
+  v=-col-row-transpose
   (let ((a (rand 3 4)))
     ;; FIXME: this also tests ROW, COL, and their use on a transposed
     ;; matrix
     (ensure (v= (row a 0) (col (transpose a) 0)))
-    (ensure (v= (col a 0) (row (transpose a) 0)))))
+    (ensure (v= (col a 0) (row (transpose a) 0)))
+    (ensure (v= (row a 1) (col (transpose a) 1)))
+    (ensure (v= (col a 1) (row (transpose a) 1)))
+    ))
 
 (addtest (lisp-matrix-ut-vectors)
   row-of-window
