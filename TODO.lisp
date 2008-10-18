@@ -119,6 +119,28 @@
   (m* m01 (transpose m01))
 
   
+  (row m01 0)
+  (row m01 1)
+  (row m01 2)
+  (row m01 3)
+
+  (col m01 0)
+  (col m01 1)
+  (col m01 2)
+  (col m01 3)
+
+
+  (row (transpose m01) 0)
+  (row (transpose m01) 1) ; wrong by 1 (pushed up)
+  (row (transpose m01) 2) ; wrong by 2
+  (row (transpose m01) 3) ; wrong by 3
+
+  (col (transpose m01) 0)
+  (col (transpose m01) 1) ; last rather than first
+  (col (transpose m01) 2) ; completely wrong (error)
+  (col (transpose m01) 3) ; ditto above
+
+
   (v= (row m01 0)
       (col (transpose m01) 0)) ;; works
   
@@ -145,64 +167,50 @@
   (v= (col m3 1) (row (transpose m3) 1))
   (v= (row m3 1) (col (transpose m3) 1))
 	  
-  ;; striding examples
-#|
-  (let* ((a (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-   (6d0  7d0  8d0  9d0  10d0)
-   (11d0 12d0 13d0 14d0 15d0)
-   (16d0 17d0 18d0 19d0 20d0)
-   (21d0 22d0 23d0 24d0 25d0)
-   (26d0 27d0 28d0 29d0 30d0))))
-         (b (strides a :nrows 2 :row-stride 2)))
+  ;; Striding and Slicing issues.
 
-  (ensure (m= (col b 0)
-  (make-matrix 2 1 :initial-contents '((1d0) (11d0)))))
-  (ensure (m= (col b 1)
-  (make-matrix 2 1 :initial-contents '((2d0) (12d0)))))
-  (ensure (m= (col b 2)
-  (make-matrix 2 1 :initial-contents '((3d0) (13d0)))))
-  (ensure (m= (col b 3)
-  (make-matrix 2 1 :initial-contents '((4d0) (14d0)))))
-  (ensure (m= (col b 4)
-  (make-matrix 2 1 :initial-contents '((5d0) (15d0))))))
-|#
   ;; examples of striding -- need more!
-  m3
-  (strides m3 :nrows 2 :row-stride 2) ;; skip a row
-  (strides m3 :nrows 3) ;; first 3 rows
-  (strides m3 :ncols 3 :col-stride 2) ;; cols 1, 3 ,5
-  (strides m3 :ncols 2) ;; first 2 cols
 
-  m3
-  ;; (slice m3 ...) -- strides provide sections of matrix; slicing provides vectors.
+  m01
+  (strides m01 :nrows 2 :row-stride 2) ;; skip a row
+  (strides m01 :nrows 3) ;; first 3 rows
+  (strides m01 :ncols 3 :col-stride 2) ;; cols 1, 3 ,5
+  (strides m01 :ncols 2) ;; first 2 cols
+  m01
+  ;; (slice m01 ...) -- strides provide sections of matrix; slicing provides vectors.
 
+  (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
+  (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :row)
+
+  (slice m01
+	 :offset 5
+	 :stride  2
+	 :nelts 3
+	 :type :row)
+  (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :row)
 
   ;; slicing isn't affected by transposition -- doesn't affect the
-  ;; counting through.   Should this be the case?  (need to migrate to unit-tests
-  (v=  (slice m3 :offset 5 :stride  2 :nelts 3 :type :row)
-       (slice (transpose m3) :offset 5 :stride  2 :nelts 3 :type :row))
-  (v=  (slice m3 :offset 5 :stride  2 :nelts 3 :type :row)
-       (slice (transpose m3) :offset 5 :stride  2 :nelts 3 :type :column))
+  ;; counting.  Would have suggested that column-major or row-major.
+  ;; Should this be the case?  (need to migrate to unit-tests).
+
+  (v=  (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
+       (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :row))
+  (v=  (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
+       (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :column))
   ;; and note the above -- vector equality doesn't depend on orientation...
 
-  (slice m3 :offset 1 :stride  2 :nelts 3 :type :column)
-  (slice m3 :offset 1 :stride  0 :nelts 3 :type :column)
+  (slice m01 :offset 1 :stride  2 :nelts 3 :type :column)
+  (slice m01 :offset 1 :stride  0 :nelts 3 :type :column)
   ;; :type   : provides the form to provide output for
   ;; :offset : number of observations (in "col/row major"
   ;;           matrix-dependent order) to skip over before starting
   ;;           extraction
   ;; :stride : 0 = repeat same value; 1, as ordered, 2 every other, 
   ;;           etc... 
+
+
+  ;; Alternative approach for slicing, via Tamas's AFFI package:
+  (defparameter *my-idx* (affi:make-affi '(5 6))) ; -> generator
+  (affi:calculate-index *my-idx* #(1 1)) ; -> 7 
+
   )
-
-
-;;; EXAMPLES TO DEMONSTRATE
-
-;; convert between foriegn-array and lisp-array.
-
-;; operate ()
-
-;; do some blas/lapack
-
-;; output
-
