@@ -12,7 +12,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-(run-lisp-matrix-tests)  ;; 55 4 2 ;; 17.10.2008
+(run-lisp-matrix-tests)  ;; 56 3 3 ;; 20.10.2008
 (describe  (run-lisp-matrix-tests))
 
 (in-package :lisp-matrix-user)
