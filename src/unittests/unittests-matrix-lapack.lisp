@@ -43,16 +43,15 @@
   (ensure (string= (datatype->letter 'float) "S"))
   (ensure (string= (datatype->letter 'double) "D"))
   (ensure (string= (datatype->letter 'complex-float) "C"))
-  (ensure (string= (datatype->letter 'complex-double) "Z"))
-  ;; export issue...  fixed, but be careful!
-  ;;   (ensure-error (string= (datatype->letter 'double) "D"))
-  ;;   (ensure (string= (datatype->letter 'lisp-matrix::double) "D"))
-  ;;   (ensure (string= (datatype->letter 'lisp-matrix::complex-float) "C"))
-  ;;   (ensure (string= (datatype->letter 'lisp-matrix::complex-double) "Z"))
-  ;;   (ensure-error (string= (datatype->letter 'complex-float) "C"))
-  ;;   (ensure-error (string= (datatype->letter 'complex-double) "Z"))
-  ;;   (ensure (string= (datatype->letter 'complex-double) "Z"))
-  )
+  (ensure (string= (datatype->letter 'complex-double) "Z")))
+;; potential export issue...  fixed, but be careful, the following explains...!
+;;   (ensure-error (string= (datatype->letter 'double) "D"))
+;;   (ensure (string= (datatype->letter 'lisp-matrix::double) "D"))
+;;   (ensure (string= (datatype->letter 'lisp-matrix::complex-float) "C"))
+;;   (ensure (string= (datatype->letter 'lisp-matrix::complex-double) "Z"))
+;;   (ensure-error (string= (datatype->letter 'complex-float) "C"))
+;;   (ensure-error (string= (datatype->letter 'complex-double) "Z"))
+;;   (ensure (string= (datatype->letter 'complex-double) "Z"))
 
 
 
