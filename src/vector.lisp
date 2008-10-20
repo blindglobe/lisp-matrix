@@ -284,7 +284,8 @@
                    :stride 1
                    :nelts (ncols matrix)
                    :type :row))))
-
+  (:method ((matrix transpose-matview) (i integer))
+    (col (parent matrix) i))
   (:method ((matrix window-matview) (i integer))
     (assert (< -1 i (nrows matrix)))
     (ecase (orientation matrix)
@@ -316,13 +317,16 @@
                    :nelts (ncols matrix)
                    :type :row)))))
 
-;; TODO: similar to ROW
+;; TODO: similar to ROW.   NEED TO FIXME AND UNIT-TEST
 (defgeneric col (matrix j)
   (:documentation "Return a view on a given column of MATRIX.")
+  (:method ((matrix transpose-matview) (j integer))
+    (row (parent matrix) j))
   (:method ((matrix matrix-like) (j integer))
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
       (:column (slice matrix
+      ;; Tony sez: Offset is suspicious here and next
                       :offset (* j (nrows matrix))
                       :stride 1
                       :nelts (nrows matrix)
@@ -331,13 +335,50 @@
                    :offset (* j (nrows matrix))
                    :stride (ncols matrix)
                    :nelts (nrows matrix)
-                   :type :column)))))
+                   :type :column))))
+
+  ;;; FIXME THE REST OF THESE METHODS
+  (:method ((matrix window-matview) (j integer))
+    (assert (< -1 j (ncols matrix)))
+    (ecase (orientation matrix)
+      (:column (slice (parent matrix)
+                      :offset (+ (offset matrix)
+				 (* j (nrows matrix)))
+                      :stride (nrows (parent matrix))
+                      :nelts (nrows matrix)
+                      :type :row))
+      (:row (slice (parent matrix)
+                   :offset (+ (offset matrix)
+                              (* j (ncols (parent matrix))))
+                   :stride 1
+                   :nelts (ncols matrix)
+                   :type :row))))
+  (:method ((matrix strided-matview) (j integer))
+    (assert (< -1 j (ncols matrix)))
+    (ecase (orientation matrix)
+      (:column (slice (parent matrix)
+                      :offset (+ (offset matrix)
+                                 (* j (row-stride matrix)))
+                      :stride (* (nrows (parent matrix))
+                                 (col-stride matrix))
+                      :nelts (ncols matrix)
+                      :type :row))
+      (:row (slice (parent matrix)
+                   :offset (+ (offset matrix)
+                              (* j (ncols (parent matrix))))
+                   :stride (row-stride matrix)
+                   :nelts (ncols matrix)
+                   :type :row)))))
+
+
+;;; testing
 
 (defgeneric v= (x y)
-  (:documentation "Test for strice equality of number of elements and
-  of the elements of the two vectors X and Y.  A row vector and a
-  column vector with the same number of elements are equal.  To
-  distinguish them, use M= instead.")
+  (:documentation "Test for equality of both number of elements and
+  of the elements themselves, for the two vectors X and Y.  
+
+  A row vector and a column vector with the same number of elements
+  are equal.  To distinguish them, use M= instead.")
   (:method ((a vector-like) (b vector-like))
     (and (= (nelts a) (nelts b))
          (dotimes (i (nelts a) t)

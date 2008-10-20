@@ -135,8 +135,8 @@
   (v= (col m01 1)
       (row (transpose m01) 1) ) ;; fails, but closer...
   
-  (col m4 1)
-  (col (transpose m4) 1) ;; this is the problem, indexing issue...
+  (col m01 1)
+  (col (transpose m01) 1) ;; this is the problem, indexing issue...
   
   
   ;; and the same problem.
@@ -160,6 +160,10 @@
   ;; SLICING
   m01
   (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
+  ;; col 2 
+  (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
+
+
   (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :row)
   (slice m01
 	 :offset 5
