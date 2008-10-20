@@ -24,6 +24,7 @@
 ;;(describe (run-lisp-matrix-tests))
 
 ;;(remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
+;;(remove-test :test-case 'test-2 :suite 'lisp-matrix-ut-matrix-gemm)
 
 ;;; EXTERNAL
 
