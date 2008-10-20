@@ -12,8 +12,16 @@
 
 (in-package :lisp-matrix-unittests)
 
-(run-lisp-matrix-tests)  ;; 56 3 3 ;; 20.10.2008
+(run-lisp-matrix-tests)  ;; 56 2 3 ;; 20.10.2008
 (describe  (run-lisp-matrix-tests))
+
+;; failures: 
+;; # ut-matrix : indexing-setting-matrix
+;; # ut-matrix : indexing-getting-matrix
+;; # ut-vectors : col-of-strided-matrix
+;; # ut-vectors : construct-vectors
+;; # ut : make-predicate
+
 
 (in-package :lisp-matrix-user)
 
