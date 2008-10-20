@@ -20,6 +20,8 @@
 ;; (lisp-matrix-unittests:run-lisp-matrix-tests)
 ;; (describe (lisp-matrix-unittests:run-lisp-matrix-tests))
 
+;; (typep -1 '(integer 0 *))
+;; (typep 2 '(integer 0 *))
 
 ;; Here is what we need to fix, based on the above:
 ;; #  make-predicate (and variable-capture, see macro-expansion)
@@ -32,8 +34,6 @@
 
 (progn
   (progn ;; SETUP DATA, these work
-
-    ;; make some matrices which we can debug as needed.
 
     (defvar m01 nil
       "6x5 matrix with entries representing row+1,col+1 values, for
@@ -82,43 +82,18 @@
 	   :implementation :foreign-array 
 	   :element-type 'double-float
 	   :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
-				 ( 6d0 7d0 8d0 9d0 10d0))))) ; EVAL HERE TO SETUP DATA
-  
+				 ( 6d0 7d0 8d0 9d0 10d0))))
+    
+    (format nil "Data set up")) ; EVAL HERE TO SETUP DATA
 
-  ;; extract a view of m01, but just rows 1 and 3.
-  (strides m01 :nrows 2 :row-stride 2)
 
 ;;;;;;; FIX ALL THE ERRORS
 
-  ;; FIXME: need to get the foriegn-friendly arrays package involved
-  ;; to create integer matrices.  Or do we just throw an error that
-  ;; says to use lisp-arrays?
-  (make-matrix 2 5
-	       :implementation :foreign-array 
-	       :element-type 'integer 
-	       :initial-contents #2A(( 1 2 3 4 5)
-				     ( 6 7 8 9 10)))
   
-  ;; FIXME -- indexing not checked against dims, doesn't barf
-  ;; correctly.
-  m01
-  (assert-valid-matrix-index m01 1 8)
-  (assert-valid-matrix-index m01 8 1)
-  (mref m01 1 8) ; good -- we throw an error... but
-  (mref m01 8 1) ; BAD! barfs, not protecting against first index...
-  (setf (mref m01 7 7) 1.2d0)
-  m01
-  ;; Reason -- possibly related to the storage forward, i.e. lisp-
-  ;; vs. foreign- centric arrays.
-  
-  
-  ;; FIXME: the following has no applicable method -- only for
-  ;; doubles, not integers.  
-  (m* m2 (transpose m2))
-  ;; but we can multiple doubles, but...
-  (m* m01 (transpose m01))
+  ;; FIXME: there are bugs in slicing/striding with transposed
+  ;; matrices. 
 
-  
+  ;; the following are correct, but..
   (row m01 0)
   (row m01 1)
   (row m01 2)
@@ -129,12 +104,15 @@
   (col m01 2)
   (col m01 3)
 
-
+  m01
+  (transpose m01)
   (row (transpose m01) 0)
-  (row (transpose m01) 1) ; wrong by 1 (pushed up)
-  (row (transpose m01) 2) ; wrong by 2
-  (row (transpose m01) 3) ; wrong by 3
+  (row (transpose m01) 1) ; wrong: grab bad column, AND by 1 (pushed up)
+  (row (transpose m01) 2) ; ditto, wrong by 2
+  (row (transpose m01) 3) ; etc...wrong by 3
 
+  m01
+  (transpose m01)
   (col (transpose m01) 0)
   (col (transpose m01) 1) ; last rather than first
   (col (transpose m01) 2) ; completely wrong (error)
@@ -167,21 +145,22 @@
   (v= (col m3 1) (row (transpose m3) 1))
   (v= (row m3 1) (col (transpose m3) 1))
 	  
-  ;; Striding and Slicing issues.
+  ;; Striding and Slicing issues:
+  ;; Strides provide matrix sections; slicing provides vector'd sections.
 
-  ;; examples of striding -- need more!
-
+  ;; STRIDING
   m01
+  ;; extract a view of m01, but just rows 1 and 3.
   (strides m01 :nrows 2 :row-stride 2) ;; skip a row
   (strides m01 :nrows 3) ;; first 3 rows
   (strides m01 :ncols 3 :col-stride 2) ;; cols 1, 3 ,5
   (strides m01 :ncols 2) ;; first 2 cols
   m01
-  ;; (slice m01 ...) -- strides provide sections of matrix; slicing provides vectors.
 
+  ;; SLICING
+  m01
   (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
   (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :row)
-
   (slice m01
 	 :offset 5
 	 :stride  2
@@ -212,5 +191,37 @@
   ;; Alternative approach for slicing, via Tamas's AFFI package:
   (defparameter *my-idx* (affi:make-affi '(5 6))) ; -> generator
   (affi:calculate-index *my-idx* #(1 1)) ; -> 7 
+
+
+
+  ;; FIXME: need to get the foriegn-friendly arrays package involved
+  ;; to create integer matrices.  Or do we just throw an error that
+  ;; says to use lisp-arrays?
+  (make-matrix 2 5
+	       :implementation :foreign-array 
+	       :element-type 'integer 
+	       :initial-contents #2A(( 1 2 3 4 5)
+				     ( 6 7 8 9 10)))
+
+
+  ;; FIXME -- indexing with mref not checked against dims, doesn't
+  ;; barf correctly.  (now is checked, but badly/poorly -- this FIXME
+  ;; is about better optimization, NOT about it failing to work, which
+  ;; was the original problem).
+  m01
+  (assert-valid-matrix-index m01 1 8)
+  (assert-valid-matrix-index m01 8 1)
+  (mref m01 1 8) ; good -- we throw an error... but
+  (mref m01 8 1) ; BAD! barfs, not protecting against first index...
+  (setf (mref m01 7 7) 1.2d0)
+  m01
+  
+  
+  ;; FIXME: the following has no applicable method -- only for
+  ;; doubles, not integers.  
+  (m* m2 (transpose m2))
+  ;; but we can multiple doubles, but...
+  (m* m01 (transpose m01))
+
 
   )
