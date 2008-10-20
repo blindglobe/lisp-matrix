@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-10-17 18:09:14 tony>
+;;; Time-stamp: <2008-10-20 08:29:34 tony>
 
 (in-package :lisp-matrix)
 
@@ -491,15 +491,16 @@
 
 (defgeneric transpose (matrix)
   (:documentation "Creates a transpose view of the given matrix-like
-                   object MATRIX.  Returns the original matrix if
-                   transposed two times.  
+   object MATRIX.  Returns the original matrix if transposed two
+   times.
 
-                   General approach is to ensure that we only change
-                   the class, not the matrix itself, and we rely on
-                   reference semantics for this to happen.
+   General approach is to ensure that we only change the class, not
+   the matrix itself, and we rely on reference semantics for this to
+   happen.
 
-                   (FIXME: is that a good idea?  It is probably ok
-                    since TRANSPOSE does not copy the data anyway.)") 
+   (FIXME: is that a good idea?  It is probably ok since TRANSPOSE
+   does not copy the data anyway; if we want a copy, we do it
+   explicitly.)")
   (:method ((matrix matrix-like))
     (if (= 1 (nrows matrix) (ncols matrix))
         matrix
@@ -508,11 +509,11 @@
                        :nrows (ncols matrix)
                        :ncols (nrows matrix))))
   (:method ((matrix transpose-matview))
-    (parent matrix)))
+    (parent matrix))) ;; AJR forgets rules: this is reference, not copy
 
 (defgeneric window (matrix &key nrows ncols row-offset col-offset)
   (:documentation "Creates a window view of the given matrix-like
-  object MATRIX.  Note that window views always have the same
+  object MATRIX.  Note that window views ALWAYS have the same
   orientation as their parents.")
   (:method ((matrix matrix-like) 
             &key (nrows (nrows matrix))
