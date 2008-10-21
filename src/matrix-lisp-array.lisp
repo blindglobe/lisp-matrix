@@ -6,6 +6,10 @@
 ;;;; The implementation will be named :LISP-ARRAY, and specific
 ;;;; functions that we introduce will have "LA" in their name.
 
+;;; Tony sez: We need to describe that these are usually in
+;;; row-orientation (or column orientation?  What do I know??  Why
+;;; isn't it clear?  Why havn't I doc'd it :-)?
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (define-implementation :lisp-array "LA"))
 
@@ -17,9 +21,8 @@
   :lisp-array)
 
 ;; FIXME: need to throw appropriate error when the indices are
-;; illegal.   error?  or a condition?   
-;; SOLN: need to consider the following -- the right place to test
-;; will be in flatten-matrix-indices...?
+;;        illegal.  what to throw: error? condition?
+;;  SOLN: tested, but poorly, via assertion in flatten-matrix-indices...
 (defmethod mref ((matrix la-matrix) i j)
   (assert-valid-matrix-index matrix i j)
   (aref (data matrix) (flatten-matrix-indices matrix i j)))
