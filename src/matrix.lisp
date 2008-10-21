@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-10-20 08:29:34 tony>
+;;; Time-stamp: <2008-10-21 18:20:18 tony>
 
 (in-package :lisp-matrix)
 
@@ -138,12 +138,11 @@
   corresponding to the default implementation of the generic function
   ORIENTATION.")
   (:method ((matrix matrix-like) i j)
-    (assert-valid-matrix-index matrix i j)
+    (assert-valid-matrix-index matrix i j) ; FIXME! better idiot proofing needed
     (+ i (* j (nrows matrix)))))
-;;; FIXME!  Need error checking and idiot-proofing in above/below.
 
 (defun flatten-matrix-indices-1 (matrix i j)
-  (assert-valid-matrix-index matrix i j)
+  (assert-valid-matrix-index matrix i j) ; FIXME! better idiot proofing needed
   (ecase (orientation matrix)
     (:column (+ i (* j (nrows matrix))))
     (:row (+ j (* i (ncols matrix))))))
