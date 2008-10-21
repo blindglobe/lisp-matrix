@@ -21,7 +21,6 @@
 ;; # ut-vectors : col-of-strided-matrix
 ;; # ut : make-predicate
 
-
 (in-package :lisp-matrix-user)
 
 ;; (lisp-matrix-unittests:run-lisp-matrix-tests)
@@ -95,6 +94,22 @@
 
 
 ;;;;;;; FIX ALL THE ERRORS
+  (defvar m01b nil)
+  (setf m01b (strides m01 :nrows 2 :row-stride 2))
+  (m= (col m01b 0)
+      (make-matrix 2 1 :initial-contents '((1d0) (11d0))))
+  (m= (col m01b 1)
+      (make-matrix 2 1 :initial-contents '((2d0) (12d0))))
+  (m= (col m01b 2)
+      (make-matrix 2 1 :initial-contents '((3d0) (13d0))))
+  (m= (col m01b 3)
+      (make-matrix 2 1 :initial-contents '((4d0) (14d0))))
+  (m= (col m01b 4)
+      (make-matrix 2 1 :initial-contents '((5d0) (15d0))))
+  (row m01b 0)
+  (row m01b 1)
+  (col m01b 0)
+  (col m01b 1)
 
   
   ;; FIXME: there are bugs in slicing/striding with transposed
@@ -160,8 +175,7 @@
 
   ;; STRIDING
   m01
-  ;; extract a view of m01, but just rows 1 and 3.
-  (strides m01 :nrows 2 :row-stride 2) ;; skip a row
+  (strides m01 :nrows 2 :row-stride 2)  ;; view just rows 1 and 3 from m01
   (strides m01 :nrows 3) ;; first 3 rows
   (strides m01 :ncols 3 :col-stride 2) ;; cols 1, 3 ,5
   (strides m01 :ncols 2) ;; first 2 cols
