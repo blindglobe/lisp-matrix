@@ -318,6 +318,9 @@
                    :type :row)))))
 
 ;; TODO: similar to ROW.   NEED TO FIXME AND UNIT-TEST
+;;
+;; Tony sez; Affine indexing is a PITA and I'm a lazy SOB.  Better to
+;; get one right, and then just transpose to get the right result?
 (defgeneric col (matrix j)
   (:documentation "Return a view on a given column of MATRIX.")
   (:method ((matrix transpose-matview) (j integer))
@@ -326,7 +329,7 @@
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
       (:column (slice matrix
-      ;; Tony sez: Offset is suspicious here and next
+      ;; Tony sez: Offset is suspicious here and next (though it might be me).
                       :offset (* j (nrows matrix))
                       :stride 1
                       :nelts (nrows matrix)
