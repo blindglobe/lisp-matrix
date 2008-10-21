@@ -12,14 +12,13 @@
 
 (in-package :lisp-matrix-unittests)
 
-(run-lisp-matrix-tests)  ;; 56 2 3 ;; 20.10.2008
+(run-lisp-matrix-tests)  ;; 55 2 2 ;; 21.10.2008
 (describe  (run-lisp-matrix-tests))
 
 ;; failures: 
 ;; # ut-matrix : indexing-setting-matrix
 ;; # ut-matrix : indexing-getting-matrix
 ;; # ut-vectors : col-of-strided-matrix
-;; # ut-vectors : construct-vectors
 ;; # ut : make-predicate
 
 
@@ -118,6 +117,9 @@
   (row (transpose m01) 1) ; wrong: grab bad column, AND by 1 (pushed up)
   (row (transpose m01) 2) ; ditto, wrong by 2
   (row (transpose m01) 3) ; etc...wrong by 3
+
+  (row (transpose m01) 0)
+  (transpose (row (transpose m01) 0))
 
   m01
   (transpose m01)
