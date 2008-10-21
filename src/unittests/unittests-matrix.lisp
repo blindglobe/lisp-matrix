@@ -130,7 +130,7 @@
 					      (6d0 7d0 8d0 9d0 10d0)))))
     (ensure (mref m1 1 1))
     (ensure (mref m1 0 0))
-    (ensure (mref m1 2 4))
+    (ensure (mref m1 1 4))
     (ensure-error (mref m1 2 5)) ;; both above
     (ensure-error (mref m1 1 5))
     (ensure-error (mref m1 2 4))))
@@ -145,7 +145,7 @@
 					      (6d0 7d0 8d0 9d0 10d0)))))
     (ensure (setf (mref m1 1 1) -1d0))
     (ensure (setf (mref m1 0 0) -1d0))
-    (ensure (setf (mref m1 2 4) -1d0))
+    (ensure (setf (mref m1 1 4) -1d0))
     (ensure-error (setf  (mref m1 2 5) -1d0 ) ) ;; both above
     (ensure-error (setf  (mref m1 1 5) -1d0 ) )
     (ensure-error (setf  (mref m1 2 4) -1d0 ) )))
