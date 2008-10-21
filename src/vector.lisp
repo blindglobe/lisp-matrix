@@ -321,6 +321,7 @@
 ;;
 ;; Tony sez; Affine indexing is a PITA and I'm a lazy SOB.  Better to
 ;; get one right, and then just transpose to get the right result?
+;; perhaps wrong.
 (defgeneric col (matrix j)
   (:documentation "Return a view on a given column of MATRIX.")
   (:method ((matrix transpose-matview) (j integer))
@@ -329,13 +330,12 @@
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
       (:column (slice matrix
-      ;; Tony sez: Offset is suspicious here and next (though it might be me).
                       :offset (* j (nrows matrix))
                       :stride 1
                       :nelts (nrows matrix)
                       :type :column))
       (:row (slice matrix
-                   :offset (* j (nrows matrix))
+                   :offset (* j (nrows matrix)) ; to be j w/ row orient?
                    :stride (ncols matrix)
                    :nelts (nrows matrix)
                    :type :column))))
@@ -349,13 +349,13 @@
 				 (* j (nrows matrix)))
                       :stride (nrows (parent matrix))
                       :nelts (nrows matrix)
-                      :type :row))
+                      :type :column))
       (:row (slice (parent matrix)
                    :offset (+ (offset matrix)
                               (* j (ncols (parent matrix))))
                    :stride 1
                    :nelts (ncols matrix)
-                   :type :row))))
+                   :type :column))))
   (:method ((matrix strided-matview) (j integer))
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
@@ -364,15 +364,14 @@
                                  (* j (row-stride matrix)))
                       :stride (* (nrows (parent matrix))
                                  (col-stride matrix))
-                      :nelts (ncols matrix)
-                      :type :row))
+                      :nelts (nrows matrix)
+                      :type :column))
       (:row (slice (parent matrix)
                    :offset (+ (offset matrix)
                               (* j (ncols (parent matrix))))
                    :stride (row-stride matrix)
-                   :nelts (ncols matrix)
-                   :type :row)))))
-
+                   :nelts (nrows matrix)
+                   :type :column)))))
 
 ;;; testing
 
