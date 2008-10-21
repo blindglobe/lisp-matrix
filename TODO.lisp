@@ -12,12 +12,11 @@
 
 (in-package :lisp-matrix-unittests)
 
-(run-lisp-matrix-tests)  ;; 55 2 2 ;; 21.10.2008
+;; Tests = 55, Failures = 2, Errors= 0 ;; 21.10.2008
+(run-lisp-matrix-tests)  
 (describe  (run-lisp-matrix-tests))
 
 ;; failures: 
-;; # ut-matrix : indexing-setting-matrix
-;; # ut-matrix : indexing-getting-matrix
 ;; # ut-vectors : col-of-strided-matrix
 ;; # ut : make-predicate
 
@@ -96,16 +95,17 @@
 ;;;;;;; FIX ALL THE ERRORS
   (defvar m01b nil)
   (setf m01b (strides m01 :nrows 2 :row-stride 2))
+  m01b
   (m= (col m01b 0)
-      (make-matrix 2 1 :initial-contents '((1d0) (11d0))))
+      (make-matrix 2 1 :initial-contents '((11d0) (31d0))))
   (m= (col m01b 1)
-      (make-matrix 2 1 :initial-contents '((2d0) (12d0))))
+      (make-matrix 2 1 :initial-contents '((12d0) (32d0))))
   (m= (col m01b 2)
-      (make-matrix 2 1 :initial-contents '((3d0) (13d0))))
+      (make-matrix 2 1 :initial-contents '((13d0) (33d0))))
   (m= (col m01b 3)
-      (make-matrix 2 1 :initial-contents '((4d0) (14d0))))
+      (make-matrix 2 1 :initial-contents '((14d0) (34d0))))
   (m= (col m01b 4)
-      (make-matrix 2 1 :initial-contents '((5d0) (15d0))))
+      (make-matrix 2 1 :initial-contents '((15d0) (35d0))))
   (row m01b 0)
   (row m01b 1)
   (col m01b 0)
