@@ -5,6 +5,10 @@
 
 Refactor src into "lisp-matrix", "support", etc...
 
+* Done:
+
+Lisp-matrix is now in own package, and supports a lisp-matrix-user
+playground.
 
 * Introduction
 
