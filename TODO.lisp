@@ -12,7 +12,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 55, Failures = 2 ;; 22.10.2008
+;; Tests = 55, Failures = 2, Errors = 0 ;; 22.10.2008
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
 ;; failures: 
@@ -34,6 +34,9 @@
 ;; #  creation of foreign-array matrices which are integer valued
 ;;    fails.
 ;; # 
+
+
+
 
 (progn
   (progn ;; SETUP DATA, these work
@@ -99,8 +102,60 @@
 
 ;;;;;;; FIX ALL THE ERRORS
 
+;;; consider the following matrix:
+;;;     11 12 13
+;;;     21 22 23
+;;; then storage in row-major orientation would be a sequence
+;;;     11 12 13 21 22 23
+;;; while in column-major orientation it would be
+;;;     11 21 12 22 13 23 
+;;; At this point, consider the following.  Suppose we have a matview
+;;; with row index 1, col index 0:
+;;;     21 22 23
+;;; or alternatively row index 0, col index 1:
+;;;     12 13
+;;;     22 23
+;;; 
+;;; for the first, we see that, by orientation, we have the following:
+;;;     .. .. .. 21 22 23   (row-major)
+;;;     .. 21 .. 22 .. 23   (column-major)
+;;; 
+;;; so we see that for
+;;; row-major:    index=3 (ncols), stride=1
+;;; column-major: index=1 (ncols), stride=2 (nrows)
+;;; 
+;;; for the second, by orientation, we have:
+;;;     .. 12 13 .. 22 23  (row-major)
+;;;     .. 12 22 .. 13 23  (column-major)
+;;; 
+;;; so we see that for
+;;; row-major:    index=1 (ncols), stride=2 (ncols)
+;;; column-major: index=1,(nrows), stride=3 (nrows)
+;;; 
+;;; Consider a more complex matrix:
+;;; 
+;;; n1= 11 12 13 14 15
+;;;     21 22 23 24 25
+;;;     31 32 33 34 35
+;;;     41 42 43 44 45
+;;;
+;;; Then a matview, indexed, might be (offset 3,2)
+;;;
+;;; n2= 32 33 34
+;;;     42 43 44
+;;;
+;;; and a strided matview, indexed, could be (offset 2,3; row-stride 2)
+;;;
+;;; n3= 23 24 25
+;;;     43 44 45
+;;;
+;;; 
+;;; 
+
+
   ;; strided matrix access
   m01b
+  (orientation m01b)
   (m= (col m01b 0)
       (make-matrix 2 1 :initial-contents '((11d0) (31d0))))
   (m= (col m01b 1)
