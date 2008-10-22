@@ -111,7 +111,8 @@
     (ensure (v= (col a 0) (row (transpose a) 0)))
     (ensure (v= (row a 1) (col (transpose a) 1)))
     (ensure (v= (col a 1) (row (transpose a) 1)))
-    ))
+    (ensure (v= (row a 2) (col (transpose a) 2)))
+    (ensure (v= (col a 2) (row (transpose a) 2)))))
 
 (addtest (lisp-matrix-ut-vectors)
   row-of-window

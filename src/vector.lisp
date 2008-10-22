@@ -274,13 +274,13 @@
   (:method ((matrix matrix-like) (i integer))
     (assert (< -1 i (nrows matrix)))
     (ecase (orientation matrix)
-      (:column (slice matrix
-                      :offset i
+      (:column (slice matrix ;; verified
+                      :offset i 
                       :stride (nrows matrix)
                       :nelts (ncols matrix)
                       :type :row))
       (:row (slice matrix
-                   :offset i
+                   :offset  i
                    :stride 1
                    :nelts (ncols matrix)
                    :type :row))))
