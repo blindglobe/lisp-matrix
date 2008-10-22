@@ -22,11 +22,6 @@
 
 ;;; EXTERNAL
 
-(defun run-lisp-matrix-tests ()
-  "Check everything...!"
-  (run-tests :suite 'lisp-matrix-ut))
-
-;;(defun run-lisp-matrix-test (&rest x) (run-test x))
 
 
 

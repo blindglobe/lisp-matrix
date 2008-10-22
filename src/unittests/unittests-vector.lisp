@@ -105,8 +105,6 @@
 (addtest (lisp-matrix-ut-vectors)
   v=-col-row-transpose
   (let ((a (rand 3 4)))
-    ;; FIXME: this also tests ROW, COL, and their use on a transposed
-    ;; matrix
     (ensure (v= (row a 0) (col (transpose a) 0)))
     (ensure (v= (col a 0) (row (transpose a) 0)))
     (ensure (v= (row a 1) (col (transpose a) 1)))
