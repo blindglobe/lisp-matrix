@@ -12,10 +12,9 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 55, Failures = 2, Errors= 0 ;; 21.10.2008
-(run-lisp-matrix-tests)  
+;; Tests = 55, Failures = 2 ;; 22.10.2008
+(run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
-
 ;; failures: 
 ;; # ut-vectors : col-of-strided-matrix
 ;; # ut : make-predicate
@@ -30,10 +29,9 @@
 
 ;; Here is what we need to fix, based on the above:
 ;; #  make-predicate (and variable-capture, see macro-expansion)
-;; #  col / row  on transposed matrices
-;; #  mref access, first index boundaries (second index is controlled,
-;;    and errors thrown as needed
-;; #  creation of foriegn-array matrices which are integer valued
+;; #  col / row  on strided matrices
+;; #  mref access, index assertion done better.
+;; #  creation of foreign-array matrices which are integer valued
 ;;    fails.
 ;; # 
 
@@ -89,12 +87,19 @@
 	   :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
 				 ( 6d0 7d0 8d0 9d0 10d0))))
     
+
+    (defvar m01b nil)
+    (setf m01b (strides m01 :nrows 2 :row-stride 2))
+
+    (defvar m01c nil)
+    (setf m01c (rand 3 4))
+
     (format nil "Data set up")) ; EVAL HERE TO SETUP DATA
 
 
 ;;;;;;; FIX ALL THE ERRORS
-  (defvar m01b nil)
-  (setf m01b (strides m01 :nrows 2 :row-stride 2))
+
+  ;; strided matrix access
   m01b
   (m= (col m01b 0)
       (make-matrix 2 1 :initial-contents '((11d0) (31d0))))
