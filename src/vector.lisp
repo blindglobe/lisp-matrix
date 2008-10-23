@@ -229,17 +229,17 @@
 
 (defgeneric slice (matrix &key offset stride nelts type)
   (:documentation "Create a slice view of MATRIX.  To be precise, this
-  results in a vector which is done by
+   results in a vector which is done by
       :type   : provides the form to provide output for
       :offset : number of observations (in col/row major
                 matrix-dependent order) to skip over before starting
                 extraction
       :stride : 0 = repeat same value; 1, as ordered, 2 every other, 
                 etc...  
-  one of the challenges is that this seems to prefer col-oriented
-  matrices, but we need to know whether we are column- or row-
-  oriented. Perhaps we should be checking so to decide how to walk
-  down the matrix.")
+   one of the challenges is that this seems to prefer col-oriented
+   matrices, but we need to know whether we are column- or row-
+   oriented. Perhaps we should be checking so to decide how to walk
+   down the matrix?")
   (:method (matrix &key (offset 0) (stride 1)
 	    (nelts (nelts matrix)) (type :row))
     (make-instance (slice-class matrix)
