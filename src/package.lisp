@@ -77,6 +77,8 @@
 	   make-predicate make-predicate-macro
 
 	   assert-valid-matrix-index
+
+	   offset row-stride col-stride
 	   ))
 
 
