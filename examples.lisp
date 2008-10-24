@@ -167,6 +167,107 @@
 
 ;;; EXAMPLES TO DEMONSTRATE
 
+
+;;; consider the following matrix:
+;;; n1= 11 12 13
+;;;     21 22 23
+(defparameter *n1*
+  (make-matrix 2 3
+	       :implementation :lisp-array
+	       :element-type 'double-float
+	       :initial-contents #2A ((11d0 12d0 13d0)
+				      (21d0 22d0 23d0))))
+*n1*
+;;; then storage in row-major orientation would be a sequence
+;;;     11 12 13 21 22 23
+;;; while in column-major orientation it would be
+;;;     11 21 12 22 13 23 
+;;; At this point, consider the following.  Suppose we have a matview
+;;; with dims 1x3, row/col offset 1,0:
+;;; n2= 21 22 23
+(defparameter *n2*
+  (window *n1*
+	  :nrows 1 :ncols 3
+	  :row-offset 1 :col-offset 0))
+*n2*
+;;; or alternatively dims 2x2, row/col offset 0,1:
+;;; n3= 12 13
+;;;     22 23
+(defparameter *n3*
+  (window *n1*
+	  :nrows 2 :ncols 2
+	  :row-offset 0 :col-offset 1))
+*n3*
+;;;
+;;; for the first, we see that, by orientation, we have the following:
+;;;     .. .. .. 21 22 23   (row-major)
+;;;     .. 21 .. 22 .. 23   (column-major)
+;;; 
+;;; so we see that for
+;;; row-major:    index=3 (ncols), stride=1
+;;; column-major: index=1 (ncols), stride=2 (nrows)
+;;; 
+;;; for the second, by orientation, we have:
+;;;     .. 12 13 .. 22 23  (row-major)
+;;;     .. 12 22 .. 13 23  (column-major)
+;;; 
+;;; so we see that for
+;;; row-major:    index=1 (ncols), stride=2 (ncols)
+;;; column-major: index=1,(nrows), stride=3 (nrows)
+;;; 
+;;; Consider a more complex matrix:
+;;; 
+;;; o1= 11 12 13 14 15
+;;;     21 22 23 24 25
+;;;     31 32 33 34 35
+;;;     41 42 43 44 45
+(defparameter *o1*
+  (make-matrix 4 5
+	       :implementation :lisp-array
+	       :element-type 'double-float
+	       :initial-contents #2A ((11d0 12d0 13d0 14d0 15d0)
+				      (21d0 22d0 23d0 24d0 25d0)
+				      (31d0 32d0 33d0 34d0 35d0)
+				      (41d0 42d0 43d0 44d0 45d0))))
+*o1*
+;;;
+;;; Then a matview, dims 3, offset 2,1 :
+;;;
+;;; o2= 32 33 34
+;;;     42 43 44
+(defparameter *o2*
+  (window *o1*
+	  :nrows 2 :ncols 3
+	  :row-offset 2 :col-offset 1))
+*o2*
+;;;
+;;; and a strided matview, indexed, could be (offset 2,3; row-stride 2)
+;;;
+;;; o3= 23 24 25
+;;;     43 44 45
+(defparameter *o3*
+  (strides *o1*
+	   :nrows 2 :ncols 3
+	   :row-offset 1 :col-offset 2
+	   :row-stride 2 :col-stride 1))
+*o3*
+;;;
+;;; and now to pull out the rows and columns via slicing on a strided
+;;; matrix, we have the following approaches, for the zero-th column:
+;;;     23
+;;;     43
+(slice *o3* :offset 0 :stride 1 :nelts (nrows *o3*) :type :column)
+(parent *o3*)
+;;; and for the 2nd column (3rd, since we are zero counting).
+;;;     25
+;;;     45
+(slice *o3* :offset 4 :stride 1 :nelts (nrows *o3*) :type :column)
+;;; and for the 1st row (2nd, again zero-counting):
+;;;     43 44 45
+(slice *o3* :offset 1 :stride 2 :nelts (ncols *o3*) :type :row)
+;;; 
+(orientation *o3*)
+
 ;; convert between foriegn-array and lisp-array.
 
 ;; operate ()
