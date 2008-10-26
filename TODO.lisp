@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 55, Failures = 2, Errors = 0 ;; 22.10.2008
+;; Tests = 55, Failures = 2, Errors = 1 ;; 22.10.2008
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
 ;; failures: 
@@ -111,6 +111,13 @@ m01b
 (unit-strides-p (parent m01b)) ;; true, it's the original...
 
 ;; slice matrix access to rows
+(row m01b 0)
+(row m01b 1)
+(col m01b 0)
+(col m01b 1)
+(col m01b 2)
+(col m01b 3)
+
 (slice m01b :offset 0 :stride 2 :nelts (ncols m01b) :type :row)
 (slice (parent m01b) ; equiv on parent
        :offset 1

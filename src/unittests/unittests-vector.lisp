@@ -32,12 +32,12 @@
 
 ;;; SUPPORT FUNCTIONS
 
-;; (see unittests.lisp)
+;; (in general, see unittests.lisp; any specific to vectors would be here...)
 
 ;;; TESTS: VECTORS
 
 (addtest (lisp-matrix-ut-vectors)
-  construct-vectors
+  construct-vectors-and-same-as-matrix
   (for-all-implementations
     (ensure (m= (make-vector 3 :initial-element 0d0)
 		(make-matrix 1 3 :initial-element 0d0)))
@@ -45,99 +45,95 @@
 		(make-matrix 3 1 :initial-element 0d0)))
     (ensure (col-vector-p (rand 3 1)))
     (ensure (row-vector-p (rand 1 3)))
-    (let ((a (rand 3 5)))
-      (ensure (v= (row a 0) (col (transpose a) 0)))
-      (ensure (not (m= (row a 0) (col (transpose a) 0))))
-      (ensure (row-vector-p (row a 0)))
-      (ensure (col-vector-p (col a 0)))
-      (ensure (row-vector-p (row (transpose a) 0)))
-      (ensure (col-vector-p (col (transpose a) 0)))
-      ;; strides and window should return vectors when appropriate
-      (ensure (row-vector-p (window a :nrows 1)))
-      (ensure (col-vector-p (window a :ncols 1)))
-      ;; transpose should return the original matrix if dimensions are
-      ;; 1 x 1
-      (let ((m (rand 1 1)))
-        (ensure (eq m (transpose m))))
-      ;; FIXME: M x 1 or 1 x M matrices should not be considered
-      ;; transposed when we think of their storage.  But we cannot
-      ;; transpose them without resorting to a TRANSPOSE-VECVIEW.  So
-      ;; it would be best to introduce a function like
-      ;; STORAGE-TRANSPOSED-P.
-      ;; (ensure (not (transposed-p (transpose (make-matrix 1 10)))))
-      ;; (ensure (not (transposed-p (transpose (make-matrix 10 1)))))
-      )))
+
+    ;; FIXME: M x 1 or 1 x M matrices should not be considered
+    ;; transposed when we think of their storage.  But we cannot
+    ;; transpose them without resorting to a TRANSPOSE-VECVIEW.  So it
+    ;; would be best to introduce a function like STORAGE-TRANSPOSED-P
+    ;;   (ensure (not (transposed-p (transpose (make-matrix 1 10)))))
+    ;;   (ensure (not (transposed-p (transpose (make-matrix 10 1)))))
+
+    ;; transpose should return the original matrix if dimensions are
+    ;; 1 x 1
+    (let ((m (rand 1 1)))
+      (ensure (eq m (transpose m))))))
 
 (addtest (lisp-matrix-ut-vectors)
-  row-of-strided-matrix
+  matview-row-and-col-access-and-equiv
+  (for-all-implementations
+    (let ((a (rand 7 9)))
+      ;; strides and window should return vectors when appropriate
+      (ensure (row-vector-p (window a :nrows 1)))
+      (ensure (col-vector-p (window a :ncols 1))) 
+      ;; column access and row access, matviews.
+      (dotimes (i 7)
+	(ensure (v= (row a i) (col (transpose a) i)))
+	(ensure (not (m= (row a i) (col (transpose a) i))))
+	(ensure (row-vector-p (row a i)))
+	(ensure (col-vector-p (col a i)))
+	(ensure (row-vector-p (row (transpose a) i)))
+	(ensure (col-vector-p (col (transpose a) i)))))))
+
+
+
+(addtest (lisp-matrix-ut-vectors)
+  strided-matrix-row-access
   (let* ((a (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
                                                  (6d0  7d0  8d0  9d0  10d0)
                                                  (11d0 12d0 13d0 14d0 15d0)
                                                  (16d0 17d0 18d0 19d0 20d0)
                                                  (21d0 22d0 23d0 24d0 25d0)
                                                  (26d0 27d0 28d0 29d0 30d0))))
-         (b (strides a :nrows 2 :row-stride 2)))
+         (b (strides a :nrows 3 :row-stride 2)))
     (ensure (m= (row b 0)
             (make-matrix 1 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)))))
     (ensure (m= (row b 1)
-            (make-matrix 1 5 :initial-contents '((11d0 12d0 13d0 14d0 15d0)))))))
+            (make-matrix 1 5 :initial-contents '((11d0 12d0 13d0 14d0 15d0)))))
+    (ensure (m= (row b 2)
+            (make-matrix 1 5 :initial-contents '((21d0 22d0 23d0 24d0 25d0)))))))
+
 
 (addtest (lisp-matrix-ut-vectors)
-  col-of-strided-matrix
+  strided-matrix-column-access
   (let* ((a (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
                                                  (6d0  7d0  8d0  9d0  10d0)
                                                  (11d0 12d0 13d0 14d0 15d0)
                                                  (16d0 17d0 18d0 19d0 20d0)
                                                  (21d0 22d0 23d0 24d0 25d0)
                                                  (26d0 27d0 28d0 29d0 30d0))))
-         (b (strides a :nrows 2 :row-stride 2)))
+         (b (strides a :nrows 3 :row-stride 2)))
     (ensure (m= (col b 0)
-		(make-matrix 2 1 :initial-contents '((1d0) (11d0)))))
+		(make-matrix 2 1 :initial-contents '((1d0) (11d0) (21d0)))))
     (ensure (m= (col b 1)
-		(make-matrix 2 1 :initial-contents '((2d0) (12d0)))))
+		(make-matrix 2 1 :initial-contents '((2d0) (12d0) (22d0)))))
     (ensure (m= (col b 2)
-		(make-matrix 2 1 :initial-contents '((3d0) (13d0)))))
+		(make-matrix 2 1 :initial-contents '((3d0) (13d0) (23d0)))))
     (ensure (m= (col b 3)
-		(make-matrix 2 1 :initial-contents '((4d0) (14d0)))))
+		(make-matrix 2 1 :initial-contents '((4d0) (14d0) (24d0)))))
     (ensure (m= (col b 4)
-		(make-matrix 2 1 :initial-contents '((5d0) (15d0)))))))
+		(make-matrix 2 1 :initial-contents '((5d0) (15d0) (25d0)))))))
 
 (addtest (lisp-matrix-ut-vectors)
   v=-col-row-transpose
   (let ((a (rand 3 4)))
-    (ensure (v= (row a 0) (col (transpose a) 0)))
-    (ensure (v= (col a 0) (row (transpose a) 0)))
-    (ensure (v= (row a 1) (col (transpose a) 1)))
-    (ensure (v= (col a 1) (row (transpose a) 1)))
-    (ensure (v= (row a 2) (col (transpose a) 2)))
-    (ensure (v= (col a 2) (row (transpose a) 2)))))
+    (dotimes (i 2) 
+      (ensure (v= (row a i) (col (transpose a) i)))
+      (ensure (v= (col a i) (row (transpose a) i))))))
 
 (addtest (lisp-matrix-ut-vectors)
   row-of-window
   (let* ((a (rand 5 10 :element-type 'integer :value 10))
          (b (window a :row-offset 1 :nrows 4 :col-offset 2 :ncols 5)))
-    (ensure (m= (row b 0)
-            (window a :row-offset 1 :nrows 1 :col-offset 2 :ncols 5)))
-    (ensure (m= (row b 1)
-            (window a :row-offset 2 :nrows 1 :col-offset 2 :ncols 5)))
-    (ensure (m= (row b 2)
-            (window a :row-offset 3 :nrows 1 :col-offset 2 :ncols 5)))
-    (ensure (m= (row b 3)
-            (window a :row-offset 4 :nrows 1 :col-offset 2 :ncols 5))))
+    (dotimes (i 4)
+      (ensure (m= (row b i)
+		  (window a :row-offset (+ i 1) :nrows 1 :col-offset 2 :ncols 5)))))
   (let* ((a (rand 10 5 :element-type 'integer :value 10))
          (b (window (transpose a) :row-offset 1 :nrows 4 :col-offset 2 :ncols 5)))
-    (ensure (m= (row b 0)
-            (window (transpose a) :row-offset 1 :nrows 1 :col-offset 2
-                                                         :ncols 5)))
-    (ensure (m= (row b 1)
-            (window (transpose a) :row-offset 2 :nrows 1 :col-offset 2
-                                                         :ncols 5)))
-    (ensure (m= (row b 2)
-            (window (transpose a) :row-offset 3 :nrows 1 :col-offset 2
-                                                         :ncols 5)))
-    (ensure (m= (row b 3)
-            (window (transpose a) :row-offset 4 :nrows 1 :col-offset 2
-                                                         :ncols 5)))))
+
+    (dotimes (i 4)
+    (ensure (m= (row b i)
+            (window (transpose a) :row-offset (+ i 1)  :nrows 1 :col-offset 2
+		    :ncols 5))))))
 
 (addtest (lisp-matrix-ut-vectors)
   real-stride
