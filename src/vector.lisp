@@ -229,7 +229,7 @@
 
 (defgeneric slice (matrix &key offset stride nelts type)
   (:documentation "Create a slice view of MATRIX.  To be precise, this
-   results in a vector which is done by
+   results in a vector (matrix subclass) which is done by
       :type   : provides the form to provide output for
       :offset : number of observations (in col/row major
                 matrix-dependent order) to skip over before starting
@@ -343,6 +343,7 @@
   ;;; FIXME THE REST OF THESE METHODS
   (:method ((matrix window-matview) (j integer))
     (assert (< -1 j (ncols matrix)))
+    ;;? swap strides between row/col?
     (ecase (orientation matrix)
       (:column (slice (parent matrix)
                       :offset (+ (offset matrix)
@@ -361,19 +362,17 @@
     (ecase (orientation matrix)
       (:column (slice (parent matrix)
                       :offset (+ (offset matrix)
-                                 (* j (row-stride matrix)))
+                                 (* j (col-stride matrix)))
                       :stride (* (nrows (parent matrix))
-                                 (col-stride matrix))
+				 (row-stride matrix))
                       :nelts (nrows matrix)
                       :type :column))
       (:row (slice (parent matrix)
                    :offset (+ (offset matrix)
-                              (* j (ncols (parent matrix))))
-                   :stride (row-stride matrix)
+                              (* j (nrows (parent matrix))))
+                   :stride (col-stride matrix)
                    :nelts (nrows matrix)
                    :type :column)))))
-
-;;; testing
 
 (defgeneric v= (x y)
   (:documentation "Test for equality of both number of elements and
