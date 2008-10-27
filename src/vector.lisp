@@ -335,7 +335,7 @@
                       :nelts (nrows matrix)
                       :type :column))
       (:row (slice matrix
-                   :offset (* j (nrows matrix)) ; to be j w/ row orient?
+                   :offset (* j (ncols matrix)) 
                    :stride (ncols matrix)
                    :nelts (nrows matrix)
                    :type :column))))
@@ -343,19 +343,17 @@
   ;;; FIXME THE REST OF THESE METHODS
   (:method ((matrix window-matview) (j integer))
     (assert (< -1 j (ncols matrix)))
-    ;;? swap strides between row/col?
     (ecase (orientation matrix)
       (:column (slice (parent matrix)
                       :offset (+ (offset matrix)
-				 (* j (nrows matrix)))
-                      :stride (nrows (parent matrix))
+				 (* j (ncols (parent matrix))))
+                      :stride 1
                       :nelts (nrows matrix)
                       :type :column))
       (:row (slice (parent matrix)
-                   :offset (+ (offset matrix)
-                              (* j (ncols (parent matrix))))
-                   :stride 1
-                   :nelts (ncols matrix)
+                   :offset (+ (offset matrix) j)
+                   :stride (ncols (parent matrix))
+                   :nelts (nrows matrix)
                    :type :column))))
   (:method ((matrix strided-matview) (j integer))
     (assert (< -1 j (ncols matrix)))
