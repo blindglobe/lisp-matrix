@@ -317,11 +317,7 @@
                    :nelts (ncols matrix)
                    :type :row)))))
 
-;; TODO: similar to ROW.   NEED TO FIXME AND UNIT-TEST
-;;
-;; Tony sez; Affine indexing is a PITA and I'm a lazy SOB.  Better to
-;; get one right, and then just transpose to get the right result?
-;; perhaps wrong.
+;; TODO: similar to ROW.   See broken methods
 (defgeneric col (matrix j)
   (:documentation "Return a view on a given column of MATRIX.")
   (:method ((matrix transpose-matview) (j integer))
@@ -346,7 +342,7 @@
     (ecase (orientation matrix)
       (:column (slice (parent matrix)
                       :offset (+ (offset matrix)
-				 (* j (ncols (parent matrix))))
+			 (* j (nrows (parent matrix))))
                       :stride 1
                       :nelts (nrows matrix)
                       :type :column))
@@ -359,16 +355,16 @@
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
       (:column (slice (parent matrix)
-                      :offset (+ (offset matrix)
-                                 (* j (col-stride matrix)))
-                      :stride (* (nrows (parent matrix))
-				 (row-stride matrix))
+		      :offset (+ (offset matrix)
+				 (* j (nrows (parent matrix))))
+		      :stride (col-stride matrix)
                       :nelts (nrows matrix)
                       :type :column))
       (:row (slice (parent matrix)
-                   :offset (+ (offset matrix)
-                              (* j (nrows (parent matrix))))
-                   :stride (col-stride matrix)
+		   :offset (+ (offset matrix)
+			      (* j (col-stride matrix)))
+		   :stride (* (ncols (parent matrix))
+			      (col-stride matrix))
                    :nelts (nrows matrix)
                    :type :column)))))
 
