@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 55, Failures = 2, Errors = 1 ;; 22.10.2008
+;; Tests = 56, Failures = 2, Errors = 0 ;; 27.10.2008
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
 ;; failures: 
@@ -35,6 +35,30 @@
 ;; #  creation of foreign-array matrices which are integer valued
 ;;    fails.
 ;; # 
+
+
+(defparameter *a*
+  (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+				       (6d0  7d0  8d0  9d0  10d0)
+				       (11d0 12d0 13d0 14d0 15d0)
+				       (16d0 17d0 18d0 19d0 20d0)
+				       (21d0 22d0 23d0 24d0 25d0)
+				       (26d0 27d0 28d0 29d0 30d0))))
+(defparameter *b* (strides *a* :nrows 3 :row-stride 2))
+(orientation *b*)
+(m= (col *b* 0)
+    (make-matrix 3 1 :initial-contents '((1d0) (11d0) (21d0))))
+(m= (col *b* 1)
+    (make-matrix 2 1 :initial-contents '((2d0) (12d0) (22d0))))
+(m= (col *b* 2)
+    (make-matrix 2 1 :initial-contents '((3d0) (13d0) (23d0))))
+(m= (col *b* 3)
+    (make-matrix 2 1 :initial-contents '((4d0) (14d0) (24d0))))
+(m= (col *b* 4)
+    (make-matrix 2 1 :initial-contents '((5d0) (15d0) (25d0))))
+
+
+
 
 
 
@@ -96,13 +120,15 @@
     (setf m01b (strides m01 :nrows 2 :row-stride 2))
 
     (defvar m01c nil)
-    (setf m01c (rand 3 4))
+    (setf m01c (window m01
+		       :nrows 2 :ncols 3
+		       :row-offset 2 :col-offset 1))
 
     (format nil "Data set up")) ; EVAL HERE TO SETUP DATA
 
 ;;;;;;; FIX ALL THE ERRORS
 
-;; strided matrix access
+;; strided matrix col access
 m01b
 (orientation m01b)
 (unit-strides-p m01b) ;; false, it's explicitly strided
@@ -110,11 +136,20 @@ m01b
 (orientation  (parent m01b))
 (unit-strides-p (parent m01b)) ;; true, it's the original...
 
+;; Windowed matrix
+(orientation m01c)
+(row m01c 0) ; Y
+(row m01c 1) ; Y
+(col m01c 0) ; Y
+(col m01c 1) ; BAD.
+(col m01c 2)
+
+
 ;; slice matrix access to rows
-(row m01b 0)
-(row m01b 1)
-(col m01b 0)
-(col m01b 1)
+(row m01b 0) ; Y
+(row m01b 1) ; Y
+(col m01b 0) ; Y
+(col m01b 1) ; BAD.
 (col m01b 2)
 (col m01b 3)
 
