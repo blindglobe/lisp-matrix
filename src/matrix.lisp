@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-10-21 18:20:18 tony>
+;;; Time-stamp: <2008-10-29 08:12:16 tony>
 
 (in-package :lisp-matrix)
 
@@ -412,7 +412,10 @@
   used to initially fill the matrix.
 
   If INITIAL-ELEMENT is not specified, the matrix is not initialized,
-  and accessing its elements will thus return spurious values."))
+  and accessing its elements will thus return spurious values. 
+
+  Tony notes: principle seems to be to use a function for the API,
+  dispatching to generics for the meat of the work."))
 
 (defun make-matrix (nrows ncols &key
                     (implementation *default-implementation*)
@@ -526,8 +529,14 @@
 (defgeneric strides (matrix &key nrows ncols row-offset col-offset row-stride
                             col-stride)
   (:documentation "Creates a strided view of the given matrix-like
-  object MATRIX.  The resulting matrix may be a WINDOW-MATVIEW, a
-  STRIDED-MATVIEW or a SLICE-VECVIEW depending on the parameters.")
+   object MATRIX.  The resulting matrix may be a WINDOW-MATVIEW, a
+   STRIDED-MATVIEW or a SLICE-VECVIEW depending on the parameters. 
+
+   FIXME: consider a variant of this which allows for vector-recycling
+   of the strides specification.   For example, #(1 2) will do the
+   right indexing until the matrix range/indicies are exhausted.  This
+   is good for data manipulation but not clear if it is the right
+   motif for numerics.")
   (:method ((matrix matrix-like)
             &key 
             (nrows (nrows matrix))
@@ -643,7 +652,7 @@
             (implementation *default-implementation*)
             (element-type *default-element-type*))
   "Create a NROWS x NCOLS matrix with ones on the diagonal, and zeros
-  elsewhere."
+  elsewhere.   Mnemonic: eye for I(n,m)"
   (let ((matrix (zeros nrows ncols :implementation implementation
                        :element-type element-type)))
     (let ((n (min nrows ncols))
