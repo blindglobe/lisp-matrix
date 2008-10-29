@@ -21,6 +21,7 @@
 ;; VECTOR TESTS
 ;; (run-tests :suite 'lisp-matrix-ut-vectors)
 ;; (describe (run-tests :suite 'lisp-matrix-ut-vectors))
+;; (run-test :test-case '   :suite 'lisp-matrix-ut-vectors)
 
 ;; REMINDER IF NEEDED
 ;; (remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
@@ -84,7 +85,7 @@
                                                  (16d0 17d0 18d0 19d0 20d0)
                                                  (21d0 22d0 23d0 24d0 25d0)
                                                  (26d0 27d0 28d0 29d0 30d0))))
-         (b (strides a :nrows 3 :row-stride 2)))
+         (b (strides a :nrows 3 :row-stride 2)))  ;; need an indexed variant
     (ensure (m= (row b 0)
             (make-matrix 1 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)))))
     (ensure (m= (row b 1)
