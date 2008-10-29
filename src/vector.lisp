@@ -335,29 +335,30 @@
                    :stride (ncols matrix)
                    :nelts (nrows matrix)
                    :type :column))))
-
-  ;;; FIXME THE REST OF THESE METHODS
   (:method ((matrix window-matview) (j integer))
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
-      (:column (slice (parent matrix)
+      (:column (slice (parent matrix) ;; works, tested
                       :offset (+ (offset matrix)
 			 (* j (nrows (parent matrix))))
                       :stride 1
                       :nelts (nrows matrix)
                       :type :column))
-      (:row (slice (parent matrix)
+      (:row (slice (parent matrix) ;; think it works, not tested
                    :offset (+ (offset matrix) j)
                    :stride (ncols (parent matrix))
                    :nelts (nrows matrix)
                    :type :column))))
+  ;;; FIXME THE REST OF THESE METHODS
   (:method ((matrix strided-matview) (j integer))
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
       (:column (slice (parent matrix)
 		      :offset (+ (offset matrix)
 				 (* j (nrows (parent matrix))))
-		      :stride (col-stride matrix)
+		      :stride (* (nrows (parent matrix))
+				 (row-stride matrix))
+		      ;;  :stride (col-stride matrix)
                       :nelts (nrows matrix)
                       :type :column))
       (:row (slice (parent matrix)
