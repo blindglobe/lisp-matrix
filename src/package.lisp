@@ -19,6 +19,9 @@
 	   transpose-class transpose transposed-p
 	   
 	   zero-offset-p
+	   offset
+	   row-offset col-offset
+	   row-stride col-stride
 
 	   ones zeros eye rand ;; types 
 	   copy copy! copy*
@@ -78,7 +81,7 @@
 
 	   assert-valid-matrix-index
 
-	   offset row-stride col-stride
+	   window-matview strided-matview
 	   ))
 
 
