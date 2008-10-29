@@ -16,9 +16,9 @@
 ;; Tests = 56, Failures = 2, Errors = 0 ;; 27.10.2008
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
-;; failures: 
+;; failures:
 ;; # ut-vectors : col-of-strided-matrix
-;; # ut : make-predicate
+;; # ut         : make-predicate
 
 (in-package :lisp-matrix-user)
 
@@ -26,17 +26,20 @@
 ;; (describe (lisp-matrix-unittests:run-lisp-matrix-tests))
 
 ;; (typep -1 '(integer 0 *))
-;; (typep 2 '(integer 0 *))
+;; (typep 2  '(integer 0 *))
 
 ;; Here is what we need to fix, based on the above:
 ;; #  make-predicate (and variable-capture, see macro-expansion)
-;; #  col / row  on strided matrices
+;; #  col selection on strided matrices
 ;; #  mref access, index assertion done better.
 ;; #  creation of foreign-array matrices which are integer valued
 ;;    fails.
 ;; # 
 
+(lift::run-test :test-case  'lisp-matrix-unittests::strided-matrix-column-access
+		:suite 'lisp-matrix-ut-vectors)
 
+(progn 
 (defparameter *a*
   (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
 				       (6d0  7d0  8d0  9d0  10d0)
@@ -45,9 +48,24 @@
 				       (21d0 22d0 23d0 24d0 25d0)
 				       (26d0 27d0 28d0 29d0 30d0))))
 (defparameter *b* (strides *a* :nrows 3 :row-stride 2))
+(defparameter *c* (window *a* :nrows 3 :row-offset 3))
+(defparameter *d* (window *a* :nrows 3 :ncols 2 :row-offset 3 :col-offset 2))
+(format nil "Data initialized")
+)
 (orientation *b*)
 
-;; Current -- missing the striding, but window right?
+;; Striding
+(typep *b* 'lisp-matrix::strided-matview)
+(typep *b* 'lisp-matrix::window-matview)
+(typep *b* 'strided-matview)
+(typep *b* 'window-matview)
+
+(parent *b*)
+(offset *b*) (offset *a*)
+(row-offset *a*) (col-offset *a*) ;; FIXME: we should return 0, not throw error.
+(row-offset *b*) (row-offset *b*)
+(row-offset *c*) (row-offset *c*)
+(col-stride *b*)  (row-stride *b*) (nrows (parent *b*))
 (m= (col *b* 0)
     (make-matrix 3 1 :initial-contents '((1d0) (11d0) (21d0))))
 (m= (col *b* 1) ;; wrong!
@@ -119,7 +137,9 @@
     
 
     (defvar m01b nil)
-    (setf m01b (strides m01 :nrows 2 :row-stride 2))
+    (setf m01b (strides m01 :nrows 2 :ncols 4
+			:row-stride 2
+			:row-offset 1 :col-offset 1))
 
     (defvar m01c nil)
     (setf m01c (window m01
@@ -143,15 +163,16 @@ m01b
 (row m01c 0) ; Y
 (row m01c 1) ; Y
 (col m01c 0) ; Y
-(col m01c 1) ; BAD.
-(col m01c 2)
-
+(col m01c 1) ; Y
+(col m01c 2) ; Y
 
 ;; slice matrix access to rows
 (row m01b 0) ; Y
 (row m01b 1) ; Y
-(col m01b 0) ; Y
-(col m01b 1) ; BAD.
+(orientation m01b) (offset m01b)
+(row-offset m01b) (col-offset m01b)
+(col m01b 0) ; N
+(col m01b 1) ; N...
 (col m01b 2)
 (col m01b 3)
 

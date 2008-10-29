@@ -230,6 +230,11 @@
 				      (31d0 32d0 33d0 34d0 35d0)
 				      (41d0 42d0 43d0 44d0 45d0))))
 *o1*
+;;; row-major:
+;;;    o1= 11 12 13 14 15 21 22 23 24 25 31 32 33 34 35 41 42 43 44 45
+;;; col-major: 
+;;;    o1= 11 21 31 41 12 22 32 42 13 23 33 43 14 24 34 44 15 25 35 45
+;;;
 ;;;
 ;;; Then a matview, dims 3, offset 2,1 :
 ;;;
@@ -251,6 +256,7 @@
 	   :row-offset 1 :col-offset 2
 	   :row-stride 2 :col-stride 1))
 *o3*
+;;; and for where this sits in the original matrix...
 ;;;
 ;;; and now to pull out the rows and columns via slicing on a strided
 ;;; matrix, we have the following approaches, for the zero-th column:
@@ -276,3 +282,24 @@
 
 ;; output
 
+;; Windowing -- simple, works!
+(m= (col *c* 0)
+    (make-matrix 3 1 :initial-contents '((16d0) (21d0) (26d0))))
+(m= (col *c* 1) 
+    (make-matrix 3 1 :initial-contents '((17d0) (22d0) (27d0))))
+(m= (col *c* 2)
+    (make-matrix 3 1 :initial-contents '((18d0) (23d0) (28d0))))
+(m= (col *c* 3)
+    (make-matrix 3 1 :initial-contents '((19d0) (24d0) (29d0))))
+(m= (col *c* 4)
+    (make-matrix 3 1 :initial-contents '((20d0) (25d0) (30d0))))
+
+(m= (col *d* 0)
+    (make-matrix 3 1 :initial-contents '((18d0) (23d0) (28d0))))
+(m= (col *d* 1) 
+    (make-matrix 3 1 :initial-contents '((19d0) (24d0) (29d0))))
+
+;; do we want this as part of the API? Currently fails.
+;; (m= (col *c* 4)
+;;     (col *c* 4)
+;;     (make-matrix 3 1 :initial-contents '((20d0) (25d0) (30d0))))
