@@ -230,11 +230,12 @@
 (defgeneric slice (matrix &key offset stride nelts type)
   (:documentation "Create a slice view of MATRIX.  To be precise, this
    results in a vector (matrix subclass) which is done by
-      :type   : provides the form to provide output for
+      :type   : output shape (:column or :row)
       :offset : number of observations (in col/row major
                 matrix-dependent order) to skip over before starting
                 extraction
-      :stride : 0 = repeat same value; 1, as ordered, 2 every other, 
+      :stride : index increment between current and next element, i.e. 
+                0 = repeat same value; 1, as ordered, 2 every other, 
                 etc...  
    one of the challenges is that this seems to prefer col-oriented
    matrices, but we need to know whether we are column- or row-
@@ -349,18 +350,38 @@
                    :stride (ncols (parent matrix))
                    :nelts (nrows matrix)
                    :type :column))))
-  ;;; FIXME THE REST OF THESE METHODS
   (:method ((matrix strided-matview) (j integer))
     (assert (< -1 j (ncols matrix)))
     (ecase (orientation matrix)
+      ;;   11 12 13 14 15 16
+      ;;   21 22 23 24 25 26
+      ;;   31 32 33 34 35 36
+      ;;   41 42 43 44 45 46
+      ;;   51 52 53 54 55 56
+      ;; strided to:
+      ;;   22 23 24
+      ;;   42 43 44
+      ;; by
+      ;; (strides m01 :nrows 2 :ncols 3 :row-stride 2 :row-offset 1 :col-offset 1)
+      ;; or:
+      ;;
+      ;;   xx xx xx xx xx xx
+      ;;   xx 22 23 24 xx xx
+      ;;   xx xx xx xx xx xx
+      ;;   xx 42 43 44 xx xx
+      ;;   xx xx xx xx xx xx
+      ;;
+      ;; i.e. need to balance with the nrows/ncols in the formula, as
+      ;; well as strides/offsets.  Right now, THIS IS BROKEN.
+      ;;
+      ;;
       (:column (slice (parent matrix)
 		      :offset (+ (offset matrix)
 				 (* j (nrows (parent matrix))))
-		      :stride (* (nrows (parent matrix))
-				 (row-stride matrix))
-		      ;;  :stride (col-stride matrix)
+		      :stride  (row-stride matrix) ;; correct, I think!
                       :nelts (nrows matrix)
                       :type :column))
+  ;;; FIXME THE REST OF THESE METHODS
       (:row (slice (parent matrix)
 		   :offset (+ (offset matrix)
 			      (* j (col-stride matrix)))
