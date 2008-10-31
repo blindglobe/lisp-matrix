@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-10-29 08:12:16 tony>
+;;; Time-stamp: <2008-10-30 13:06:07 tony>
 
 (in-package :lisp-matrix)
 
@@ -533,10 +533,10 @@
    STRIDED-MATVIEW or a SLICE-VECVIEW depending on the parameters. 
 
    FIXME: consider a variant of this which allows for vector-recycling
-   of the strides specification.   For example, #(1 2) will do the
+   of the strides specification.  For example, #(1 2) will do the
    right indexing until the matrix range/indicies are exhausted.  This
-   is good for data manipulation but not clear if it is the right
-   motif for numerics.")
+   is good for data manipulation but not clear if the right motif for
+   numerics.")
   (:method ((matrix matrix-like)
             &key 
             (nrows (nrows matrix))
@@ -773,6 +773,8 @@
 (defmethod m= ((a matrix-like) (b matrix-like))
   ;; Note: this will not work for matrices of things that are not
   ;; numbers
+  ;; FIXME: fix so tht comparison is more equal, not eq (print-based
+  ;; equality).
   (and (= (nrows a) (nrows b))
        (= (ncols a) (ncols b))
        (dotimes (i (nrows a) t)
