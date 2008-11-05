@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-10-30 13:06:07 tony>
+;;; Time-stamp: <2008-11-05 08:37:34 tony>
 
 (in-package :lisp-matrix)
 
@@ -270,6 +270,16 @@
   Tony adds: the basic idea is to offset row and column; we don't make
   the size any smaller, i.e. by adding max row/column, or #
   rows/cols."))
+
+(defmethod row-offset ((mat matrix-like))
+  "If we are not specialize, then we need to consider that we no
+  longer need to think about anything but 0."
+  0)
+(defmethod col-offset ((mat matrix-like))
+  "If we are not specialize, then we need to consider that we no
+  longer need to think about anything but 0."
+  0)
+
 
 (defgeneric zero-offset-p (matrix)
   (:documentation "Has MATRIX a zero offset (as for window and stride

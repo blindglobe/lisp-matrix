@@ -522,19 +522,19 @@ m01b
 
 
 (progn 
-(defparameter *a*
-  (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-				       (6d0  7d0  8d0  9d0  10d0)
-				       (11d0 12d0 13d0 14d0 15d0)
-				       (16d0 17d0 18d0 19d0 20d0)
-				       (21d0 22d0 23d0 24d0 25d0)
-				       (26d0 27d0 28d0 29d0 30d0))))
-(defparameter *b* (strides *a* :nrows 3 :row-stride 2))
-(defparameter *b1* (strides *a* :nrows 2 :ncols 3 :row-stride 2 :col-stride 1))
-(defparameter *c* (window *a* :nrows 3 :row-offset 3))
-(defparameter *d* (window *a* :nrows 3 :ncols 2 :row-offset 3 :col-offset 2))
-(format nil "Data initialized")
-)
+  (defparameter *a*
+    (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+					 (6d0  7d0  8d0  9d0  10d0)
+					 (11d0 12d0 13d0 14d0 15d0)
+					 (16d0 17d0 18d0 19d0 20d0)
+					 (21d0 22d0 23d0 24d0 25d0)
+					 (26d0 27d0 28d0 29d0 30d0))))
+  (defparameter *b* (strides *a* :nrows 3 :row-stride 2))
+  (defparameter *b1* (strides *a* :nrows 2 :ncols 3 :row-stride 2 :col-stride 1))
+  (defparameter *c* (window *a* :nrows 3 :row-offset 3))
+  (defparameter *d* (window *a* :nrows 3 :ncols 2 :row-offset 3 :col-offset 2))
+  (format nil "Data initialized"))
+
 (orientation *b*)
 
 ;; Striding
@@ -545,7 +545,7 @@ m01b
 
 (parent *b*)
 (offset *b*) (offset *a*)
-(row-offset *a*) (col-offset *a*) ;; FIXME: we should return 0, not throw error.
+(row-offset *a*) (col-offset *a*)
 (row-offset *b*) (col-offset *b*)
 (row-offset *c*) (row-offset *c*)
 (col-stride *b*)  (row-stride *b*) (nrows (parent *b*))
