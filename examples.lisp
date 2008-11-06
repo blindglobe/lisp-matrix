@@ -1,26 +1,46 @@
-;;; Precursor systems
+;;; This file illustrates some common actions in the course of working
+;;; with matrices using lisp-matrix.  It is important to note that
+;;; there are better ways to do this, that this are to help introduce
+;;; usage, not describe best practices for using this system.
 
+;;; = Precursor systems
 ;;  (asdf:oos 'asdf:compile-op 'ffa :force t)
-
 ;;  (asdf:oos 'asdf:compile-op 'org.middleangle.foreign-numeric-vector :force t)
 ;;  (asdf:oos 'asdf:compile-op 'org.middleangle.cl-blapack :force t)
 
-;;; The maing thing...
+;;; = The maing thing...
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix :force t)
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
-;; (asdf:oos 'asdf:load-op 'lisp-matrix)
+
+;;; And the only thing that ought to be required;
+(asdf:oos 'asdf:load-op 'lisp-matrix)
+
+;;; Check status of the installation...
 
 (in-package :lisp-matrix-unittests)
-
 (run-lisp-matrix-tests)
+
+;; if the above describes errors, here is how we figure out what bug
+;; report to write...
+
 (describe  (run-lisp-matrix-tests))
+
+;;; Now we can use it, either by importing the symbols into the
+;;; current package by:
+
+;; (use-package :lisp-matrix)
+
+;;; or by trying it out in the -user package, before implementing for
+;;; production usage.
 
 (in-package :lisp-matrix-user)
 
 ;; (lisp-matrix-unittests:run-lisp-matrix-tests)
 ;; (describe (lisp-matrix-unittests:run-lisp-matrix-tests))
 
-(progn ;; THESE WORK!
+;;; We wrap these up into a progn for simple overall evaluation, but
+;;; stepping through them is fine as well.
+(progn 
   
   ;; make some matrices
   (defvar m1 nil
@@ -29,8 +49,9 @@
 			:implementation :lisp-array  ;; :foreign-array
 			:element-type 'double-float))
   
-
-  ;; works, as it should.
+  ;; works, as it should.  Indexing is zero-based, so we get the first
+  ;; element by...
+  (mref m1 0 0)
   (mref m1 1 3)
   (setf (mref m1 1 3) 1.2d0)
   m1
@@ -46,11 +67,18 @@
 			;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
 			:initial-contents #2A(( 1 2 3 4 5)
 					      ( 6 7 8 9 10))))
-
+  (defvar m2a nil "placeholder...")
+  (setf m2a (make-matrix 2 5
+			 :implementation :lisp-array  ;; :foreign-array
+			 :element-type 'integer ; 'double-float
+			 :initial-contents '((1 2 3 4 5)
+					     (6 7 8 9 10))))
 
 
   ;; Currently we can make a foriegn matrix of doubles, but not a
-  ;; foriegn matrix of integers.
+  ;; foriegn matrix of integers.  If we are working with smaller
+  ;; matrices and are not doing a great deal of matrix algebra, then
+  ;; we probably prefer :lisp-array rather than :foreign-array.
   (defvar m2b nil
     "placeholder 2")
   (setf m2b (make-matrix 2 5
@@ -59,10 +87,16 @@
 			:initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
 					      ( 6d0 7d0 8d0 9d0 10d0))))
 
-
-  (mref m2 0 2) ;; -> 3
+  (mref m2 0 2) ;; => 3
   m2
   (transpose m2)
+
+  ;; simple subsetting is simple
+  (row m2 0)
+  (col m2 0)
+  (row (transpose m2) 0)
+  (col (transpose m2) 0)
+
 
   (defvar m3 nil
     "placeholder 3")
@@ -85,6 +119,19 @@
 
   m3
   (transpose m3)
+
+  ;;; Now we play with striding and slicing subsets.  These work well
+  ;;; for simple subsetting which can be done by counting/enumeration
+  ;;; on some form of regular scale.
+
+  ;;; In addition, equality is somewhat important for numerical
+  ;;; issues.  Right.  Anyway, for matrices it is mostly clear what to
+  ;;; do, but for vectors, which are inheriting from matrices, we have
+  ;;; 2 issues.  The first is the obvious, the numerical values, and
+  ;;; the second is not quite obvious, which is the metadata
+  ;;; surrounding the difference between an MxN and NxM matrix.  For
+  ;;; the first, think about v= and for the second, m= is the right
+  ;;; function.
 
   (defvar m4 nil
     "yet another placeholder.")
@@ -127,42 +174,6 @@
 
   )
 
-
-(progn ;; FIX ALL THE ERRORS
-
-  ;; FIXME: need to get the foriegn-friendly arrays package involved. 
-  (defvar m2a nil
-    "placeholder 2")
-  (setf m2a (make-matrix 2 5
-			:implementation :foreign-array 
-			:element-type 'integer 
-			:initial-contents #2A(( 1 2 3 4 5)
-					      ( 6 7 8 9 10))))
-
-  ;; FIXME -- bad error!!
-  ;; This index isn't correct, and it doesn't barf correctly. 
-  (mref m1 2 3)
-  (setf (mref m1 2 3) 1.2d0)
-  m1
-
-  ;; FIXME: the following has no applicable method!
-  (m* m2 (transpose m2))
-
-  m4
-  (transpose m4)
-  ;; given the above...
-  ;; FIXME: Big Barf!
-  (v= (row m4 1)
-      (col (transpose m4) 1) ) ;; fails ???
-
-  ;; and the same problem.
-  m3 
-  (transpose m3)
-  (v= (col m3 1) (row (transpose m3) 1))
-  (v= (row m3 1) (col (transpose m3) 1))
-
-
-  )
 
 
 ;;; EXAMPLES TO DEMONSTRATE
@@ -565,4 +576,3 @@ m01b
     (make-matrix 3 1 :initial-contents '((4d0) (14d0) (24d0))))
 (m= (col *b* 4)
     (make-matrix 3 1 :initial-contents '((5d0) (15d0) (25d0))))
-
