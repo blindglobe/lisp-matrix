@@ -19,8 +19,10 @@
 ;; failures:
 ;; # ut         : make-predicate
 
-(in-package :lisp-matrix-user)
+;; Tests to create:  
+;; # Need to add tests for col/row-offset access for general/all matrices. 
 
+(in-package :lisp-matrix-user)
 
 ;; (lisp-matrix-unittests:run-lisp-matrix-tests)
 ;; (describe (lisp-matrix-unittests:run-lisp-matrix-tests))
@@ -41,12 +43,11 @@
 ;;    fails.
 ;; # 
 
-
 (progn ;; SETUP DATA, these work
 
   (defvar m01 nil
     "6x5 matrix with entries representing row+1,col+1 values, for
-      test purposes.")
+     test purposes.")
 
   (setf m01 (make-matrix
 	     6 5
@@ -107,4 +108,4 @@
 
   (format nil "Data set up")) ; EVAL HERE TO SETUP DATA
 
-;;;;;;; FIX ALL THE ERRORS
+;;;;;;; FIX THESE ERRORS
