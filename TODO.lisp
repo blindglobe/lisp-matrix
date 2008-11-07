@@ -108,12 +108,12 @@
 
   (format nil "Data set up")) ; EVAL HERE TO SETUP DATA
 
-;;;;;;; FIX THESE ERRORS
 
 
-(progn ;; FIX ALL THE ERRORS
 
-  ;; FIXME: need to get the foriegn-friendly arrays package involved. 
+(progn ;; == FIX ALL THE ERRORS
+
+  ;; = FIXME: need to get the foriegn-friendly arrays package involved. 
   (defvar m2a nil
     "placeholder 2")
   (setf m2a (make-matrix 2 5
@@ -123,10 +123,9 @@
 					      ( 6 7 8 9 10))))
 
 
-  ;; FIXME: the following has no applicable method!
+  ;; = FIXME: the following has no applicable method!
   (m* m2 (transpose m2))1
 
-
-
+  ;; = FIXME: ...
   )
 
