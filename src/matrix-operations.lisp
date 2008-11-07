@@ -1,3 +1,5 @@
+;;; need license and etc data.
+
 (in-package :lisp-matrix)
 
 (defmacro with-typed-values ((&rest bindings) matrix &body body)
@@ -38,3 +40,24 @@
   (:documentation "")
   (:method ((matrix matrix-like))
     (asum matrix)))
+
+
+;;; We need to consider the equivalent of rbind/cbind operations, for
+;;; building larger matrices from smaller but "dimension-matching"
+;;; matrices. 
+
+(defgeneric row-bind (a b)
+  (:documentation "If the number of columns of m1 and m2 match, join
+  them.  Think of a sandwich approach, resulting in:
+     m1
+     --
+     m2 "))
+
+(defgeneric col-bind (a b)
+  (:documentation "If the number of rows of m1 and m2 match, join
+  them.  Think of a pair of columns, resulting in
+     m1 | m2  "))
+
+
+;;; also on the list would be outer-product, but that should come from
+;;; LAPACK. 
