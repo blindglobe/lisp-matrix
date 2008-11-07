@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-11-05 08:37:34 tony>
+;;; Time-stamp: <2008-11-06 20:03:11 tony>
 
 (in-package :lisp-matrix)
 
@@ -271,6 +271,8 @@
   the size any smaller, i.e. by adding max row/column, or #
   rows/cols."))
 
+;;; These simply ensure that we let the super-class do the right thing
+;;; rather than throwing an error.
 (defmethod row-offset ((mat matrix-like))
   "If we are not specialize, then we need to consider that we no
   longer need to think about anything but 0."
@@ -412,7 +414,10 @@
   "One of :LISP-ARRAY (use FFA package) or :FOREIGN-ARRAY (uses FNV
   package).")
 
-(defparameter *default-element-type* 'double-float)
+(defparameter *default-element-type* 'double-float
+  "Possible values: 
+      'double-float  'single-float  'complex-single-float
+   but this list is probably incomplete.")
 
 (defgeneric make-matrix* (nrows ncols implementation &key element-type
                                 initial-element)
@@ -727,6 +732,12 @@
         (setf (mref b i j) (aref a i j)))))
   b)
 
+
+;;; This particular method is weird -- dictates a row-major
+;;; orientation for the lists.  Is there any reason to consider a
+;;; column-major orientation for the lists used to form the matrix?
+;;; Or do we just figure it out from the structure of the lists which
+;;; are used for input.
 (defmethod copy! ((a list) (b matrix-like))
   (unless (and (= (nrows b) (length a))
                (= (ncols b) (length (first a))))
