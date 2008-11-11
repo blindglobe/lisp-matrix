@@ -310,3 +310,22 @@
       (ensure (not (m= (rand 2 3 :state state1)
                    (rand 2 3 :state state1)))))))
 
+
+(addtest (lisp-matrix-ut-matrix)
+  bind2-dims-conditions
+  (for-all-implementations
+    (let ((m1 (zeros 2 3))
+	  (m2 (zeros 2 2))
+	  (m3 (zeros 3 2)))
+      ;; one order of the conditions based on dimension ineq
+      (ensure (m= (bind2 m1 m2 :by :column)
+		  (zeros 2 5)))
+      (ensure (m= (bind2 m2 m3 :by :row)
+		  (zeros 5 2)))
+      ;; other order of the conditions based on dimension ineq
+      (ensure (m= (bind2 m2 m1 :by :column)
+		  (zeros 2 5)))
+      (ensure (m= (bind2 m3 m2 :by :row)
+		  (zeros 5 2))))))
+
+;; (describe (run-test :test-case 'bind2-dims-conditions))

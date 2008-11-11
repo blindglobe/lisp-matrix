@@ -129,3 +129,10 @@
   ;; = FIXME: ...
   )
 
+(defparameter *m1*  (zeros 2 3))
+(defparameter *m2*  (zeros 2 2))
+(defparameter *m3*  (zeros 3 2))
+
+*m1*  *m2*  *m3*
+(bind2 *m1* *m2* :by :column) ;; works
+(bind2 *m2* *m3* :by :row) ;; fails

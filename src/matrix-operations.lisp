@@ -49,7 +49,7 @@
 
 ;; next variant, bind, should handle "unlimited" arguments to bind
 ;; together
-(defgeneric bind2 (type m1 m2)
+(defgeneric bind2 (m1 m2 &key by)
   (:documentation "Simple experiment, not necessarily part of the API
   yet!  When type is :row, If the number of columns of m1 and m2
   match, join them.  Think of a sandwich approach, resulting in:
@@ -61,8 +61,9 @@
   The ARGS can be matrices, vectors, or lists. Arguments are bound
   into a matrix along their rows. Example:
 
-    (bind2 :rows #2a((1 2)(3 4)) #(5 6)) returns #2a((1 2)(3 4)(5 6))
-
+    (bind2 #2a((1 2)(3 4)) #(5 6) :by :row) 
+  returns
+    #2a((1 2)(3 4)(5 6))
 
   When type is :column, if the number of rows of m1 and m2 match, join 
   them.  Think of a pair of columns, resulting in 
@@ -72,7 +73,55 @@
   API should result with the ARGS as matrices, vectors, or
   lists. Arguments are bound into a matrix along their columns.
   Example: 
-    (bind2 :columns #2a((1 2)(3 4)) #(5 6)) returns #2a((1 2 5)(3 4 6))"))
+    (bind2 #2a((1 2)(3 4)) #(5 6) :by :column) 
+  returns 
+    #2a((1 2 5)(3 4 6))"))
+
+(defmethod bind2 ((m1 matrix-like) (m2 matrix-like) &key by)
+  "Binding for matrix, columns, deep copy into a new matrix of the
+  right size.   Could we solve the row-binding approach by transpose?" 
+  (ecase by
+    (:column ;; mostly right
+     (progn
+       (assert (= (nrows m1) (nrows m2)))
+       (let* ((nr (nrows m1))
+	      (nc (+ (ncols m1) (ncols m2)))
+	      (mincol (min (ncols m1) (ncols m2)))
+	      (addcol (- (max (ncols m1) (ncols m2))
+			 (min (ncols m1) (ncols m2))))
+	      (m (make-matrix nr nc)))
+	 (dotimes (i nr)
+	   (dotimes (j mincol) ; copy equal parts 
+	     (setf (mref m i j) (mref m1 i j))
+	     (setf (mref m i (+ j (ncols m1))) (mref m2 i j)))
+	   (if (> (ncols m1) (ncols m2)) ; copy the excess part
+	       (dotimes (j addcol) (setf (mref m i (+ j mincol))
+					 (mref m1 i (+ j mincol))))
+	       (dotimes (j addcol) (setf (mref m i (+ j mincol (ncols m1)))
+	 				 (mref m2 i (+ j mincol ))))))
+	 m)))
+    (:row ;; mostly wrong
+     (progn 
+       (assert (= (ncols m1) (ncols m2)))
+       (let* ((nr (+ (nrows m1) (nrows m2)))
+	      (nc (ncols m1))
+	      (minrow (min (nrows m1) (nrows m2)))
+	      (addrow (- (max (nrows m1) (nrows m2))
+			 (min (nrows m1) (nrows m2))))
+	      (m (make-matrix nr nc)))
+	 (dotimes (j nc)
+	   (dotimes (i minrow) ; copy equal parts 
+	     (setf (mref m i j) (mref m1 i j))
+	     (setf (mref m (+ i (nrows m1)) j) (mref m2 i j)))
+	   (if (> (nrows m1) (nrows m2)) ; copy the excess part
+	       (dotimes (i addrow) (setf (mref m (+ i minrow) j)
+					 (mref m1 (+ i minrow) j)))
+	       (dotimes (i addrow) (setf (mref m (+ i minrow (nrows m1)) j)
+					 (mref m2 (+ i minrow) j)))))
+	 m)))
+    (t (error "Problems"))))
+
+
 
 
 ;;; also on the list would be outer-product, but that should come from

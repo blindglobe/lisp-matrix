@@ -82,6 +82,8 @@
 	   assert-valid-matrix-index
 
 	   window-matview strided-matview
+
+	   bind2
 	   ))
 
 
@@ -89,7 +91,6 @@
   (:documentation "User experimentation package for lisp-matrix")
   (:use :cl
 	:lisp-matrix))
-
 
 (defpackage :lisp-matrix-unittests
   (:documentation "Unit, validation, and regression testing for lisp-matrix")
