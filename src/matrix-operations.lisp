@@ -47,8 +47,9 @@
 ;;; matrices. 
 
 
-
-(defgeneric bind2 (type a b)
+;; next variant, bind, should handle "unlimited" arguments to bind
+;; together
+(defgeneric bind2 (type m1 m2)
   (:documentation "Simple experiment, not necessarily part of the API
   yet!  When type is :row, If the number of columns of m1 and m2
   match, join them.  Think of a sandwich approach, resulting in:
@@ -57,10 +58,21 @@
          --
          m2 
 
+  The ARGS can be matrices, vectors, or lists. Arguments are bound
+  into a matrix along their rows. Example:
+
+    (bind2 :rows #2a((1 2)(3 4)) #(5 6)) returns #2a((1 2)(3 4)(5 6))
+
+
   When type is :column, if the number of rows of m1 and m2 match, join 
   them.  Think of a pair of columns, resulting in 
  
-         m1 | m2 "))
+         m1 | m2 
+
+  API should result with the ARGS as matrices, vectors, or
+  lists. Arguments are bound into a matrix along their columns.
+  Example: 
+    (bind2 :columns #2a((1 2)(3 4)) #(5 6)) returns #2a((1 2 5)(3 4 6))"))
 
 
 ;;; also on the list would be outer-product, but that should come from
