@@ -46,18 +46,22 @@
 ;;; building larger matrices from smaller but "dimension-matching"
 ;;; matrices. 
 
-(defgeneric row-bind (a b)
-  (:documentation "If the number of columns of m1 and m2 match, join
-  them.  Think of a sandwich approach, resulting in:
-     m1
-     --
-     m2 "))
 
-(defgeneric col-bind (a b)
-  (:documentation "If the number of rows of m1 and m2 match, join
-  them.  Think of a pair of columns, resulting in
-     m1 | m2  "))
+
+(defgeneric bind2 (type a b)
+  (:documentation "Simple experiment, not necessarily part of the API
+  yet!  When type is :row, If the number of columns of m1 and m2
+  match, join them.  Think of a sandwich approach, resulting in:
+
+         m1
+         --
+         m2 
+
+  When type is :column, if the number of rows of m1 and m2 match, join 
+  them.  Think of a pair of columns, resulting in 
+ 
+         m1 | m2 "))
 
 
 ;;; also on the list would be outer-product, but that should come from
-;;; LAPACK. 
+;;; LAPACK?
