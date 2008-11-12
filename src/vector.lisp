@@ -115,7 +115,42 @@
   (setf (vref (parent vector) i) value))
 
 
-;;;; *** sliced  view
+;;; *** Diagonal view implemented via classes.
+
+(defclass diagonal-vecview (vecview))
+
+(defmethod vref ((vector diagonal-vecview) i)
+  (mref (parent vector) i i))
+
+(defmethod (setf vref) (value (vector diagonal-vecview) i)
+  (setf (mref (parent vector) i i) value))
+
+;;; FIXME: write!
+(defgeneric diagonal! (mat)
+  (:documentation "create a vector representing the diagonal of matrix
+  x.  This is a deep copy, NOT a view.  It might be easy to write the
+  view as a class with appropriate 
+    vref x i 
+  pulling out 
+    mref x i i 
+  should we write such a view?")
+  ;; (:method (mat transpose-matview))
+  ;; (:method (mat window-matview))
+  ;; (:method (mat strided-matview))
+  (:method (mat matrix-like)
+    (make-instance 'diagonal-vecview
+		   :parent mat
+                   :nrows (ecase type (:row 1) (:column nelts))
+                   :ncols (ecase type (:row nelts) (:column 1))
+		   :offset offset
+		   :stride stride))
+  )
+;; use class or make a copy and pull out as a function?
+
+
+
+
+;;;; *** Sliced View
 
 
 (defclass slice-vecview (vecview)
@@ -389,6 +424,9 @@
 			      (col-stride matrix))
                    :nelts (nrows matrix)
                    :type :column)))))
+
+
+
 
 (defgeneric v= (x y)
   (:documentation "Test for equality of both number of elements and
