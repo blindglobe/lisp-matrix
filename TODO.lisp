@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 56, Failures = 1, Errors = 0 ;; 27.10.2008
+;; Tests = 58, Failures = 1, Errors = 1 ;; 14.11.2008
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
 ;; failures:
@@ -136,3 +136,40 @@
 *m1*  *m2*  *m3*
 (bind2 *m1* *m2* :by :column) ;; works
 (bind2 *m2* *m3* :by :row) ;; fails
+
+
+
+
+(progn
+  (defparameter *a2*
+    (make-matrix 4 4
+		 :initial-contents '((0d0 1d0 2d0 3d0)
+				     (1d0 2d0 3d0 4d0)
+				     (2d0 3d0 4d0 5d0)
+				     (3d0 4d0 5d0 6d0))))
+  (defparameter *b2*
+    (make-matrix 1 4
+		 :initial-contents '((0d0 2d0 4d0 6d0))))
+  (defparameter *c2*
+    (make-vector 4
+		 :initial-contents '((0d0 2d0 4d0 6d0))
+		 :type :row))
+  (defparameter *d2*
+      (make-vector 4
+		   :initial-contents '((0d0)( 2d0)( 4d0)( 6d0))
+		   :type :column))
+  ;; needs an m= dispatch....!
+  (m= (diagonal! *a2*)
+      *c2*)
+  (m= (diagonal! (transpose *a2*))
+      *d2*)
+  (v= (diagonal! *a2*)
+      *c2*)
+  (v= (diagonal! (transpose *a2*))
+      *d2*)
+  (v= (diagonal! (transpose *a2*))
+      *c2*)
+
+  (v= (diagonal! *a2*)
+      (make-vector 4))
+  )

@@ -116,17 +116,40 @@
 
 
 ;;; *** Diagonal view implemented via classes.
+;;;
+;;; Open question: should we restrict this to square matrices?  The
+;;; operation of a diagonal is defined for rectangular matrices, but
+;;; may not make so much sense (though some of the NxM decompositions
+;;; use diagonals of subcomponents).   Currently, we assume this
+;;; class/operation is good for square matrices
 
-(defclass diagonal-vecview (vecview))
+;;; need to dispatch properly when we have a transpose...!  (i.e. when
+;;; we make inherited a transposed matrix, need to do the right
+;;; thing...
 
-(defmethod vref ((vector diagonal-vecview) i)
-  (mref (parent vector) i i))
 
-(defmethod (setf vref) (value (vector diagonal-vecview) i)
-  (setf (mref (parent vector) i i) value))
+;;; alternatively, make a vector creation function from a matrix,
+;;; rather than a whole class -- this might be cleaner.
+(defclass diagonal-vecview (vecview) ())
+
+(defmethod vref ((vec diagonal-vecview) i)
+  (mref (parent vec) i i))
+
+(defmethod (setf vref) (value (vec diagonal-vecview) i)
+  (setf (mref (parent vec) i i) value))
+
+;; needed so that  m= works properly
+(defmethod mref ((mat diagonal-vecview) i j)
+  (ecase (vector-type mat)
+    (:row
+     (assert (zerop i))
+     (vref mat j))
+    (:column
+     (assert (zerop j))
+     (vref mat i))))
 
 ;;; FIXME: write!
-(defgeneric diagonal! (mat)
+(defgeneric diagonal! (mat &key type)
   (:documentation "create a vector representing the diagonal of matrix
   x.  This is a deep copy, NOT a view.  It might be easy to write the
   view as a class with appropriate 
@@ -134,20 +157,36 @@
   pulling out 
     mref x i i 
   should we write such a view?")
-  ;; (:method (mat transpose-matview))
-  ;; (:method (mat window-matview))
-  ;; (:method (mat strided-matview))
-  (:method (mat matrix-like)
-    (make-instance 'diagonal-vecview
-		   :parent mat
-                   :nrows (ecase type (:row 1) (:column nelts))
-                   :ncols (ecase type (:row nelts) (:column 1))
-		   :offset offset
-		   :stride stride))
-  )
+  ;; (:method ((mat transpose-matview) &key (type :row)) )
+  ;; (:method ((mat window-matview) &key (type :row)) )
+  ;; (:method ((mat strided-matview) &key (type :row)) )
+  (:method ((mat matrix-like) &key (type :row))
+    (let ((nelts (min (ncols mat)
+		      (nrows mat)))
+	  ;; (stride (real-stride mat))
+	  ;; (offset ;;??? )
+	  )
+      (make-instance 'diagonal-vecview
+		     :parent mat
+		     :nrows (ecase type (:row 1) (:column nelts))
+		     :ncols (ecase type (:row nelts) (:column 1))
+		     ;; :offset (offset mat)
+		     ;; :stride stride
+		     ))))
 ;; use class or make a copy and pull out as a function?
 
 
+(defun diagonalf (mat &key (type :row))
+  "This function provides a deep copy alternative to the diagonal
+  class structure, and also might be cleaner to work with.  But might
+  not be quite so flexible."
+  (let* ((nelts (min (ncols mat)
+		     (nrows mat)))
+	 ;; (stride (real-stride mat))
+	 ;; (offset ;;??? )
+	 (d (make-vector nelts :type type)))
+      (dotimes (i nelts)
+	(setf (vref d i) (mref mat i i)))))
 
 
 ;;;; *** Sliced View
@@ -244,8 +283,9 @@
   vector, by using the generic function COPY!.
 
   IMPLEMENTATION can be one of :LISP-ARRAY and :FOREIGN-ARRAY"
-  (apply #'make-matrix (ecase type (:row 1) (:column nelts))
-         (ecase type (:row nelts) (:column 1))
+  (apply #'make-matrix
+	 (ecase type (:row 1) (:column nelts)) ; nrows
+         (ecase type (:row nelts) (:column 1)) ; ncols 
          :implementation implementation
          :element-type element-type
          (append (when initial-element-p

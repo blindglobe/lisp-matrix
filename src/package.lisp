@@ -84,6 +84,8 @@
 	   window-matview strided-matview
 
 	   bind2
+	   
+	   diagonal!
 	   ))
 
 
