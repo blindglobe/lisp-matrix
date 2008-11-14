@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 58, Failures = 1, Errors = 1 ;; 14.11.2008
+;; Tests = 58, Failures = 1, Errors = 0 ;; 14.11.2008
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
 ;; failures:
@@ -129,18 +129,30 @@
   ;; = FIXME: ...
   )
 
-(defparameter *m1*  (zeros 2 3))
-(defparameter *m2*  (zeros 2 2))
-(defparameter *m3*  (zeros 3 2))
 
-*m1*  *m2*  *m3*
-(bind2 *m1* *m2* :by :column) ;; works
-(bind2 *m2* *m3* :by :row) ;; fails
+(progn ;; bind2 tests
+
+  (defparameter *m1*  (zeros 2 3))
+  (defparameter *m2*  (zeros 2 2))
+  (defparameter *m3*  (zeros 3 2))
+
+  *m1*  *m2*  *m3*
+  (defparameter *m4*  (bind2 *m1* *m2* :by :column) )
+  (bind2 *m2* *m3* :by :row)
+  ;; change priority, knowng the internals
+  (bind2 *m2* *m1* :by :column)
+  (bind2 *m3* *m2* :by :row) 
+  
+  *m4*
+  (setf  (mref *m4* 0 0) 1d0 ) ; is a copy, doesn't affect historical
+			       ; reference structures
+  *m4*
+  *m1* *m2* )
 
 
 
 
-(progn
+(progn ;; diagonal class and function tests.
   (defparameter *a2*
     (make-matrix 4 4
 		 :initial-contents '((0d0 1d0 2d0 3d0)
@@ -172,4 +184,15 @@
 
   (v= (diagonal! *a2*)
       (make-vector 4))
+  (diagonalf *a2*)
+
+  (v= (diagonal! *a2*)
+      (diagonalf *a2*))
+
+  (v= (diagonal! (transpose  *a2*))
+      (diagonalf (transpose  *a2*)))
+
+
+  
+  ;; and check assignments
   )
