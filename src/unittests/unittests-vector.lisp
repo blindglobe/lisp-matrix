@@ -180,7 +180,7 @@
 ;;; DIAGONAL CLASS TESTS
 
 (addtest (lisp-matrix-ut-vectors)
-  diagonal-vectors
+  diagonal!-vectors
   (for-all-implementations
     (let* ((a (make-matrix 4 4
 			   :initial-contents '((0d0 1d0 2d0 3d0)
@@ -195,16 +195,41 @@
            (d (make-vector 4
 			   :initial-contents '((0d0)( 2d0)( 4d0)( 6d0))
 			   :type :column)))
-;; worth doing a bit later
-;;       (ensure (m= (diagonal! a)
-;; 		  b))
-;;       (ensure (m= (diagonal! (transpose a))
-;; 		  b))
+      (ensure (m= (diagonal! a)
+ 		  b))
+      (ensure (m= (diagonal! (transpose a))
+ 		  b))
       (ensure (v= (diagonal! a)
 		  b))
       (ensure (v= (diagonal! (transpose a))
+		  b)))))
+
+
+
+(addtest (lisp-matrix-ut-vectors)
+  diagonalf-vectors
+  (for-all-implementations
+    (let* ((a (make-matrix 4 4
+			   :initial-contents '((0d0 1d0 2d0 3d0)
+					       (1d0 2d0 3d0 4d0)
+					       (2d0 3d0 4d0 5d0)
+					       (3d0 4d0 5d0 6d0))))
+           (b (make-matrix 1 4
+			   :initial-contents '((0d0 2d0 4d0 6d0))))
+           (c (make-vector 4
+			   :initial-contents '((0d0 2d0 4d0 6d0))
+			   :type :row))
+           (d (make-vector 4
+			   :initial-contents '((0d0)( 2d0)( 4d0)( 6d0))
+			   :type :column)))
+      (ensure (m= (diagonalf a)
+ 		  b))
+      (ensure (m= (diagonalf (transpose a))
+ 		  b))
+      (ensure (v= (diagonalf a)
 		  b))
+      (ensure (v= (diagonalf (transpose a))
+		  b)))))
 
-      )))
-
-;; (describe (run-test :test-case 'diagonal-vectors))
+;; (describe (run-test :test-case 'diagonalf-vectors))
+;; (describe (run-test :test-case 'diagonal!-vectors))
