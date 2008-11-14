@@ -186,7 +186,8 @@
 	 ;; (offset ;;??? )
 	 (d (make-vector nelts :type type)))
       (dotimes (i nelts)
-	(setf (vref d i) (mref mat i i)))))
+	(setf (vref d i) (mref mat i i)))
+      d))
 
 
 ;;;; *** Sliced View

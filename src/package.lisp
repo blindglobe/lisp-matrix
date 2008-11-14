@@ -85,7 +85,7 @@
 
 	   bind2
 	   
-	   diagonal!
+	   diagonal! diagonalf
 	   ))
 
 
