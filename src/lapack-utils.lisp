@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-10-17 18:29:58 tony>
+;;;; Time-stamp: <2008-11-16 13:33:42 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -73,7 +73,7 @@
        (t form)))
     (list
      ;; FIXME: we are getting scope capture according to SBCL.  See
-     ;; unittests for make-predicate 
+     ;; unittests for make-predicate, which currently fail.  Whoops!
      (labels ((aux (arg)
                 (etypecase arg
                   (symbol (list arg 'a))
@@ -86,7 +86,7 @@
           ,(aux form))))))
 
 (defmacro make-predicate-macro (form)
-  "Trying to fix make-predicate."
+  "Trying to fix make-predicate, through a macro approach. DOES NOT WORK!"
   (list form)
 #|
   (typecase ,form

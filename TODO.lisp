@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 60, Failures = 1, Errors = 0 ;; 11.11.2008
+;; Tests = 59, Failures = 1, Errors = 11 ;; 11.11.2008
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
 ;; failures:
@@ -196,3 +196,18 @@
   
   ;; and check assignments
   )
+
+
+;; So,  how do I vectorize something like:
+;;     (a + b) / c  
+;; (i.e. standard normalization)?  So we'd like to do something like:  
+;;     (v./ (v.+ a b) c)
+;; or...?  where the v.# operators disregard row vs. column oriented
+;; aspect, and the v# operators worry about orientation.    So if we
+;; know what we've got, we would then be able to do something like 
+;;     (v/ (v+ a b) c)
+;; or possibly
+;;     (v/ (m+ a b) c)
+;; but we still need to figure out the API for vector ops, and whether
+;; any of this is done by BLAS (which it should be) or LAPACK
+;; -- ditto.

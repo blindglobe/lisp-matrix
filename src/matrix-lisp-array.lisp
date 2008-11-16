@@ -23,6 +23,7 @@
 ;; FIXME: need to throw appropriate error when the indices are
 ;;        illegal.  what to throw: error? condition?
 ;;  SOLN: tested, but poorly, via assertion in flatten-matrix-indices...
+;;  SOLN: proper, but not implemented, is to trap by condition.
 (defmethod mref ((matrix la-matrix) i j)
   (assert-valid-matrix-index matrix i j)
   (aref (data matrix) (flatten-matrix-indices matrix i j)))

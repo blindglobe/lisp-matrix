@@ -11,7 +11,7 @@
         :org.middleangle.foreign-numeric-vector
         :org.middleangle.cl-blapack
 	:ffa)
-  (:import-from :fnv)
+  (:import-from :fnv) ;; do we really need this?  We are using it!
   (:export make-matrix make-matrix*  ;; basic instantiations
 	   strides-class
 	   strides unit-strides-p
@@ -28,8 +28,17 @@
 	   copy-maybe copy-maybe*
 	   fill-matrix
 
-	   m= m* m+ m- 
-	   v= v* v+ v- 
+	   m= m* m+ m-
+	   m.* m.+ m.- 
+	   v= v* v+ v-
+	   ;; v* v+ v-  ; these are inherited from m-based ops, but
+	   ;; have a slight issue with still needing a v.* variant,
+	   ;; since v* would inherit from m*, which needs appropriate
+	   ;; matrix multiplication.
+	   ;; Do we define these as non-oriented methods?  (i.e. with
+	   ;; Nx1 and 1xN methods doing the right thing when added
+	   ;; together?  Currently, we'd barf on the mis-alignment.
+	   ;; and 
 
 	   print-object
 	   mref data row col
@@ -51,13 +60,11 @@
 	   la-simple-vector-complex-single
 	   la-simple-vector-complex-double
 
-
 	   ;; Next paragrah of symbols are guesses... wrong?
 	   fa-simple-matrix-double  fa-simple-matrix-integer
 	   fa-simple-matrix-complex  fa-simple-matrix-float 
 	   fa-simple-vector-double fa-simple-vector-integer
 	   fa-simple-matrix-fixnum 
-
 
 	   col-vector-p
 	   make-vector
@@ -65,17 +72,21 @@
 	   real-stride
 	   row-vector-p
 
+	   ;; exported BLAS/LAPACK, the "simple" versions which handle
+	   ;; the various types (double, complex-float, integer,
+	   ;; etc...) 
 	   gemm scal
 	   iamax asum nrm2 axpy slice
 	   dot dotc dotu
 
+	   ;; data storage modes and defaults.
 	   *supported-datatypes* datatype->letter
 	   float double complex-float complex-double
 	   single-float double-float
-
-	   *implementations*
-
-	   *default-element-type* *default-implementation*
+	   *default-element-type*
+	   
+	   ;; actual storage place (lisp or foreign)
+	   *implementations* *default-implementation*
 
 	   make-predicate make-predicate-macro
 

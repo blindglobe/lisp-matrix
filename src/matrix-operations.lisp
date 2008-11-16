@@ -14,7 +14,8 @@
           ,@body)))))
 
 (defgeneric m* (a b)
-  (:documentation "Matrix multiplication: A * B.")
+  (:documentation "Matrix multiplication: A * B.   Defaults to the
+  element type of the first matrix.  Better approach?")
   (:method ((a matrix-like) (b matrix-like))
     (with-typed-values ((one 1)
                         (zero 0)) a
@@ -126,3 +127,29 @@
 
 ;;; also on the list would be outer-product, but that should come from
 ;;; LAPACK?
+
+
+
+;;; Element-wide operations.  API is similar to matlisp
+
+(defgeneric m.+ (mata matb)
+  (:documentation "same as m+ which is inherently an element-wise operation.")
+  (:method ((mata matrix-like) (matb matrix-like)) (m+ mata matb)))
+
+
+(defgeneric m.- (mata matb)
+  (:documentation "same as m- which is inherently an element-wise operation.")
+  (:method ((mata matrix-like) (matb matrix-like)) (m- mata matb)))
+
+
+(defgeneric m.* (mata matb)
+  (:documentation "same as m+ which is inherently an element-wise
+  operation. How should we handle coercion?  probably the right way to
+  do this will be to consider the least specific form, and coerce
+  back.  HOWEVER, this could be done simpler by barfing (forcing
+  explicit coercion) and this would be safer, numerically.")
+  (:method ((mata matrix-like) (matb matrix-like))
+    (assert (and (= (matrix-dimensions mata)
+		    (matrix-dimensions matb))))
+    (let ((result (make-matrix ))))
+    ))
