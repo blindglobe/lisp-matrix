@@ -190,7 +190,6 @@
 
 ;;;; GEMM tests
 
-
 (defun check-m* (a b)
   (let ((result (make-matrix 2 2 :initial-contents
                              '((19d0 22d0)
@@ -203,26 +202,26 @@
        (check-m* ,a ,b))))
 
 (def-m*-test m*-basic-test
-    (make-matrix 2 2 :initial-contents
-                 '((1d0 2d0)
-                   (3d0 4d0)))
+  (make-matrix 2 2 :initial-contents
+	       '((1d0 2d0)
+		 (3d0 4d0)))
   (make-matrix 2 2 :initial-contents
                '((5d0 6d0)
                  (7d0 8d0))))
 
 (def-m*-test m*-transpose-a
-    (transpose
-     (make-matrix 2 2 :initial-contents
-                  '((1d0 3d0)
-                    (2d0 4d0))))
+  (transpose
+   (make-matrix 2 2 :initial-contents
+		'((1d0 3d0)
+		  (2d0 4d0))))
   (make-matrix 2 2 :initial-contents
                '((5d0 6d0)
                  (7d0 8d0))))
 
 (def-m*-test m*-transpose-b
-    (make-matrix 2 2 :initial-contents
-                 '((1d0 2d0)
-                   (3d0 4d0)))
+  (make-matrix 2 2 :initial-contents
+	       '((1d0 2d0)
+		 (3d0 4d0)))
   (transpose
    (make-matrix 2 2 :initial-contents
                 '((5d0 7d0)
