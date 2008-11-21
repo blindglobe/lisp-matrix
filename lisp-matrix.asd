@@ -67,8 +67,8 @@
       :components
       ((:file "unittests")
        (:file "unittests-matrix" :depends-on ("unittests"))
-       (:file "unittests-matrix-view" :depends-on ("unittests"))
-       (:file "unittests-matrix-lapack" :depends-on ("unittests"))
+       (:file "unittests-matrix-view" :depends-on ("unittests" "unittests-matrix"))
+       (:file "unittests-matrix-lapack" :depends-on ("unittests" "unittests-matrix"))
        (:file "unittests-vector" :depends-on ("unittests")))))
 
        ;; (:file "tests")
