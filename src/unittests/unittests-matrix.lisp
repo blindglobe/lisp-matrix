@@ -329,3 +329,16 @@
 		  (zeros 5 2))))))
 
 ;; (describe (run-test :test-case 'bind2-dims-conditions))
+
+
+
+(addtest (lisp-matrix-ut-matrix)
+  R-apply-columns
+  (for-all-implementations
+    (let ((m1 (ones 2 3))
+	  (m2 (ones 3 2)))
+      ;; one order of the conditions based on dimension ineq
+      (let ((ml (list-of-columns m1)))
+	(dotimes (i (length m1))
+	  (ensure (m= (nth i m1)
+		      (ones 1 3))))))))

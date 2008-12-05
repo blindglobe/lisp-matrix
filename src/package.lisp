@@ -12,8 +12,13 @@
         :org.middleangle.cl-blapack
 	:ffa)
   (:import-from :fnv) ;; do we really need this?  We are using it!
-  (:export make-matrix make-matrix*  ;; basic instantiations
-	   strides-class
+  (:export
+   ;; base classes (need we export more?)
+   matrix-like vector-like
+
+   ;; basic instantiations
+   make-matrix make-matrix*
+   strides-class
 	   strides unit-strides-p
 	   window-class window
 	   transpose-class transpose transposed-p
@@ -46,6 +51,8 @@
 	   matrix-dimension matrix-dimensions
 	   orientation valid-orientation-p opposite-orientation
 	   flatten-matrix-indices flatten-matrix-indices-1
+
+	   vref 
 
 	   la-simple-matrix-double  la-simple-matrix-integer
 	   la-simple-matrix-single
@@ -97,6 +104,8 @@
 	   bind2
 	   
 	   diagonal! diagonalf
+
+	   list-of-rows list-of-columns
 	   ))
 
 

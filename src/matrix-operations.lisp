@@ -1,5 +1,13 @@
 ;;; need license and etc data.
 
+;;; This file contains lisp-centric matrix manipulations which aren't
+;;; necessarily sophisticated numerical linear algebra.  However, it
+;;; relies on BLAS/LAPACK for reasonably numerical ops, and lisp for
+;;; "standard" non-numerical ops such as bind (should we overload
+;;; concatenate instead?)
+
+;;; access to substructures should be found in [matrix|vector].lisp. 
+
 (in-package :lisp-matrix)
 
 (defmacro with-typed-values ((&rest bindings) matrix &body body)
@@ -153,3 +161,40 @@
 		    (matrix-dimensions matb))))
     (let ((result (make-matrix ))))
     ))
+
+;;; Need the equivalent of R's apply or the map-reduce
+
+
+(defun list-of-rows (M)
+  "Returns a list of vector-like elements from matrix M.
+FIXME: AWFUL IMPLEMENTATION"
+  (let ((result nil))
+    (dotimes (i (nrows M))
+      (setf result (append result (list  (row M i)) )))
+    result))
+;;(list-of-rows m01)
+
+(defun list-of-columns (M)
+  "Returns a list of vector-like elements from matrix M.
+FIXME: AWFUL."
+  (let ((result nil))
+    (dotimes (i (ncols M))
+      (setf result (append result (list (col M i)))))
+    result))
+#|
+;; Is this right?
+(defun list-of-margins (M margin-type)) ;; 
+(defun list-of-matrix-partitions (M partition-walker)) ; could be
+					; generalized to return diff
+					; types.
+(defun list-of-vector-partitions (M partition-walker))
+|#
+
+;; (defgeneric map-matrix (withfn mat &key iterator result-type)
+;;   (:documentation "equivalent of R's apply commands.  But with a sense
+;;   of extensibility.")
+;;   (:method (withfn (mat 'vector-like) &key iterator result-type)
+;;     (let ((result))
+;;       )))
+
+;;; Need to add a walker in the sense of 
