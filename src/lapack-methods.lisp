@@ -1,9 +1,10 @@
 (in-package :lisp-matrix)
 
-;;; This file contains actual LAPACK methods.  See functions in
-;;; lapack-utils.lisp for how supporting utility macros and functions.
+;;; This file contains actual BLAS/LAPACK method invocation from Lisp.
+;;; See functions in lapack-utils.lisp for how supporting utility
+;;; macros and functions.
 ;;;
-;;; Time-stamp: <2008-06-13 17:50:11 Evan Monroig>
+;;; Time-stamp: <2008-11-26 08:31:44 tony>
 
 ;;;; * Blas methods
 ;;;;
@@ -12,6 +13,7 @@
 ;;;; Done: xSCAL, xAXPY, xDOT xDOTU, xDOTC, 
 ;;;;
 ;;;; Miss some names: xNRM2, xASUM, IxAMAX
+;;;; FIXME (AJR): these look to be done?   What does the above mean??
 ;;;;
 ;;;; TODO: xROTG, xROTMG, xROT, xROTM, xSWAP, xCOPY, xSDOT
 
@@ -23,7 +25,7 @@
       x
     (!function (nelts x) alpha x 1)))
 
-;; FIXME: need to harmonize with matrix cases
+;; FIXME: needed so to harmonize with matrix cases
 (defmethod scal (alpha (x la-vector-double))
   (assert (typep alpha 'double-float))
   (with-copies ((x (not real-stride) t))
