@@ -491,3 +491,33 @@
       (write (vref object i) :stream stream))))
 
 
+;;; Need copy methods for vectors.
+
+(defmethod copy! ((a vector-like) (b vector-like))
+  (unless (eq a b) ;; don't worry about same objects
+    ;; FIXME: care about fast copy once everything is working
+    (assert (= (nelts a) (nelts b)))
+    (assert (subtypep (element-type a) (element-type b)))
+    (dotimes (i (nelts a))
+      (setf (vref b i) (vref a i))))
+  b)
+
+(defmethod copy! ((a vector-like) (b vector))
+  (unless (eq a b) ;; don't worry about same objects
+    ;; FIXME: care about fast copy once everything is working
+    (assert (= (nelts a) (length b)))
+    ;; FIXME: is the following possible?
+    (assert (subtypep (element-type a) (element-type b)))
+    (dotimes (i (nelts a))
+      (setf (aref b i) (vref a i)))) ;; aref for vectors, but for lists? 
+  b)
+
+(defmethod copy! ((a vector-like) (b list))
+  (unless (eq a b) ;; don't worry about same objects
+    ;; FIXME: care about fast copy once everything is working
+    (assert (= (nelts a) (length b)))
+    ;; FIXME: is the following possible?
+    (assert (subtypep (element-type a) (element-type b)))
+    (dotimes (i (nelts a))
+      (setf (nth i b) (vref a i)))) ;; aref for vectors, but for lists? 
+  b)
