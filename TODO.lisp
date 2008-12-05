@@ -13,8 +13,9 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 59, Failures = 1, Errors = 0  ;; 28.11.2008
-;; but on a bad load, we seem to have:
+;; When loaded first:
+;; Tests = 60, Failures = 1, Errors = 1  ;; 5.12.2008
+;; When initially loaded by or after CLS: 
 ;; Tests = 59, Failures = 1, Errors = 11 ;; 28.11.2008
 
 (run-lisp-matrix-tests)
