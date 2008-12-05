@@ -76,7 +76,7 @@
 
 
   ;; Currently we can make a foriegn matrix of doubles, but not a
-  ;; foriegn matrix of integers.  If we are working with smaller
+  ;; foreign matrix of integers.  If we are working with smaller
   ;; matrices and are not doing a great deal of matrix algebra, then
   ;; we probably prefer :lisp-array rather than :foreign-array.
   (defvar m2b nil
