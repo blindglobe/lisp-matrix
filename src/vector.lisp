@@ -525,7 +525,7 @@
 (defmethod copy! ((a list) (b vector-like))
   (unless (eq a b) ;; don't worry about same objects
     ;; FIXME: care about fast copy once everything is working
-    (assert (= (nelts a) (length b)))
+    (assert (= (length a) (nelts b)))
     ;; FIXME: is the following possible?
     (assert (subtypep (element-type a) (element-type b)))
     (dotimes (i (nelts a))
@@ -535,7 +535,7 @@
 (defmethod copy! ((a vector) (b vector-like))
   (unless (eq a b) ;; don't worry about same objects
     ;; FIXME: care about fast copy once everything is working
-    (assert (= (nelts a) (length b)))
+    (assert (= (length a) (nelts b)))
     ;; FIXME: is the following possible?
     (assert (subtypep (element-type a) (element-type b)))
     (dotimes (i (nelts a))
@@ -545,7 +545,7 @@
 (defmethod copy! ((a vector-like) (b vector-like))
   (unless (eq a b) ;; don't worry about same objects
     ;; FIXME: care about fast copy once everything is working
-    (assert (= (nelts a) (length b)))
+    (assert (= (nelts a) (nelts b)))
     ;; FIXME: is the following possible?
     (assert (subtypep (element-type a) (element-type b)))
     (dotimes (i (nelts a))
