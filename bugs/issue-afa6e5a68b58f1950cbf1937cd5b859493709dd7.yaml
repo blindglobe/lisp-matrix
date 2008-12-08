@@ -1,0 +1,20 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Need to implement sweep operator
+desc: |-
+  sweep operator needed for conformance with LispStat.   Possible strategy
+  is to skip and use a better least-squares approach for linear regression.
+type: :feature
+component: statnumeric
+release: 
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-08 18:06:58.914465 Z
+references: []
+
+id: afa6e5a68b58f1950cbf1937cd5b859493709dd7
+log_events: 
+- - 2008-12-08 18:07:09.279658 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - on hold
