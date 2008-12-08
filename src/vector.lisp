@@ -501,6 +501,7 @@
     (dotimes (i (nelts a))
       (setf (vref b i) (vref a i))))
   b)
+#|
 
 (defmethod copy! ((a vector-like) (b vector))
   (unless (eq a b) ;; don't worry about same objects
@@ -551,3 +552,4 @@
     (dotimes (i (nelts a))
       (setf (vref b i) (vref a i)))) ;; aref for vectors, but for lists? 
   b)
+|#
