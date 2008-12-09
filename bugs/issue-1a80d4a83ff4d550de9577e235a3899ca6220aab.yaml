@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: unittests for row/col-offset access
+desc: need unittests to ensure sstem integrity for col/row-offset access
+type: :task
+component: matrix
+release: 
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-09 07:30:16.264656 Z
+references: []
+
+id: 1a80d4a83ff4d550de9577e235a3899ca6220aab
+log_events: 
+- - 2008-12-09 07:30:27.449528 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - necessary unittest!

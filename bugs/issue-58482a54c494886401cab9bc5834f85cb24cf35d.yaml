@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: make-predicate does variable capture and shouldn't
+desc: make-predicate works within-package, but not in a user-package due to var capture.
+type: :bugfix
+component: lisp-matrix.git
+release: 
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-09 07:32:47.465374 Z
+references: []
+
+id: 58482a54c494886401cab9bc5834f85cb24cf35d
+log_events: 
+- - 2008-12-09 07:33:05.057228 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - used for fast generic construction of predicates.

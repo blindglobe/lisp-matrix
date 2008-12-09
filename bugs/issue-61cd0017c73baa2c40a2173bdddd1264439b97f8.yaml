@@ -1,0 +1,20 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: copy! for vectors barfs
+desc: |-
+  copy! code for vectors is breaking some of the assignments due to inheritance.  Need to
+  robustify it when it gets put back in.
+type: :task
+component: vector
+release: 
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-08 19:41:41.410853 Z
+references: []
+
+id: 61cd0017c73baa2c40a2173bdddd1264439b97f8
+log_events: 
+- - 2008-12-08 19:42:14.346763 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - this code switches between vector, list, and vector-like.

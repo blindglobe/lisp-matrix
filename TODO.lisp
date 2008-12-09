@@ -13,18 +13,12 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; When loaded first:
-;; Tests = 60, Failures = 1, Errors = 1  ;; 5.12.2008
-;; When initially loaded by or after CLS: 
-;; Tests = 59, Failures = 1, Errors = 11 ;; 28.11.2008
+;; Tests = 59, Failures = 1, Errors = 7 ;; 9.12.2008
 
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
 ;; failures:
 ;; # ut         : make-predicate
-
-;; Tests to create:  
-;; # Need to add tests for col/row-offset access for general/all matrices. 
 
 (in-package :lisp-matrix-user)
 
@@ -205,3 +199,4 @@
   
   (mapcar #'princ (list-of-columns m01))
   )
+
