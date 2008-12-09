@@ -5,9 +5,9 @@ desc: |-
   robustify it when it gets put back in.
 type: :task
 component: vector
-release: 
+release: "1.0"
 reporter: Tony <blindglobe@gmail.com>
-status: :unstarted
+status: :in_progress
 disposition: 
 creation_time: 2008-12-08 19:41:41.410853 Z
 references: []
@@ -18,3 +18,13 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - created
   - this code switches between vector, list, and vector-like.
+- - 2008-12-09 20:34:59.828023 Z
+  - Tony <blindglobe@gmail.com>
+  - changed status from unstarted to in_progress
+  - |-
+    some deep confusion with respect to matrices.  Perhaps we just leave the matrices as is,
+    and not worry about the subclass copy?
+- - 2008-12-09 20:36:58.222710 Z
+  - Tony <blindglobe@gmail.com>
+  - assigned to release 1.0 from unassigned
+  - ""

@@ -3,7 +3,7 @@ title: unittests for row/col-offset access
 desc: need unittests to ensure sstem integrity for col/row-offset access
 type: :task
 component: matrix
-release: 
+release: "1.0"
 reporter: Tony <blindglobe@gmail.com>
 status: :unstarted
 disposition: 
@@ -16,3 +16,7 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - created
   - necessary unittest!
+- - 2008-12-09 20:37:20.876261 Z
+  - Tony <blindglobe@gmail.com>
+  - assigned to release 1.0 from unassigned
+  - ""
