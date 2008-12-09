@@ -493,6 +493,7 @@
 
 ;;; Need copy methods for vectors.
 
+
 (defmethod copy! ((a vector-like) (b vector-like))
   (unless (eq a b) ;; don't worry about same objects
     ;; FIXME: care about fast copy once everything is working
@@ -501,7 +502,7 @@
     (dotimes (i (nelts a))
       (setf (vref b i) (vref a i))))
   b)
-#|
+
 
 (defmethod copy! ((a vector-like) (b vector))
   (unless (eq a b) ;; don't worry about same objects
@@ -513,25 +514,57 @@
       (setf (aref b i) (vref a i)))) ;; aref for vectors, but for lists? 
   b)
 
+
+;;; List flattening
+;;; needed for counting.  We don't export this, but would be nice to
+;;; figure out a place to import this from.
+;;; 
+;;; '((1 2 3) (4 5) 6 7 (8)) into '(1 2 3 4 5 6 7 8)
+(defun flatten-list (lst)
+  "Flattens a list of lists into a single list.  Only useful when
+we've mucked up data.  Sign of usage means poor coding!"
+  (cond ((null lst) ;; endp?
+	 nil)
+        ((listp lst)
+         (append (flatten-list (car lst)) (flatten-list (cdr lst))))
+        (t
+	 (list lst))))
+;; (length (flatten-list (list 1 (list 2 3) 4  (list 5 6 7 (list 8 9 )))))
+;; (length (flatten-list '(1 (2 3) 4 (5 6 7 (8 9)))))
+;; (length (flatten-list (list 1 2 3)))
+
+(defun nelts-list-as-v/m-like (x)
+  (length (flatten-list x)))
+
+(defmethod nelts ((x list))
+  (nelts-list-as-v/m-like x))
+
+;; (defparameter *x* (list 1 2 3))
+;; (nth 1 *x*)
+;; (nth 3 *x*)
+;; (setf (nth 3 *x*) 4)
+
 (defmethod copy! ((a vector-like) (b list))
-  (unless (eq a b) ;; don't worry about same objects
-    ;; FIXME: care about fast copy once everything is working
-    (assert (= (nelts a) (length b)))
-    ;; FIXME: is the following possible?
-    (assert (subtypep (element-type a) (element-type b)))
-    (dotimes (i (nelts a))
-      (setf (nth i b) (vref a i)))) ;; aref for vectors, but for lists? 
-  b)
+  (let ((flat-b (flatten-list b)))
+    (unless (eq a b) ;; don't worry about same objects
+      ;; FIXME: care about fast copy once everything is working
+      (assert (= (nelts a) (nelts flat-b)))
+      ;; FIXME: is the following possible?
+      (assert (subtypep (element-type a) (element-type flat-b)))
+      (dotimes (i (nelts a))
+	(setf (nth i flat-b) (vref a i)))) ;; aref for vectors, but for lists? 
+    flat-b))
 
 (defmethod copy! ((a list) (b vector-like))
-  (unless (eq a b) ;; don't worry about same objects
-    ;; FIXME: care about fast copy once everything is working
-    (assert (= (length a) (nelts b)))
-    ;; FIXME: is the following possible?
-    (assert (subtypep (element-type a) (element-type b)))
-    (dotimes (i (nelts a))
-      (setf (vref b i) (nth i a)))) ;; aref for vectors, but for lists? 
-  b)
+  (let ((flat-a (flatten-list a)))
+    (unless (eq a b) ;; don't worry about same objects
+      ;; FIXME: care about fast copy once everything is working
+      (assert (= (nelts a) (nelts b)))
+      ;; FIXME: is the following possible?
+      (assert (subtypep (element-type a) (element-type b)))
+      (dotimes (i (nelts a))
+	(setf (vref b i) (nth i a)))) ;; aref for vectors, but for lists? 
+    b))
 
 (defmethod copy! ((a vector) (b vector-like))
   (unless (eq a b) ;; don't worry about same objects
@@ -552,4 +585,4 @@
     (dotimes (i (nelts a))
       (setf (vref b i) (vref a i)))) ;; aref for vectors, but for lists? 
   b)
-|#
+
