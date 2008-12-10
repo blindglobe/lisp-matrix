@@ -491,7 +491,9 @@
       (write (vref object i) :stream stream))))
 
 
-;;; Need copy methods for vectors.
+#|
+
+;;; Need copy methods for vectors?
 
 
 (defmethod copy! ((a vector-like) (b vector-like))
@@ -549,31 +551,32 @@ we've mucked up data.  Sign of usage means poor coding!"
     (unless (eq a b) ;; don't worry about same objects
       ;; FIXME: care about fast copy once everything is working
       (assert (= (nelts a) (nelts flat-b)))
-      ;; FIXME: is the following possible?
-      (assert (subtypep (element-type a) (element-type flat-b)))
+      ;; FIXME: not needed, since list isn't a fixed-type, and we are
+      ;; coming from  fixed type structure!.
+      ;; (assert (subtypep (element-type a) (element-type flat-b)))
       (dotimes (i (nelts a))
 	(setf (nth i flat-b) (vref a i)))) ;; aref for vectors, but for lists? 
     flat-b))
 
 (defmethod copy! ((a list) (b vector-like))
-  (let ((flat-a (flatten-list a)))
+  (let ((flat-a (flatten-list a))
+	(element-type (element-type b)))
     (unless (eq a b) ;; don't worry about same objects
       ;; FIXME: care about fast copy once everything is working
       (assert (= (nelts a) (nelts b)))
-      ;; FIXME: is the following possible?
-      (assert (subtypep (element-type a) (element-type b)))
       (dotimes (i (nelts a))
-	(setf (vref b i) (nth i a)))) ;; aref for vectors, but for lists? 
+	(assert (typep (nth i a) element-type ))
+	(setf (vref b i) (nth i a))))
     b))
 
 (defmethod copy! ((a vector) (b vector-like))
   (unless (eq a b) ;; don't worry about same objects
     ;; FIXME: care about fast copy once everything is working
     (assert (= (length a) (nelts b)))
-    ;; FIXME: is the following possible?
-    (assert (subtypep (element-type a) (element-type b)))
-    (dotimes (i (nelts a))
-      (setf (vref b i) (aref a i)))) ;; aref for vectors, but for lists? 
+    (let ((element-type (element-type b)))
+      (dotimes (i (nelts a))
+	(assert (typep (aref a i) element-type))
+	(setf (vref b i) (aref a i)))))
   b)
 
 (defmethod copy! ((a vector-like) (b vector-like))
@@ -586,3 +589,4 @@ we've mucked up data.  Sign of usage means poor coding!"
       (setf (vref b i) (vref a i)))) ;; aref for vectors, but for lists? 
   b)
 
+|#
