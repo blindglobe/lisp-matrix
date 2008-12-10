@@ -333,12 +333,14 @@
 
 
 (addtest (lisp-matrix-ut-matrix)
-  R-apply-columns
+  r-apply-columns
   (for-all-implementations
     (let ((m1 (ones 2 3))
 	  (m2 (ones 3 2)))
       ;; one order of the conditions based on dimension ineq
-      (let ((ml (list-of-columns m1)))
-	(dotimes (i (length m1))
-	  (ensure (m= (nth i m1)
-		      (ones 1 3))))))))
+      (let ((col-list (list-of-columns m1)))
+	(dotimes (i (length col-list))
+	  (ensure (v= (nth i col-list)
+		      (ones 2 1))))))))
+
+;; (describe (run-test :test-case 'r-apply-columns))

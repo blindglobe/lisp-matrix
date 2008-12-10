@@ -195,6 +195,13 @@
   
 
   (list-of-columns m01)
+
+  (defparameter m1 (ones 2 3))
+  (let ((col-list (list-of-columns m1)))
+    (dotimes (i (length col-list))
+	  (princ (v= (nth i col-list)
+		      (ones 2 1)))))
+
   (list-of-rows m01)
   
   (mapcar #'princ (list-of-columns m01))
