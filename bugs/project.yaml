@@ -23,4 +23,4 @@ releases:
   - - 2008-12-09 20:36:33.111061 Z
     - Tony <blindglobe@gmail.com>
     - created
-    - first version with basic import of CSV data files, numerical summaries, multiple linear regression.
+    - first version with clean foreign arrays and most BLAS/LAPACK.
