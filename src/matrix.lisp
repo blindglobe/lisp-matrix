@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-11-06 20:03:11 tony>
+;;; Time-stamp: <2008-12-09 21:26:19 tony>
 
 (in-package :lisp-matrix)
 
@@ -703,8 +703,8 @@
 
 (defgeneric copy! (a b)
   (:documentation "Copy A into B if they are not the same object, and
-  return B.  A and B should be matrices with the same dimensions, but
-  not necessarily of the same implementation."))
+  return B.  A and B should be matrices or vectors with the same
+  dimensions, but not necessarily of the same implementation."))
 
 (defmethod copy! ((a matrix-like) (b matrix-like))
   (unless (eq a b)
