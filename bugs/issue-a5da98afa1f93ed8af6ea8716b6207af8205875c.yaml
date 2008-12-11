@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: docs for extend data manipulation (bind, r-like-apply)
+desc: Need to write up and incorporate docs for data manipulation of matrices.
+type: :feature
+component: docs
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-10 07:33:07.590621 Z
+references: []
+
+id: a5da98afa1f93ed8af6ea8716b6207af8205875c
+log_events: 
+- - 2008-12-10 07:33:10.792518 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - ""

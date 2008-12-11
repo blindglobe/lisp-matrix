@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: FA implementation doesn't support integer matrices
+desc: "There is an implementation gap: no support for integer valued foreign arrays."
+type: :feature
+component: matrix
+release: 
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-11 07:04:02.652487 Z
+references: []
+
+id: 4f85931aaf75f80a8ee2b4feef14c89f9fb4eee2
+log_events: 
+- - 2008-12-11 07:04:26.971582 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - low priority, since the lisp-array implementation supports it.
