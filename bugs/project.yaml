@@ -26,3 +26,12 @@ releases:
     - Tony <blindglobe@gmail.com>
     - created
     - first version with clean foreign arrays and most BLAS/LAPACK.
+- !ditz.rubyforge.org,2008-03-06/release 
+  name: "2.0"
+  status: :unreleased
+  release_time: 
+  log_events: 
+  - - 2008-12-15 07:18:23.207747 Z
+    - Tony <blindglobe@gmail.com>
+    - created
+    - future planning at this stage.

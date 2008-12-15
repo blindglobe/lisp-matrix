@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: v* / v/ generics to write
+desc: mult and divide generics are different than normal.
+type: :task
+component: vector
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-15 13:54:31.256057 Z
+references: []
+
+id: 9e870cf7bdb9eb2e41db60497ab15437b5aa78fc
+log_events: 
+- - 2008-12-15 13:54:32.697167 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - ""

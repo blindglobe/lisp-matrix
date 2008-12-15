@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: v+ generics to write
+desc: ""
+type: :feature
+component: vector
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-15 13:51:54.942316 Z
+references: []
+
+id: 4854ba9fc22743175d1e7fcab345092134219338
+log_events: 
+- - 2008-12-15 13:51:56.768503 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - ""

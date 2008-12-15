@@ -1,0 +1,20 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: API for vectorized computations needed
+desc: |-
+  Need to be clear on what we will enable or not enable for vectorization.  The
+  old LispStat approach is not scalable as observed by work done on R since.
+type: :task
+component: lisp-matrix.git
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-15 07:17:30.655527 Z
+references: []
+
+id: 77535aef412f606c49d965f0415efefe94c65518
+log_events: 
+- - 2008-12-15 07:17:45.437980 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - see TODO.lisp for the current thinking.
