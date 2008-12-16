@@ -40,85 +40,91 @@
 
 ;;; We wrap these up into a progn for simple overall evaluation, but
 ;;; stepping through them is fine as well.
+
 (progn 
   
   ;; make some matrices
-  (defvar m1 nil
-    "placeholder 1")
-  (setf m1 (make-matrix 2 5
+  (defparameter *m1* (make-matrix 2 5
 			:implementation :lisp-array  ;; :foreign-array
-			:element-type 'double-float))
+			:element-type 'double-float)
+    "placeholder 1")
   
   ;; works, as it should.  Indexing is zero-based, so we get the first
   ;; element by...
-  (mref m1 0 0)
-  (mref m1 1 3)
-  (setf (mref m1 1 3) 1.2d0)
-  m1
+  (mref *m1* 0 0)
+  (mref *m1* 1 3)
+  (setf (mref *m1* 1 3) 1.2d0)
+  *m1*
 
 
   ;; increase complexity
 
-  (defvar m2 nil
-    "placeholder 2")
-  (setf m2 (make-matrix 2 5
+  (defparameter *m2* (make-matrix 2 5
 			:implementation :lisp-array  ;; :foreign-array
 			:element-type 'integer ; 'double-float
 			;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
 			:initial-contents #2A(( 1 2 3 4 5)
-					      ( 6 7 8 9 10))))
-  (defvar m2a nil "placeholder...")
-  (setf m2a (make-matrix 2 5
-			 :implementation :lisp-array  ;; :foreign-array
-			 :element-type 'integer ; 'double-float
-			 :initial-contents '((1 2 3 4 5)
-					     (6 7 8 9 10))))
+					      ( 6 7 8 9 10)))
+    "placeholder 2")
 
+  (defparameter *m2a*
+    (make-matrix 2 5
+		 :implementation :lisp-array  ;; :foreign-array
+		 :element-type 'integer ; 'double-float
+		 :initial-contents '((1 2 3 4 5)
+				     (6 7 8 9 10)))
+    "placeholder...")
 
   ;; Currently we can make a foriegn matrix of doubles, but not a
   ;; foreign matrix of integers.  If we are working with smaller
   ;; matrices and are not doing a great deal of matrix algebra, then
   ;; we probably prefer :lisp-array rather than :foreign-array.
-  (defvar m2b nil
+  (defvar *m2b*
+    (make-matrix 2 5
+		 :implementation :foreign-array 
+		 :element-type 'double-float
+		 :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+				       ( 6d0 7d0 8d0 9d0 10d0)))
     "placeholder 2")
-  (setf m2b (make-matrix 2 5
-			:implementation :foreign-array 
-			:element-type 'double-float
-			:initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
-					      ( 6d0 7d0 8d0 9d0 10d0))))
+  *m2b*
 
-  (mref m2 0 2) ;; => 3
-  m2
-  (transpose m2)
+  (mref *m2b* 0 2) ;; => 3
+  *m2b*
+  (transpose *m2b*)
 
   ;; simple subsetting is simple
-  (row m2 0)
-  (col m2 0)
-  (row (transpose m2) 0)
-  (col (transpose m2) 0)
+  (m= (row *m2b* 0)
+      (col (transpose *m2b*) 0)) ; => nil, orientation
+  (v= (row *m2b* 0)
+      (col (transpose *m2b*) 0)) ; => T, no orientation worries
+
+  (m= (col *m2b* 0)
+      (row (transpose *m2b*) 0))
+  (v= (col *m2b* 0)
+      (row (transpose *m2b*) 0))
 
 
-  (defvar m3 nil
+  (defvar *m3*
+    (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
+					 (6d0  7d0  8d0  9d0  10d0)
+					 (11d0 12d0 13d0 14d0 15d0)
+					 (16d0 17d0 18d0 19d0 20d0)
+					 (21d0 22d0 23d0 24d0 25d0)
+					 (26d0 27d0 28d0 29d0 30d0)))
     "placeholder 3")
 
-  (setf m3 (make-matrix 6 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0)
-                                                 (6d0  7d0  8d0  9d0  10d0)
-                                                 (11d0 12d0 13d0 14d0 15d0)
-                                                 (16d0 17d0 18d0 19d0 20d0)
-                                                 (21d0 22d0 23d0 24d0 25d0)
-                                                 (26d0 27d0 28d0 29d0 30d0))))
-  (row m3 2)
-  (col m3 1)
+  (row *m3* 2)
+  (col *m3* 1)
 
 
-  (mref m3 0 1)
-  (mref (transpose m3) 1 0)
+  (= (mref *m3* 0 1)
+     (mref (transpose *m3*) 1 0))
 
-  (mref m3 2 2)
-  (mref (transpose m3) 2 2)
+  (=  (mref *m3* 2 2)
+      (mref (transpose *m3*) 2 2))
 
-  m3
-  (transpose m3)
+  *m3*
+  (transpose *m3*)
 
   ;;; Now we play with striding and slicing subsets.  These work well
   ;;; for simple subsetting which can be done by counting/enumeration
@@ -133,26 +139,25 @@
   ;;; the first, think about v= and for the second, m= is the right
   ;;; function.
 
-  (defvar m4 nil
+  (defvar *m4* (strides *m3* :nrows 2 :row-stride 2)
     "yet another placeholder.")
-  (setf m4 (strides m3 :nrows 2 :row-stride 2))
-  m4
-  (m= (row m4 0)
+  *m4*
+  (m= (row *m4* 0)
       (make-matrix 1 5 :initial-contents '((1d0 2d0 3d0 4d0 5d0))))
-  (m= (row m4 1)
+  (m= (row *m4* 1)
       (make-matrix 1 5 :initial-contents '((11d0 12d0 13d0 14d0 15d0))))
   ;; note the redoing for the columns -- different!
-  (m= (col m4 0)
+  (m= (col *m4* 0)
       (make-matrix 2 1 :initial-contents '((1d0) (11d0))))
-  (m= (col m4 1)
+  (m= (col *m4* 1)
       (make-matrix 2 1 :initial-contents '((2d0) (12d0))))
 
-  (v= (row m4 0) (col (transpose m4) 0))
-  (v= (col m4 0) (row (transpose m4) 0))
+  (v= (row *m4* 0) (col (transpose *m4*) 0))
+  (v= (col *m4* 0) (row (transpose *m4*) 0))
 
-  m4
-  (row m4 0)
-  (col m4 4)
+  *m4*
+  (row *m4* 0)
+  (col *m4* 4)
 
 
   (let* ((*default-element-type* '(complex double-float))
@@ -528,7 +533,7 @@ m01b
   (m* m01 (transpose m01))
 
 
-  )
+
 
 
 

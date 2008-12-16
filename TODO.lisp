@@ -1,4 +1,4 @@
-;;; Precursor systems
+n;;; Precursor systems
 (in-package :cl-user)
 ;; (asdf:oos 'asdf:compile-op 'ffa :force t)
 ;; (asdf:oos 'asdf:compile-op 'array-operations :force t)
@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 59, Failures = 1, Errors = 7 ;; 9.12.2008
+;; Tests = 59, Failures = 1, Errors = 0 ;; 11.12.2008
 
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
@@ -43,36 +43,37 @@
 
 (progn ;; SETUP DATA, these work
 
-  (defparameter m01 (make-matrix
-		     6 5
-		     :initial-contents '((11d0 12d0 13d0 14d0 15d0)
-					 (21d0 22d0 23d0 24d0 25d0)
-					 (31d0 32d0 33d0 34d0 35d0)
-					 (41d0 42d0 43d0 44d0 45d0)
-					 (51d0 52d0 53d0 54d0 55d0)
-					 (61d0 62d0 63d0 64d0 65d0)))
+  (defparameter *m01*
+    (make-matrix
+     6 5
+     :initial-contents '((11d0 12d0 13d0 14d0 15d0)
+			 (21d0 22d0 23d0 24d0 25d0)
+			 (31d0 32d0 33d0 34d0 35d0)
+			 (41d0 42d0 43d0 44d0 45d0)
+			 (51d0 52d0 53d0 54d0 55d0)
+			 (61d0 62d0 63d0 64d0 65d0)))
     "6x5 matrix with entries representing row+1,col+1 values, for
      test purposes.")
 
-  (defvar m1-ex nil
-    "quick variable initialized to zeros")
-  (setf m1-ex (make-matrix 2 5
+  (defparameter *m1-ex*  (make-matrix 2 5
 			   :implementation :lisp-array  ;; :foreign-array
-			   :element-type 'double-float))
+			   :element-type 'double-float)
+    "quick variable initialized to zeros")
     
-  (defvar m2-la-int nil
+  (defparameter *m2-la-int*
+    ;; would an API allowing for the following equal behaviours:
+    ;;    :initial-contents (:row-major (list 1 2 3 4 5 6 7 8 9 0))
+    ;;    :initial-contents (:row-major (list 1 2 3 (list 4 5 6) 7 8 9 0))
+    ;; be useful for getting list-structured data into matrices?
+    
+    (make-matrix 2 5
+		 :implementation :lisp-array  ;; :foreign-array
+		 :element-type 'integer ; 'double-float
+		 ;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
+		 :initial-contents #2A((1 2 3 4 5)
+				       (6 7 8 9 10)))
     "placeholder 2")
-  ;; would an API allowing for the following equal behaviours:
-  ;;    :initial-contents (:row-major (list 1 2 3 4 5 6 7 8 9 0))
-  ;;    :initial-contents (:row-major (list 1 2 3 (list 4 5 6) 7 8 9 0))
-  ;; be useful for getting list-structured data into matrices?
-  (setf m2-la-int
-	(make-matrix 2 5
-		     :implementation :lisp-array  ;; :foreign-array
-		     :element-type 'integer ; 'double-float
-		     ;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
-		     :initial-contents #2A((1 2 3 4 5)
-					   (6 7 8 9 10))))
+
   ;; There is an argument for something like:
   ;;    :initial-contents (:row-major-list-lists
   ;;                           (list (list 1 2 3 4 5)
@@ -81,52 +82,55 @@
 
   ;; Currently we can make a foriegn matrix of doubles, but not a
   ;; foriegn matrix of integers.
-  (defvar m2-fa nil
-    "placeholder 2")
-  (setf m2-fa
-	(make-matrix
-	 2 5
-	 :implementation :foreign-array 
-	 :element-type 'double-float
-	 :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
-			       ( 6d0 7d0 8d0 9d0 10d0))))
+  (defparameter *m2-fa*
+    (make-matrix
+     2 5
+     :implementation :foreign-array 
+     :element-type 'double-float
+     :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+			   ( 6d0 7d0 8d0 9d0 10d0)))
+    "placeholder 2"))
     
-
-  (defvar m01b nil)
-  (setf m01b (strides m01 :nrows 2 :ncols 3
-		      :row-stride 2
-		      :row-offset 1 :col-offset 1))
+  (defparameter *m01b*
+    (strides m01 :nrows 2 :ncols 3
+	     :row-stride 2
+	     :row-offset 1 :col-offset 1))
   
-  (defvar m01c nil)
-  (setf m01c (window m01
-		     :nrows 2 :ncols 3
-		     :row-offset 2 :col-offset 1))
+  (defparameter *m01c* 
+    (window m01
+	    :nrows 2 :ncols 3
+	    :row-offset 2 :col-offset 1))
 
   (format nil "Data set up")) ; EVAL HERE TO SETUP DATA
 
 
 ;;;; FIX ERRORS, MIGRATE INTO UNITTESTS:
 
+#+nil
 (progn ;; FIXME: need to get the foriegn-numeric-vector arrays package
        ;; involved for integer-valued foreign arrays.
-  (defvar m2a nil
-    "placeholder 2")
-  (setf m2a (make-matrix 2 5
+  (defparameter *m2a*  (make-matrix 2 5
 			:implementation :foreign-array 
 			:element-type 'integer 
 			:initial-contents #2A(( 1 2 3 4 5)
-					      ( 6 7 8 9 10)))))
+					      ( 6 7 8 9 10)))
+    "placeholder 2"))
 
 
+
+#+nil
 (progn ;; = FIXME: the following has no applicable method!
-  (m* m2-fa (transpose m2-fa)))
+  (m* *m2-fa* (transpose *m2-fa*)))
 
 
+#+nil
 (progn ;; FIXME: vectorized arithmetic
   ;;
   ;; So,  how do I vectorize something like:
   ;;     (a + b) / c  
-  ;; (i.e. standard normalization)?  So we'd like to do something like:  
+  ;; (i.e. standard normalization) when a,b,c are vectors which have
+  ;; the correct pre-computed values?  So we'd like to do something
+  ;; like:
   ;;     (v./ (v.+ a b) c)
   ;; or...?  where the v.# operators disregard row vs. column oriented
   ;; aspect, and the v# operators worry about orientation.    So if we
@@ -139,10 +143,19 @@
   
   ;; On a related note, we also could have m.# instead of v.# if
   ;; orientation needs to be ensured (rather than ignored).
+  (defparameter *v1* (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+  (defparameter *v2* (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+  (v+ *v1* *v2*)
+  (v- *v1* *v2*)
+  (v* *v1* *v2*)
+  (v/ *v1* *v2*)
+
   )
 
+#+nil
 (progn ;; FIXME: R's apply across array indicies
 
+  ;; Thought 1 (currently not planned for implementation)
   ;; consider using affi as a general iterator/walker generator.
   ;; So, R has a notion of apply, sapply, tapply, lapply -- what we
   ;; should do is something like
@@ -192,12 +205,13 @@
 		     :type :row) ; or :column
   ;; this would take a list and create an appropriate vector-like of
   ;; the appropriate type.
-  
 
+  ;; Thought 2, the current immediate approach:
+  ;; What we currently do is break it out into components.
   (list-of-columns m01)
 
-  (defparameter m1 (ones 2 3))
-  (let ((col-list (list-of-columns m1)))
+  (defparameter *m1-app* (ones 2 3))
+  (let ((col-list (list-of-columns *m1-app*)))
     (dotimes (i (length col-list))
 	  (princ (v= (nth i col-list)
 		      (ones 2 1)))))
@@ -206,4 +220,3 @@
   
   (mapcar #'princ (list-of-columns m01))
   )
-
