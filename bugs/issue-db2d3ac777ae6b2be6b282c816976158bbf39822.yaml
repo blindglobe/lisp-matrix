@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: unittests for v+,v-,v*,v/ needed
+desc: write 'em!
+type: :task
+component: vector
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-16 07:10:39.216753 Z
+references: []
+
+id: db2d3ac777ae6b2be6b282c816976158bbf39822
+log_events: 
+- - 2008-12-16 07:10:41.745953 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - ""

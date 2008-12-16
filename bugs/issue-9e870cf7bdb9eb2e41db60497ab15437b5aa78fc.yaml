@@ -5,7 +5,7 @@ type: :task
 component: vector
 release: "1.0"
 reporter: Tony <blindglobe@gmail.com>
-status: :unstarted
+status: :in_progress
 disposition: 
 creation_time: 2008-12-15 13:54:31.256057 Z
 references: []
@@ -16,3 +16,7 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - created
   - ""
+- - 2008-12-16 07:09:43.349147 Z
+  - Tony <blindglobe@gmail.com>
+  - changed status from unstarted to in_progress
+  - unlike v+/v-, need to consider semantics with respect to m* and m/
