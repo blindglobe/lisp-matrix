@@ -106,6 +106,10 @@
 	   diagonal! diagonalf
 
 	   list-of-rows list-of-columns
+
+	   list->vector-like
+	   vector-like->list
+
 	   ))
 
 

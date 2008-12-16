@@ -46,6 +46,7 @@
        (:file "macros" )
        (:file "matrix" )
        (:file "vector" :depends-on ("matrix"))
+       (:file "data-transform" :depends-on ("matrix" "vector"))
        (:file "matrix-implementations" :depends-on ("matrix" "vector"))))
 
      (:module
@@ -66,6 +67,7 @@
       :depends-on ("implementations")
       :components
       ((:file "unittests")
+       (:file "unittests-transform" :depends-on ("unittests"))
        (:file "unittests-matrix" :depends-on ("unittests"))
        (:file "unittests-matrix-view" :depends-on ("unittests" "unittests-matrix"))
        (:file "unittests-matrix-lapack" :depends-on ("unittests" "unittests-matrix"))

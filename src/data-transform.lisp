@@ -1,15 +1,17 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2008-12-02 17:40:41 tony>
+;;; Time-stamp: <2008-12-16 17:28:35 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
-;;; File:       matrix-lists.lisp
+;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
 ;;; Copyright:  (c)2008--, AJ Rossini.  BSD, LLGPL, or GPLv2, depending
 ;;;             on how it arrives.  
 ;;; Purpose:    conversion functions:
-;;;                lists <-> vectors,
-;;;                lists of lists <-> matrices
-
+;;;             +  lists <-> vector-like 
+;;;                lists of lists <-> matrix-like
+;;;                vector <-> vector-like
+;;;                array <-> vector-like
+;;;                array <-> matrix-like
 
 ;;; What is this talk of 'release'? Klingons do not make software
 ;;; 'releases'.  Our software 'escapes', leaving a bloody trail of
@@ -39,7 +41,14 @@ change implementation, etc."
       (setf (aref result i) (vref vecvar i)))
     result))
 
-
+#|
 (defun matrix-like->listoflists ())
 
 (defun listoflists->matrix-like ())
+
+
+(defun matrix-like->array ())
+
+(defun array->matrix-like ())
+|#
+
