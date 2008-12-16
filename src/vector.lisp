@@ -600,7 +600,8 @@ we've mucked up data.  Sign of usage means poor coding!"
 	    (y vector-like)
 	    &optional 
 	    ;; ((return-type 'vector-like) symbol)
-	    (return-type symbol))
+	    ;; (return-type symbol)
+	    return-type)
     (assert (= (vector-dimension x) (vector-dimension y)))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
@@ -649,7 +650,8 @@ we've mucked up data.  Sign of usage means poor coding!"
 	    (y vector-like)
 	    &optional 
 	    ;; ((return-type 'vector-like) symbol)
-	    (return-type symbol))
+	    ;; (return-type symbol)
+	    return-type)
     (assert (= (vector-dimension x) (vector-dimension y)))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
@@ -697,7 +699,8 @@ we've mucked up data.  Sign of usage means poor coding!"
 	    (y vector-like)
 	    &optional 
 	    ;; ((return-type 'vector-like) symbol)
-	    (return-type symbol))
+	    ;;   (return-type symbol)
+	    return-type)
     (assert (= (vector-dimension x) (vector-dimension y)))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
@@ -746,7 +749,8 @@ we've mucked up data.  Sign of usage means poor coding!"
 	    (y vector-like)
 	    &optional 
 	    ;; ((return-type 'vector-like) symbol)
-	    (return-type symbol))
+	    ;;   (return-type symbol)
+	    return-type)
     (assert (= (vector-dimension x) (vector-dimension y)))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
@@ -794,8 +798,9 @@ we've mucked up data.  Sign of usage means poor coding!"
   vector-like structure unless return-type is something else")
     (:method ((x vector-like)
 	      (y vector-like)
-	    &optional 
-	      (( return-type 'vector-like) symbol))
+	      &optional 
+	      ;;     (( return-type 'vector-like) symbol)
+	      return-type)
       (assert (= (length x) (length y)))
       (let ((result (make-vector (length x))))
 	(dotimes (i (length x))
