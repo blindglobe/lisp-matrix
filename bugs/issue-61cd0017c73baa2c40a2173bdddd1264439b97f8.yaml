@@ -7,7 +7,7 @@ type: :task
 component: vector
 release: "1.0"
 reporter: Tony <blindglobe@gmail.com>
-status: :in_progress
+status: :paused
 disposition: 
 creation_time: 2008-12-08 19:41:41.410853 Z
 references: []
@@ -28,3 +28,7 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - assigned to release 1.0 from unassigned
   - ""
+- - 2008-12-16 07:34:19.863030 Z
+  - Tony <blindglobe@gmail.com>
+  - changed status from in_progress to paused
+  - still can't quite figure this out.

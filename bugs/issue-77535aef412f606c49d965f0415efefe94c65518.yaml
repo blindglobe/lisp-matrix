@@ -7,7 +7,7 @@ type: :task
 component: lisp-matrix.git
 release: "1.0"
 reporter: Tony <blindglobe@gmail.com>
-status: :unstarted
+status: :in_progress
 disposition: 
 creation_time: 2008-12-15 07:17:30.655527 Z
 references: []
@@ -18,3 +18,9 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - created
   - see TODO.lisp for the current thinking.
+- - 2008-12-16 07:35:23.382627 Z
+  - Tony <blindglobe@gmail.com>
+  - changed status from unstarted to in_progress
+  - |-
+    recent commits have done some of this.  Current open issue is whether to use generics for auto-transform,
+    or make conversion an explicit activity.   both have merits.

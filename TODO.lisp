@@ -89,7 +89,7 @@ n;;; Precursor systems
      :element-type 'double-float
      :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
 			   ( 6d0 7d0 8d0 9d0 10d0)))
-    "placeholder 2"))
+    "placeholder 2")
     
   (defparameter *m01b*
     (strides m01 :nrows 2 :ncols 3
@@ -147,10 +147,28 @@ n;;; Precursor systems
   (defparameter *v2* (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
   (v+ *v1* *v2*)
   (v- *v1* *v2*)
+  (v- *v2* *v1*)
   (v* *v1* *v2*)
   (v/ *v1* *v2*)
+  (v/ *v2* *v1*)
 
-  )
+  (let* ((a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+	 (b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+	 (c (make-vector 4 :initial-contents '((11d0 22d0 33d0 44d0)))))
+    (v= (v+ a b)
+	c)
+    (v= (v+ b c)
+	c))
+
+  (defparameter a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+  (defparameter b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+  (defparameter c (make-vector 4 :initial-contents '((11d0 22d0 33d0 44d0))))
+  (v= (v+ a b)
+      c)
+  (v= (v+ b c)
+      c))
+
+  (princ "vector ops done."))
 
 #+nil
 (progn ;; FIXME: R's apply across array indicies
