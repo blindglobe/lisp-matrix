@@ -233,3 +233,52 @@
 
 ;; (describe (run-test :test-case 'diagonalf-vectors))
 ;; (describe (run-test :test-case 'diagonal!-vectors))
+
+
+;;;; Vectors
+
+(addtest (lisp-matrix-ut-vectors)
+  vector-op-v+
+  (for-all-implementations
+    (let* ((a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+           (b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+	   (c (make-vector 4 :initial-contents '((11d0 22d0 33d0 44d0)))))
+      (ensure (v= (v+ a b)
+		  c))
+      (ensure (v= (v+ b a)
+		  c)))))
+
+(addtest (lisp-matrix-ut-vectors)
+  vector-op-v-
+  (for-all-implementations
+    (let* ((a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+           (b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+	   (c (make-vector 4 :initial-contents '((-9d0 -18d0 -27d0 -36d0))))
+	   (d (make-vector 4 :initial-contents '((9d0 18d0 27d0 36d0)))))
+      (ensure (v= (v- a b)
+		  c))
+      (ensure (v= (v- b a)
+		  d)))))
+
+(addtest (lisp-matrix-ut-vectors)
+  vector-op-v*
+  (for-all-implementations
+    (let* ((a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+           (b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+	   (c (make-vector 4 :initial-contents '((10d0 40d0 90d0 160d0)))))
+      (ensure (v= (v* a b)
+		  c))
+      (ensure (v= (v* b a)
+		  c)))))
+
+(addtest (lisp-matrix-ut-vectors)
+  vector-op-v/
+  (for-all-implementations
+    (let* ((a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+           (b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+	   (c (make-vector 4 :initial-contents '((10d0 10d0 10d0 10d0))))
+	   (d (make-vector 4 :initial-contents '((0.1d0 0.1d0 0.1d0 0.1d0)))))
+      (ensure (v= (v/ a b)
+		  d))
+      (ensure (v= (v/ b a)
+		  c)))))

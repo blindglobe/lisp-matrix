@@ -5,8 +5,8 @@ type: :feature
 component: vector
 release: "1.0"
 reporter: Tony <blindglobe@gmail.com>
-status: :in_progress
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-12-15 13:51:54.942316 Z
 references: []
 
@@ -20,3 +20,7 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - changed status from unstarted to in_progress
   - implement for vector-likes, need to implement for lists and vectors to allow for data transformation
+- - 2008-12-16 07:31:24.393363 Z
+  - Tony <blindglobe@gmail.com>
+  - closed with disposition fixed
+  - solved for vector-like, still need data-transform

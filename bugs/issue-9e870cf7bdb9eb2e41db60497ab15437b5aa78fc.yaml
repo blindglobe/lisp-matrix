@@ -5,8 +5,8 @@ type: :task
 component: vector
 release: "1.0"
 reporter: Tony <blindglobe@gmail.com>
-status: :in_progress
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-12-15 13:54:31.256057 Z
 references: []
 
@@ -20,3 +20,7 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - changed status from unstarted to in_progress
   - unlike v+/v-, need to consider semantics with respect to m* and m/
+- - 2008-12-16 07:32:13.930057 Z
+  - Tony <blindglobe@gmail.com>
+  - closed with disposition fixed
+  - solved for vector-like
