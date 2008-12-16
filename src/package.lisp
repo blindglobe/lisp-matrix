@@ -35,7 +35,7 @@
 
 	   m= m* m+ m-
 	   m.* m.+ m.- 
-	   v= v* v+ v-
+	   v= v* v+ v- v/
 	   ;; v* v+ v-  ; these are inherited from m-based ops, but
 	   ;; have a slight issue with still needing a v.* variant,
 	   ;; since v* would inherit from m*, which needs appropriate
@@ -43,7 +43,7 @@
 	   ;; Do we define these as non-oriented methods?  (i.e. with
 	   ;; Nx1 and 1xN methods doing the right thing when added
 	   ;; together?  Currently, we'd barf on the mis-alignment.
-	   ;; and 
+	   ;; Solution: v# do elt-wise, not matrix-approach.
 
 	   print-object
 	   mref data row col
