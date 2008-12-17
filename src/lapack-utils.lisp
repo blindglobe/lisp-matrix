@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2008-11-16 13:33:42 tony>
+;;;; Time-stamp: <2008-12-17 08:06:27 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -259,6 +259,9 @@
   double-float (complex double-float) (complex single-float)).
 
   See for example the definition of GEMM for how to use this macro."
+  ;; FIXME: It doesn't cover all edge cases yet (i.e. transposed
+  ;; matrices which don't fall back on superclasses (see TODO.lisp for
+  ;; example) -- Tony Rossini 2008-12-17
   ;; FIXME: I don't like the fact that this macro uses templates, but
   ;; the code works. -- Evan Monroig 2008-05-04
   ;; FIXME: also create the generic function with documentation --
