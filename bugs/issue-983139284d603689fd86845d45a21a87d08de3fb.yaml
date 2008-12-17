@@ -1,0 +1,22 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: M* class recognition failure
+desc: failure to recognize class for m* through the gemm pass-through.
+type: :bugfix
+component: matrix
+release: 
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2008-12-17 07:28:52.709537 Z
+references: []
+
+id: 983139284d603689fd86845d45a21a87d08de3fb
+log_events: 
+- - 2008-12-17 07:29:17.188037 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - not sure if it is an m* or gemm/cl-blapack problem.
+- - 2008-12-17 07:30:26.202691 Z
+  - Tony <blindglobe@gmail.com>
+  - commented
+  - do we need to fix def-lapack-method?
