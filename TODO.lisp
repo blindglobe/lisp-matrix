@@ -13,7 +13,7 @@ n;;; Precursor systems
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 59, Failures = 1, Errors = 0 ;; 11.12.2008
+;; Tests = 65, Failures = 1, Errors = 0 ;; 11.12.2008
 
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
@@ -90,14 +90,43 @@ n;;; Precursor systems
      :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
 			   ( 6d0 7d0 8d0 9d0 10d0)))
     "placeholder 2")
+
+  (defparameter *m2-la*
+    (make-matrix
+     2 5
+     :implementation :lisp-array 
+     :element-type 'double-float
+     :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+			   ( 6d0 7d0 8d0 9d0 10d0)))
+    "placeholder 2")
+
+
+  (defparameter *m3-fa*
+    (make-matrix
+     2 2
+     :implementation :foreign-array 
+     :element-type 'double-float
+     :initial-contents #2A(( 1d0 2d0 )
+			   ( 6d0 7d0 )))
+    "placeholder 2")
+
+  (defparameter *m3-la*
+    (make-matrix
+     2 2
+     :implementation :lisp-array 
+     :element-type 'double-float
+     :initial-contents #2A(( 1d0 2d0 )
+			   ( 6d0 7d0 )))
+    "placeholder 2")
+
     
   (defparameter *m01b*
-    (strides m01 :nrows 2 :ncols 3
+    (strides *m01* :nrows 2 :ncols 3
 	     :row-stride 2
 	     :row-offset 1 :col-offset 1))
   
   (defparameter *m01c* 
-    (window m01
+    (window *m01*
 	    :nrows 2 :ncols 3
 	    :row-offset 2 :col-offset 1))
 
@@ -118,10 +147,17 @@ n;;; Precursor systems
 
 
 
+;; Foreign array problems...
 #+nil
 (progn ;; = FIXME: the following has no applicable method!
-  (m* *m2-fa* (transpose *m2-fa*)))
+  (m* *m2-fa* (transpose *m2-fa*))
+  (m* *m3-fa* *m3-fa*)
+  (m* *m3-fa* (transpose *m3-fa*)))
 
+#+nil
+(progn ;; = FIXME: the following works (lisp-arrays)
+  (m* *m3-la* *m3-la*)
+  (m* *m3-la* (transpose *m3-la*)))
 
 #+nil
 (progn ;; FIXME: vectorized arithmetic
@@ -157,7 +193,7 @@ n;;; Precursor systems
 	 (c (make-vector 4 :initial-contents '((11d0 22d0 33d0 44d0)))))
     (v= (v+ a b)
 	c)
-    (v= (v+ b c)
+    (v= (v+ b a)
 	c))
 
   (defparameter a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
