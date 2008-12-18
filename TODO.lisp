@@ -129,15 +129,14 @@ n;;; Precursor systems
     (window *m01*
 	    :nrows 2 :ncols 3
 	    :row-offset 2 :col-offset 1))
-
-  (format nil "Data set up")) ; EVAL HERE TO SETUP DATA
+					; EVAL BELOW TO SETUP DATA
+  (format nil "Data set up"))
 
 
 ;;;; FIX ERRORS, MIGRATE INTO UNITTESTS:
 
 #+nil
-(progn ;; FIXME: need to get the foriegn-numeric-vector arrays package
-       ;; involved for integer-valued foreign arrays.
+(progn ;; FIXME: integer-valued foreign arrays. (bug: matrix-2)
   (defparameter *m2a*  (make-matrix 2 5
 			:implementation :foreign-array 
 			:element-type 'integer 
@@ -145,13 +144,11 @@ n;;; Precursor systems
 					      ( 6 7 8 9 10)))
     "placeholder 2"))
 
-
-
 ;; Foreign array problems...
 #+nil
 (progn ;; = FIXME: the following has no applicable method!
-  (m* *m2-fa* (transpose *m2-fa*))
   (m* *m3-fa* *m3-fa*)
+  (m* *m2-fa* (transpose *m2-fa*))
   (m* *m3-fa* (transpose *m3-fa*)))
 
 #+nil

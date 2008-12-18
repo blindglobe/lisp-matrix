@@ -1,5 +1,5 @@
 --- !ditz.rubyforge.org,2008-03-06/issue 
-title: M* class recognition failure
+title: M* doesn't work for foreign arrays
 desc: failure to recognize class for m* through the gemm pass-through.
 type: :bugfix
 component: matrix
@@ -20,3 +20,7 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - commented
   - do we need to fix def-lapack-method?
+- - 2008-12-18 06:13:02.649831 Z
+  - Tony <blindglobe@gmail.com>
+  - edited title
+  - issue is with foreign arrays, not classes in general.
