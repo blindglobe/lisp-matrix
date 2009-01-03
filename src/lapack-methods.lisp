@@ -4,7 +4,7 @@
 ;;; See functions in lapack-utils.lisp for how supporting utility
 ;;; macros and functions.
 ;;;
-;;; Time-stamp: <2008-11-26 08:31:44 tony>
+;;; Time-stamp: <2008-12-25 20:43:55 tony>
 
 ;;;; * Blas methods
 ;;;;
@@ -216,6 +216,7 @@
                                 info)))))
 
 #+nil
+(setf *temp-result* 
 (let ((*default-implementation* :foreign-array))
   (let* ((m 10)
          (n 10)
@@ -227,4 +228,5 @@
          (orig-a (copy a))
          (orig-b (copy b))
          (orig-x (copy x)))
-    (list x (gelsy a b rcond))))
+    (list x (gelsy a b rcond)))))
+;; (princ *temp-result*)

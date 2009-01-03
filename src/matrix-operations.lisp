@@ -23,7 +23,9 @@
 
 (defgeneric m* (a b)
   (:documentation "Matrix multiplication: A * B.   Defaults to the
-  element type of the first matrix.  Better approach?")
+  element type of the first matrix.
+
+  Better approach would be to consider lowest-common-type?")
   (:method ((a matrix-like) (b matrix-like))
     (with-typed-values ((one 1)
                         (zero 0)) a

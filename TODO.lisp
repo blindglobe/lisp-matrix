@@ -178,6 +178,7 @@ n;;; Precursor systems
   ;; orientation needs to be ensured (rather than ignored).
   (defparameter *v1* (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
   (defparameter *v2* (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+  (vector-dimension *v1*)
   (v+ *v1* *v2*)
   (v- *v1* *v2*)
   (v- *v2* *v1*)
@@ -199,7 +200,7 @@ n;;; Precursor systems
   (v= (v+ a b)
       c)
   (v= (v+ b c)
-      c))
+      c)
 
   (princ "vector ops done."))
 
@@ -270,4 +271,38 @@ n;;; Precursor systems
   (list-of-rows m01)
   
   (mapcar #'princ (list-of-columns m01))
+  )
+
+
+#+nil
+(progn  ;;; QR factorization
+  ;; Need to incorporate the xGEQRF routines, to support linear
+  ;; regression work.   
+
+  ;; Some issues exist in the LAPACK vs. LINPACK variants, hence R
+  ;; uses LINPACK primarily, rather than LAPACK.  See comments in R
+  ;; source for issues.  
+  
+  ;; LAPACK suggests to use the xGELSY driver (GE general matrix, LS
+  ;; least squares, need to lookup Y intent (used to be an X alg, see
+  ;; release notes).
+
+  ;; Goal is to start from X, Y and then realize that if
+  ;; Y = X \beta, then
+  ;;      XtX \hat\beta = Xt Y
+  ;; so that we can solve the equation  W \beta = Z   where W and Z
+  ;; are known, to estimate \beta.
+
+  ;; so something like:
+  (setf xtx (m* (transpose x) x))
+  (setf xty (m* (transpose x) y))
+  (setf *betahat*  (gelsy xtx xty))
+  
+  ;; which suggests one might do:
+  (defun lm (x y)
+    (let ((betahat (gelsy (m* (transpose x) x)
+			  (m* (transpose x) y))))
+      
+      (values betahat (sebetahat betahat x y))))
+  ;; to get a results list containing betahat and SEs
   )
