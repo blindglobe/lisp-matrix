@@ -52,7 +52,7 @@
 	   orientation valid-orientation-p opposite-orientation
 	   flatten-matrix-indices flatten-matrix-indices-1
 
-	   vref 
+	   vref vector-dimension
 
 	   la-simple-matrix-double  la-simple-matrix-integer
 	   la-simple-matrix-single
