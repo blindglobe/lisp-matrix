@@ -15,8 +15,12 @@ n;;; Precursor systems
 
 ;; Tests = 65, Failures = 1, Errors = 0 ;; 11.12.2008
 
+(describe (run-tests :suite 'lisp-matrix-ut))
+(run-tests :suite 'lisp-matrix-ut)
+;; or simply...
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
+
 ;; failures:
 ;; # ut         : make-predicate
 
@@ -292,17 +296,35 @@ n;;; Precursor systems
   ;;      XtX \hat\beta = Xt Y
   ;; so that we can solve the equation  W \beta = Z   where W and Z
   ;; are known, to estimate \beta.
+  (defparameter *xv*
+    (make-vector
+     8
+     :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0))))
+  (defparameter *xm*
+    (make-matrix
+     2 8
+     :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0)
+			 (1d0 2d0 3d0 4d0 5d0 6d0 7d0 8d0))))
 
-  ;; so something like:
-  (setf xtx (m* (transpose x) x))
-  (setf xty (m* (transpose x) y))
-  (setf *betahat*  (gelsy xtx xty))
-  
-  ;; which suggests one might do:
+  (defparameter *y*
+    (make-vector
+     8
+     :initial-contents '((1d0 2d0 3d0 4d0 5d0 6d0 7d0 8d0))))
+
+  ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
+  (defparameter *xtx* (m* *xv* (transpose *xv*)))
+  (defparameter *xty* (m* *xv* (transpose  *y*)))
+  (defparameter *rcond* 1)
+  (defparameter *betahat*  (gelsy *xtx* *xty* *rcond*))
+  *betahat*
+
+  ;; which suggests one might do (modulo ensuring correct orientations)
   (defun lm (x y)
-    (let ((betahat (gelsy (m* (transpose x) x)
-			  (m* (transpose x) y))))
+    (let ((betahat (gelsy (m* x (transpose x))
+			  (m* x (transpose y)))))
       
       (values betahat (sebetahat betahat x y))))
   ;; to get a results list containing betahat and SEs
+
+  (values-list '(1 3 4))
   )

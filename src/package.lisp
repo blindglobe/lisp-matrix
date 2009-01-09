@@ -85,6 +85,7 @@
 	   gemm scal
 	   iamax asum nrm2 axpy slice
 	   dot dotc dotu
+	   gelsy
 
 	   ;; data storage modes and defaults.
 	   *supported-datatypes* datatype->letter
