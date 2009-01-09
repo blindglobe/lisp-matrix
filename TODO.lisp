@@ -292,7 +292,7 @@ n;;; Precursor systems
   ;; release notes).
 
   ;; Goal is to start from X, Y and then realize that if
-  ;; Y = X \beta, then
+  ;; Y = X \beta, then,   i.e. 8x1 = 8xp px1  + 8x1
   ;;      XtX \hat\beta = Xt Y
   ;; so that we can solve the equation  W \beta = Z   where W and Z
   ;; are known, to estimate \beta.
@@ -300,6 +300,19 @@ n;;; Precursor systems
     (make-vector
      8
      :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0))))
+
+  (defparameter *xv+1*
+    (make-matrix
+     8 2
+     :initial-contents '((1d0 1d0)
+			 (1d0 3d0)
+			 (1d0 2d0)
+			 (1d0 4d0)
+			 (1d0 3d0)
+			 (1d0 5d0)
+			 (1d0 4d0)
+			 (1d0 6d0))))
+
   (defparameter *xm*
     (make-matrix
      2 8
@@ -317,6 +330,37 @@ n;;; Precursor systems
   (defparameter *rcond* 1)
   (defparameter *betahat*  (gelsy *xtx* *xty* *rcond*))
   *betahat*
+
+#|
+(#<LA-SIMPLE-VECTOR-DOUBLE (1 x 1)
+ 1.293103448275862>
+ 1)
+|#
+
+#|
+
+## Test case in R:
+x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
+y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+lm (y ~ x  -1)
+## => 
+Call:
+lm(formula = y ~ x - 1)
+
+Coefficients:
+    x  
+1.293  
+|#
+
+
+  ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
+  (defparameter *xtx* (m* *xv+1* (transpose *xv+1*)))
+  (defparameter *xty* (m* *xv+1* (transpose  *y*)))
+  (defparameter *rcond* 1)
+  (defparameter *betahat*  (gelsy *xtx* *xty* *rcond*))
+  *betahat*
+
+
 
   ;; which suggests one might do (modulo ensuring correct orientations)
   (defun lm (x y)
