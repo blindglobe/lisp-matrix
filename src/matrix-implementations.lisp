@@ -124,8 +124,8 @@
 ;;;; We will assume that the class dependencies are like this for each
 ;;;; implementation element type, where we add a prefix "IMPL" (eg, we
 ;;;; use fa, la for respectively, foriegn-stored and lisp-stored
-;;;; arrays) for the implementation and a postfix "ET" (eg for real,
-;;;; complex, double, etc) for the element-type.
+;;;; arrays) for the implementation and element-type described by a
+;;;; postfix "ET" (eg for real, complex, double, etc).
 ;;;;
 ;;;; - matrix-et-like
 ;;;;   -  impl-matrix-et
