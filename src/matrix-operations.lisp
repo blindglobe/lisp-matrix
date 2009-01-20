@@ -88,7 +88,7 @@
   returns 
     #2a((1 2 5)(3 4 6))"))
 
-(defmethod bind2 ((m1 matrix-like) (m2 matrix-like) &key by)
+(defmethod bind2 ((m1 matrix-like) (m2 matrix-like) &key (by :row))
   "Binding for matrix, columns, deep copy into a new matrix of the
   right size.   Could we solve the row-binding approach by transpose?" 
   (ecase by
