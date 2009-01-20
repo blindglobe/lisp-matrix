@@ -4,7 +4,7 @@
 ;;; See functions in lapack-utils.lisp for how supporting utility
 ;;; macros and functions.
 ;;;
-;;; Time-stamp: <2008-12-25 20:43:55 tony>
+;;; Time-stamp: <2009-01-16 08:24:41 tony>
 
 ;;;; * Blas methods
 ;;;;
@@ -156,7 +156,7 @@
 ;;;;
 ;;;; Done:
 ;;;;
-;;;; Need more work: xGELSY
+;;;; Need more work: xGELSY (current only supports 1d p).
 ;;;;
 ;;;; TODO: many many
 
