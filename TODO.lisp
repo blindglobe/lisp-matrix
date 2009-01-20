@@ -34,8 +34,6 @@ n;;; Precursor systems
   :test-case  'lisp-matrix-unittests::strided-matrix-column-access
   :suite 'lisp-matrix-ut-vectors))
 
-;; (typep -1 '(integer 0 *))
-;; (typep 2  '(integer 0 *))
 
 ;; Here is what we need to fix, based on the above:
 ;; #  make-predicate (and variable-capture, see macro-expansion)
@@ -44,6 +42,10 @@ n;;; Precursor systems
 ;; #  creation of foreign-array matrices which are integer valued
 ;;    fails.
 ;; # 
+
+
+;; (typep -1 '(integer 0 *))
+;; (typep 2  '(integer 0 *))
 
 (progn ;; SETUP DATA, these work
 
@@ -134,10 +136,80 @@ n;;; Precursor systems
 	    :nrows 2 :ncols 3
 	    :row-offset 2 :col-offset 1))
 					; EVAL BELOW TO SETUP DATA
+
+
+  ;; data for lls estimation
+  (defparameter *xv*
+    (make-vector
+     8
+     :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0))))
+
+  (defparameter *xv+1*
+    (make-matrix
+     8 2
+     :initial-contents '((1d0 1d0)
+			 (1d0 3d0)
+			 (1d0 2d0)
+			 (1d0 4d0)
+			 (1d0 3d0)
+			 (1d0 5d0)
+			 (1d0 4d0)
+			 (1d0 6d0))))
+
+  (defparameter *xm*
+    (make-matrix
+     2 8
+     :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0)
+			 (1d0 2d0 3d0 4d0 5d0 6d0 7d0 8d0))))
+
+  (defparameter *y*
+    (make-vector
+     8
+     :initial-contents '((1d0 2d0 3d0 4d0 5d0 6d0 7d0 8d0))))
+
+
   (format nil "Data set up"))
 
 
 ;;;; FIX ERRORS, MIGRATE INTO UNITTESTS:
+
+#+nil
+(progn
+
+  (function-lambda-expression #'make-predicate)
+  (function-lambda-expression #'function-lambda-expression)
+
+  (equal (make-predicate 'unit-strides-p)
+	 'unit-strides-p)
+  (equal (make-predicate '(not unit-strides-p))
+	 '(lambda (a) (not (unit-strides-p a))))
+  (ensure (equal (make-predicate '(or (not unit-strides-p)
+                               (not zero-offset-p)))
+             '(lambda (a)
+               (or (not (unit-strides-p a))
+                (not (zero-offset-p a))))))
+  (ensure (equal (make-predicate '(or (not unit-strides-p)
+				   (not zero-offset-p)
+				   transposed-p))
+             '(lambda (a)
+               (or (not (unit-strides-p a))
+                (not (zero-offset-p a))
+                (transposed-p a)))))
+ 
+  (defun integer-p (x) (typep x 'integer))
+  (defun real-p (x) ( typep x 'real))
+  (defun string-p (x) ( typep x 'string))
+  
+  (stringp "est")
+  (funcall  (make-predicate 'integer-p) 1)
+  (funcall  (make-predicate 'real-p) 1)
+  (funcall  (make-predicate 'integer-p) 1d0)
+  (funcall  (make-predicate 'real-p) 1d0)
+  (funcall  (make-predicate '(or stringp real-p) 1d0))
+
+
+  )
+
 
 #+nil
 (progn ;; FIXME: integer-valued foreign arrays. (bug: matrix-2)
@@ -296,33 +368,6 @@ n;;; Precursor systems
   ;;      XtX \hat\beta = Xt Y
   ;; so that we can solve the equation  W \beta = Z   where W and Z
   ;; are known, to estimate \beta.
-  (defparameter *xv*
-    (make-vector
-     8
-     :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0))))
-
-  (defparameter *xv+1*
-    (make-matrix
-     8 2
-     :initial-contents '((1d0 1d0)
-			 (1d0 3d0)
-			 (1d0 2d0)
-			 (1d0 4d0)
-			 (1d0 3d0)
-			 (1d0 5d0)
-			 (1d0 4d0)
-			 (1d0 6d0))))
-
-  (defparameter *xm*
-    (make-matrix
-     2 8
-     :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0)
-			 (1d0 2d0 3d0 4d0 5d0 6d0 7d0 8d0))))
-
-  (defparameter *y*
-    (make-vector
-     8
-     :initial-contents '((1d0 2d0 3d0 4d0 5d0 6d0 7d0 8d0))))
 
   ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
   (defparameter *xtx* (m* *xv* (transpose *xv*)))
@@ -356,7 +401,7 @@ Coefficients:
   ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
   (defparameter *xtx* (m* *xv+1* (transpose *xv+1*)))
   (defparameter *xty* (m* *xv+1* (transpose  *y*)))
-  (defparameter *rcond* 1)
+  (defparameter *rcond* 0.001)
   (defparameter *betahat*  (gelsy *xtx* *xty* *rcond*))
   *betahat*
 
