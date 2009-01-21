@@ -369,20 +369,57 @@ n;;; Precursor systems
   ;; so that we can solve the equation  W \beta = Z   where W and Z
   ;; are known, to estimate \beta.
 
+
+
+  ;; from docs:
+
+#|
+  (setf *temp-result* 
+	(let ((*default-implementation* :foreign-array))
+	  (let* ((m 10)
+	       (n 10)
+         (a (rand m n))
+         (x (rand n 1))
+         (b (m* a x))
+         (rcond (* (coerce (expt 2 -52) 'double-float)
+                   (max (nrows a) (ncols a))))
+         (orig-a (copy a))
+         (orig-b (copy b))
+         (orig-x (copy x)))
+    (list x (gelsy a b rcond)))))
+ (princ *temp-result*)
+
+ (setf *temp-result* 
+      (let ((*default-implementation* :lisp-array))
+	(let* ((m 10)
+	       (n 10)
+         (a (rand m n))
+         (x (rand n 1))
+         (b (m* a x))
+         (rcond (* (coerce (expt 2 -52) 'double-float)
+                   (max (nrows a) (ncols a))))
+         (orig-a (copy a))
+         (orig-b (copy b))
+         (orig-x (copy x)))
+    (list x (gelsy a b rcond)))))
+ (princ *temp-result*)
+|#
+
   ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
-  (defparameter *xtx* (m* *xv* (transpose *xv*)))
-  (defparameter *xty* (m* *xv* (transpose  *y*)))
-  (defparameter *rcond* 1)
-  (defparameter *betahat*  (gelsy *xtx* *xty* *rcond*))
+  (defparameter *xtx-1* (m* *xv* (transpose *xv*)))
+  (defparameter *xty-1* (m* *xv* (transpose  *y*)))
+  (defparameter *rcond-in* (* (coerce (expt 2 -52) 'double-float)
+			      (max (nrows *xtx-1*)
+				   (ncols *xty-1*))))
+
+  (defparameter *betahat*  (gelsy *xtx-1* *xty-1* *rcond-in*))
   *betahat*
 
 #|
 (#<LA-SIMPLE-VECTOR-DOUBLE (1 x 1)
  1.293103448275862>
  1)
-|#
 
-#|
 
 ## Test case in R:
 x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
@@ -397,23 +434,42 @@ Coefficients:
 1.293  
 |#
 
-
   ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
-  (defparameter *xtx* (m* *xv+1* (transpose *xv+1*)))
-  (defparameter *xty* (m* *xv+1* (transpose  *y*)))
-  (defparameter *rcond* 0.001)
-  (defparameter *betahat*  (gelsy *xtx* *xty* *rcond*))
-  *betahat*
+  (defparameter *xtx-2* (m* (transpose *xv+1*) *xv+1*))
+  (defparameter *xty-2* (m* (transpose *xv+1*)  (transpose *y*)))
+  (defparameter *rcond-2* 0.000001)
+  (defparameter *betahat-2*  (gelsy *xtx-2* *xty-2* *rcond-2*))
+  *betahat-2*
 
+#|
 
+(#<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
+ -0.16666666666668312 1.333333333333337>
+ 2)
+
+## Test case in R:
+x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
+y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+lm (y ~ x)
+## => Call:  lm(formula = y ~ x)
+
+Coefficients:  (Intercept)            x  
+                   -0.1667       1.3333  
+|#
 
   ;; which suggests one might do (modulo ensuring correct orientations)
   (defun lm (x y)
-    (let ((betahat (gelsy (m* x (transpose x))
-			  (m* x (transpose y)))))
-      
-      (values betahat (sebetahat betahat x y))))
-  ;; to get a results list containing betahat and SEs
+     (let ((betahat (gelsy (m* (transpose x)  x)
+ 		 	  (m*  (transpose x)  y)
+                         (* (coerce (expt 2 -52) 'double-float)
+			      (max (nrows x)
+				   (ncols y))))))
+      ;;(values-list '(1 3 4))
+      (values betahat 
+              ;;(sebetahat betahat x y)
+      )))
 
-  (values-list '(1 3 4))
+    (lm  *xv+1* (transpose *y*))
+    (lm  (transpose *xv*) (transpose *y*))
+  ;; need computation for SEs, 
   )
