@@ -2,9 +2,9 @@
 
 ;;; This file contains actual BLAS/LAPACK method invocation from Lisp.
 ;;; See functions in lapack-utils.lisp for how supporting utility
-;;; macros and functions.
+;;; macros and functions work.
 ;;;
-;;; Time-stamp: <2009-01-16 08:24:41 tony>
+;;; Time-stamp: <2009-01-21 08:06:09 tony>
 
 ;;;; * Blas methods
 ;;;;
@@ -217,9 +217,9 @@
 
 #+nil
 (setf *temp-result* 
-(let ((*default-implementation* :foreign-array))
-  (let* ((m 10)
-         (n 10)
+      (let ((*default-implementation* :foreign-array))
+	(let* ((m 10)
+	       (n 10)
          (a (rand m n))
          (x (rand n 1))
          (b (m* a x))
@@ -230,3 +230,20 @@
          (orig-x (copy x)))
     (list x (gelsy a b rcond)))))
 ;; (princ *temp-result*)
+#+nil
+(setf *temp-result* 
+      (let ((*default-implementation* :lisp-array))
+	(let* ((m 10)
+	       (n 10)
+         (a (rand m n))
+         (x (rand n 1))
+         (b (m* a x))
+         (rcond (* (coerce (expt 2 -52) 'double-float)
+                   (max (nrows a) (ncols a))))
+         (orig-a (copy a))
+         (orig-b (copy b))
+         (orig-x (copy x)))
+    (list x (gelsy a b rcond)))))
+;; (princ *temp-result*)
+
+
