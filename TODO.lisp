@@ -142,7 +142,25 @@ n;;; Precursor systems
   (defparameter *xv*
     (make-vector
      8
+     :type :row ;; default, not needed!
      :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0))))
+
+  ;; col vector
+  (defparameter *xv2*
+    (make-vector
+     8
+     :type :column
+     :initial-contents '((1d0)
+			 (3d0)
+			 (2d0)
+			 (4d0)
+			 (3d0)
+			 (5d0)
+			 (4d0)
+			 (6d0))))
+
+  (v= *xv* *xv2*) ; => T
+  (m= *xv* *xv2*) ; => nil
 
   (defparameter *xv+1*
     (make-matrix
