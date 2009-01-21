@@ -1,0 +1,20 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Clean up Linear Models datasets
+desc: |-
+  Currently, we've got linear models work being a bit unclean, need to straighten up via data in
+  order to take care of clean use.
+type: :task
+component: lisp-matrix.git
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2009-01-21 08:14:05.333592 Z
+references: []
+
+id: f50b98b5945e905f5f0726d4606a6ea868e6eb4d
+log_events: 
+- - 2009-01-21 08:14:27.894062 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - in progress, but part manip and part to be migrated into CLS
