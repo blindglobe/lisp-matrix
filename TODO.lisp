@@ -1,4 +1,4 @@
-n;;; Precursor systems
+nn;;; Precursor systems
 (in-package :cl-user)
 ;; (asdf:oos 'asdf:compile-op 'ffa :force t)
 ;; (asdf:oos 'asdf:compile-op 'array-operations :force t)
@@ -13,7 +13,7 @@ n;;; Precursor systems
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 65, Failures = 1, Errors = 0 ;; 11.12.2008
+;; Tests = 65, Failures = 1, Errors = 0 ;; 22.1.2009
 
 (describe (run-tests :suite 'lisp-matrix-ut))
 (run-tests :suite 'lisp-matrix-ut)
@@ -67,11 +67,6 @@ n;;; Precursor systems
     "quick variable initialized to zeros")
     
   (defparameter *m2-la-int*
-    ;; would an API allowing for the following equal behaviours:
-    ;;    :initial-contents (:row-major (list 1 2 3 4 5 6 7 8 9 0))
-    ;;    :initial-contents (:row-major (list 1 2 3 (list 4 5 6) 7 8 9 0))
-    ;; be useful for getting list-structured data into matrices?
-    
     (make-matrix 2 5
 		 :implementation :lisp-array  ;; :foreign-array
 		 :element-type 'integer ; 'double-float
@@ -79,12 +74,6 @@ n;;; Precursor systems
 		 :initial-contents #2A((1 2 3 4 5)
 				       (6 7 8 9 10)))
     "placeholder 2")
-
-  ;; There is an argument for something like:
-  ;;    :initial-contents (:row-major-list-lists
-  ;;                           (list (list 1 2 3 4 5)
-  ;;                                 (list 6 7 8 9 10)))
-  ;; to exist as well.  
 
   ;; Currently we can make a foriegn matrix of doubles, but not a
   ;; foriegn matrix of integers.
@@ -142,7 +131,7 @@ n;;; Precursor systems
   (defparameter *xv*
     (make-vector
      8
-     :type :row ;; default, not needed!
+     :type :row ;; default, not usually needed!
      :initial-contents '((1d0 3d0 2d0 4d0 3d0 5d0 4d0 6d0))))
 
   ;; col vector
@@ -174,6 +163,35 @@ n;;; Precursor systems
 			 (1d0 4d0)
 			 (1d0 6d0))))
 
+  (defparameter *xv+1a*
+    (make-matrix
+     8 2
+     :initial-contents #2A((1d0 1d0)
+			   (1d0 3d0)
+			   (1d0 2d0)
+			   (1d0 4d0)
+			   (1d0 3d0)
+			   (1d0 5d0)
+			   (1d0 4d0)
+			   (1d0 6d0))))
+
+  (defparameter *xv+1b*
+    (bind2
+     (ones 8 1)
+     (make-matrix
+      8 1
+      :initial-contents '((1d0)
+			  (3d0)
+			  (2d0)
+			  (4d0)
+			  (3d0)
+			  (5d0)
+			  (4d0)
+			  (6d0)))
+     :by :column))
+
+  (m= *xv+1a* *xv+1b*) ; => T
+
   (defparameter *xm*
     (make-matrix
      2 8
@@ -183,9 +201,22 @@ n;;; Precursor systems
   (defparameter *y*
     (make-vector
      8
+     :type :row
      :initial-contents '((1d0 2d0 3d0 4d0 5d0 6d0 7d0 8d0))))
 
-
+  (defparameter *y2*
+    (make-vector
+     8
+     :type :column
+     :initial-contents '((1d0)
+			 (2d0)
+			 (3d0)
+			 (4d0)
+			 (5d0)
+			 (6d0)
+			 (7d0)
+			 (8d0))))
+  (transpose *y2*)
   (format nil "Data set up"))
 
 
@@ -376,7 +407,10 @@ n;;; Precursor systems
   ;; Some issues exist in the LAPACK vs. LINPACK variants, hence R
   ;; uses LINPACK primarily, rather than LAPACK.  See comments in R
   ;; source for issues.  
-  
+
+  ;; Question: Need to incorporate the xGEQRF routines, to support
+  ;; linear regression work?
+
   ;; LAPACK suggests to use the xGELSY driver (GE general matrix, LS
   ;; least squares, need to lookup Y intent (used to be an X alg, see
   ;; release notes).
@@ -387,6 +421,16 @@ n;;; Precursor systems
   ;; so that we can solve the equation  W \beta = Z   where W and Z
   ;; are known, to estimate \beta.
 
+  ;; the above is known to be numerically instable -- some processing
+  ;; of X is preferred and should be done prior.  And most of the
+  ;; transformation-based work does precisely that.
+
+  ;; For initial estimates of covariance of \hat\beta:
+
+  ;; \hat\beta = (Xt X)^-1 Xt Y
+  ;; with E[ \hat\beta ] = E[ (Xt X)^-1 Xt Y ] = (Xt X)^-1 Xt (X\beta)  
+  ;; So Var[\hat\beta] = ...
+  ;; and this gives SE(\beta_i) = (* (sqrt (mref Var i i)) adjustment)
 
 
   ;; from docs:
@@ -434,22 +478,22 @@ n;;; Precursor systems
   *betahat*
 
 #|
-(#<LA-SIMPLE-VECTOR-DOUBLE (1 x 1)
+ (#<LA-SIMPLE-VECTOR-DOUBLE (1 x 1)
  1.293103448275862>
  1)
 
 
-## Test case in R:
-x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
-y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
-lm (y ~ x  -1)
-## => 
-Call:
-lm(formula = y ~ x - 1)
+  ## Test case in R:
+  x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
+  y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+  lm(y~x-1)
+  ## => 
+  Call:
+  lm(formula = y ~ x - 1)
 
-Coefficients:
-    x  
-1.293  
+  Coefficients:
+      x  
+  1.293  
 |#
 
   ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
@@ -461,33 +505,42 @@ Coefficients:
 
 #|
 
-(#<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
- -0.16666666666668312 1.333333333333337>
- 2)
+  (#<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
+   -0.16666666666668312 1.333333333333337>
+   2)
 
-## Test case in R:
-x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
-y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
-lm (y ~ x)
-## => Call:  lm(formula = y ~ x)
+  ## Test case in R:
+  x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
+  y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+  lm(y~x)
+  ## => Call:  lm(formula = y ~ x)
 
-Coefficients:  (Intercept)            x  
-                   -0.1667       1.3333  
+  Coefficients:  (Intercept)            x  
+                     -0.1667       1.3333  
 |#
 
   ;; which suggests one might do (modulo ensuring correct orientations)
-  (defun lm (x y)
-     (let ((betahat (gelsy (m* (transpose x)  x)
- 		 	  (m*  (transpose x)  y)
-                         (* (coerce (expt 2 -52) 'double-float)
-			      (max (nrows x)
-				   (ncols y))))))
+  (defun lm ( x y) ;; might add args: (method 'gelsy)
+    "fit the linear model:
+           y = x \beta + e 
+and estimate \beta.   X should be n x p,  Y should be n x 1."
+    (check-type x matrix-like)
+    (check-type y vector-like) ; vector-like might be too strict?
+				; maybe matrix-like?
+    (assert (= (nrows y) (nrows x)) ; same number of observations/cases
+	    (x y) "Can not multiply x:~S by y:~S" x y)
+    (let ((betahat (gelsy (m* (transpose x) x)
+
+ 		 	  (m* (transpose x) y)
+			  (* (coerce (expt 2 -52) 'double-float)
+			     (max (nrows x)
+				  (ncols y))))))
       ;;(values-list '(1 3 4))
       (values betahat 
-              ;;(sebetahat betahat x y)
-      )))
+	      ;;(sebetahat betahat x y)
+	      )))
 
-    (lm  *xv+1* (transpose *y*))
-    (lm  (transpose *xv*) (transpose *y*))
+  (lm *xv+1* *y2*)
+  (lm (transpose *xv*) *y2*)
   ;; need computation for SEs, 
   )
