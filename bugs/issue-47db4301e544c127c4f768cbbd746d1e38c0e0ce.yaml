@@ -1,0 +1,20 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: LICENSE needed, chase down permission from previous authors
+desc: |-
+  release will require a bit of work to ensure that we actually get things done
+  /stp
+type: :task
+component: lisp-matrix.git
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2009-01-23 11:18:28.723367 Z
+references: []
+
+id: 47db4301e544c127c4f768cbbd746d1e38c0e0ce
+log_events: 
+- - 2009-01-23 11:18:36.468609 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - will work on it soon.
