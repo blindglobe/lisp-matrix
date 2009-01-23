@@ -4,7 +4,7 @@
 ;;; See functions in lapack-utils.lisp for how supporting utility
 ;;; macros and functions work.
 ;;;
-;;; Time-stamp: <2009-01-21 08:06:09 tony>
+;;; Time-stamp: <2009-01-23 08:06:32 tony>
 
 ;;;; * Blas methods
 ;;;;
@@ -165,7 +165,7 @@
     `(let ((work (make-vector 1 :element-type ',element-type
                                 :implementation :foreign-array))
            (,lwork -1))
-       ,call
+       ,call  ;;; WHY DO WE CALL TWICE?  JUST TO SET LWORK?
        (setq ,lwork (floor (mref ,work 0 0)))
        (setq ,work (make-vector ,lwork :element-type ',element-type
                                 :implementation :foreign-array))

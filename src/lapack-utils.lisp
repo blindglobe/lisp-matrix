@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-01-21 07:57:01 tony>
+;;;; Time-stamp: <2009-01-23 07:56:43 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -261,7 +261,8 @@
   See for example the definition of GEMM for how to use this macro."
   ;; FIXME: It might not cover all edge cases yet (i.e. transposed
   ;; matrices which don't fall back on superclasses (see TODO.lisp for
-  ;; example) -- Tony Rossini 2008-12-17
+  ;; example).  But this also might be my cluelessness?
+  ;; -- Tony Rossini 2008-12-17
   ;;
   ;; FIXME: I don't like the fact that this macro uses templates, but
   ;; the code works. -- Evan Monroig 2008-05-04

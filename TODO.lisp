@@ -519,28 +519,37 @@ nn;;; Precursor systems
                      -0.1667       1.3333  
 |#
 
-  ;; which suggests one might do (modulo ensuring correct orientations)
-  (defun lm ( x y) ;; might add args: (method 'gelsy)
+  ;; which suggests one might do (modulo ensuring correct
+  ;; orientations).  When this is finalized, it should migrate to
+  ;; CLS.
+  ;;
+  ;; might add args: (method 'gelsy), or do we want to put a more
+  ;; general front end, linear-least-square, across the range of
+  ;; LAPACK solvers? 
+  (defun lm ( x y)
     "fit the linear model:
            y = x \beta + e 
-and estimate \beta.   X should be n x p,  Y should be n x 1."
+and estimate \beta.   X should be n x p,  Y should be n x 1.  Returns
+estimates, n and p.  Probably should return a form providing the call,
+as well."
     (check-type x matrix-like)
     (check-type y vector-like) ; vector-like might be too strict?
-				; maybe matrix-like?
+					; maybe matrix-like?
     (assert (= (nrows y) (nrows x)) ; same number of observations/cases
 	    (x y) "Can not multiply x:~S by y:~S" x y)
     (let ((betahat (gelsy (m* (transpose x) x)
-
  		 	  (m* (transpose x) y)
 			  (* (coerce (expt 2 -52) 'double-float)
 			     (max (nrows x)
 				  (ncols y))))))
-      ;;(values-list '(1 3 4))
+      ;; need computation for SEs, 
+
       (values betahat 
 	      ;;(sebetahat betahat x y)
-	      )))
+	      (nrows x) ; surrogate for n
+	      (ncols x)))) ; surrogate for p
 
   (lm *xv+1* *y2*)
   (lm (transpose *xv*) *y2*)
-  ;; need computation for SEs, 
-  )
+
+  (format nil "Linear Models Code setup"))
