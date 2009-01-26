@@ -1,10 +1,12 @@
+;;; Time-stamp: <2009-01-23 17:10:14 tony>
+
+
 (in-package :lisp-matrix)
 
 ;;; This file contains actual BLAS/LAPACK method invocation from Lisp.
 ;;; See functions in lapack-utils.lisp for how supporting utility
 ;;; macros and functions work.
 ;;;
-;;; Time-stamp: <2009-01-23 08:06:32 tony>
 
 ;;;; * Blas methods
 ;;;;
@@ -175,6 +177,11 @@
   (unless (= info 0)
     (error "~a: error in argument ~d" function-name (- info))))
 
+
+;;; Solving ax = b
+;;; note that 'a' will be modified upon the call, and will have a
+;;; different value at the end, more appropriate to the transformation
+;;; (i.e. will be the QR, but stored in common compact form).
 (def-lapack-method gelsy ((a !matrix-type) (b !matrix-type)
                           rcond &optional jpvt)
   ;; FIXME: has both LWORK and RWORK for %ZGELSY and %CGELSY
@@ -230,6 +237,7 @@
          (orig-x (copy x)))
     (list x (gelsy a b rcond)))))
 ;; (princ *temp-result*)
+
 #+nil
 (setf *temp-result* 
       (let ((*default-implementation* :lisp-array))

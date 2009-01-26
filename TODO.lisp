@@ -498,11 +498,31 @@ nn;;; Precursor systems
 
   ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
   (defparameter *xtx-2* (m* (transpose *xv+1*) *xv+1*))
+  ;; #<LA-SIMPLE-MATRIX-DOUBLE  2 x 2
+  ;;  8.0d0 28.0d0
+  ;;  28.0d0 116.0d0>
+
   (defparameter *xty-2* (m* (transpose *xv+1*)  (transpose *y*)))
+  ;; #<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
+  ;;  36.0d0
+  ;;  150.0d0>
+
   (defparameter *rcond-2* 0.000001)
   (defparameter *betahat-2*  (gelsy *xtx-2* *xty-2* *rcond-2*))
-  *betahat-2*
+  ;; *xtx-2* => "details of complete orthogonal factorization"
+  ;; according to man page:
+  ;; #<LA-SIMPLE-MATRIX-DOUBLE  2 x 2
+  ;;  -119.33147112141039d0 -29.095426104883202d0
+  ;;  0.7873402682880205d0 -1.20672274167718d0>
 
+  ;; *xty-2* => output becomes solution:
+  ;; #<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
+  ;;  -0.16666666666668312d0
+  ;;  1.333333333333337d0>
+
+  *betahat-2* ; which matches R, see below
+
+  (documentation 'gelsy 'function)
 #|
 
   (#<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
