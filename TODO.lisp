@@ -232,22 +232,42 @@ nn;;; Precursor systems
   (function-lambda-expression #'make-predicate)
   (function-lambda-expression #'function-lambda-expression)
 
+
+  (defmacro our-let (binds &body body)
+    "test let"
+    ‘((lambda ,(mapcar #’(lambda (x)
+			   (if (consp x) (car x) x))
+			 binds)
+	,@body)
+      ,@(mapcar #’(lambda (x)
+		    (if (consp x) (cadr x) nil))
+		  binds)))
+
+
   (equal (make-predicate 'unit-strides-p)
 	 'unit-strides-p)
   (equal (make-predicate '(not unit-strides-p))
 	 '(lambda (a) (not (unit-strides-p a))))
-  (ensure (equal (make-predicate '(or (not unit-strides-p)
+  (equal (make-predicate '(or (not unit-strides-p)
                                (not zero-offset-p)))
              '(lambda (a)
                (or (not (unit-strides-p a))
-                (not (zero-offset-p a))))))
-  (ensure (equal (make-predicate '(or (not unit-strides-p)
-				   (not zero-offset-p)
-				   transposed-p))
+                (not (zero-offset-p a)))))
+  (equal (make-predicate '(or (not unit-strides-p)
+			   (not zero-offset-p)
+			   transposed-p))
              '(lambda (a)
                (or (not (unit-strides-p a))
                 (not (zero-offset-p a))
-                (transposed-p a)))))
+                (transposed-p a))))
+
+  (equal (make-predicate-macro '(or (not unit-strides-p)
+			   (not zero-offset-p)
+			   transposed-p))
+             '(lambda (a)
+               (or (not (unit-strides-p a))
+                (not (zero-offset-p a))
+                (transposed-p a))))
  
   (defun integer-p (x) (typep x 'integer))
   (defun real-p (x) ( typep x 'real))
@@ -429,11 +449,23 @@ nn;;; Precursor systems
   ;; of X is preferred and should be done prior.  And most of the
   ;; transformation-based work does precisely that.
 
+  ;; recall:  Var[Y] = E[(Y - E[Y])(Y-E[Y])t]
+  ;;   = E[Y Yt] - 2 \mu \mut + \mu \mut
+  ;;   = E[Y Yt] - \mu \mut
+
+  ;; Var Y = E[Y^2] - \mu^2
+
+
   ;; For initial estimates of covariance of \hat\beta:
 
   ;; \hat\beta = (Xt X)^-1 Xt Y
-  ;; with E[ \hat\beta ] = E[ (Xt X)^-1 Xt Y ] = (Xt X)^-1 Xt (X\beta)  
+  ;; with E[ \hat\beta ] 
+  ;;        = E[ (Xt X)^-1 Xt Y ]
+  ;;        = E[(Xt X)^-1 Xt (X\beta)]
+  ;;        = \beta 
+  ;;        
   ;; So Var[\hat\beta] = ...
+  ;;     (Xt X)
   ;; and this gives SE(\beta_i) = (* (sqrt (mref Var i i)) adjustment)
 
 
@@ -541,6 +573,28 @@ nn;;; Precursor systems
 
   Coefficients:  (Intercept)            x  
                      -0.1667       1.3333  
+
+  summary(lm(y~x))
+  ## =>
+
+  Call:
+  lm(formula = y ~ x)
+
+  Residuals:
+         Min         1Q     Median         3Q        Max 
+  -1.833e+00 -6.667e-01 -3.886e-16  6.667e-01  1.833e+00 
+
+  Coefficients:
+              Estimate Std. Error t value Pr(>|t|)   
+  (Intercept)  -0.1667     1.1587  -0.144  0.89034   
+  x             1.3333     0.3043   4.382  0.00466 **
+  ---
+  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
+
+  Residual standard error: 1.291 on 6 degrees of freedom
+  Multiple R-squared: 0.7619,	Adjusted R-squared: 0.7222 
+  F-statistic:  19.2 on 1 and 6 DF,  p-value: 0.004659 
+
 |#
 
   ;; which suggests one might do (modulo ensuring correct
@@ -553,9 +607,15 @@ nn;;; Precursor systems
   (defun lm ( x y)
     "fit the linear model:
            y = x \beta + e 
-and estimate \beta.   X should be n x p,  Y should be n x 1.  Returns
-estimates, n and p.  Probably should return a form providing the call,
-as well."
+
+and estimate \beta.  X,Y should be in cases-by-vars form, i.e. X
+should be n x p, Y should be n x 1.  Returns estimates, n and p.
+Probably should return a form providing the call, as well.
+
+R's lm object returns: coefficients, residuals, effects, rank, fitted,
+qr-results for numerical considerations, DF_resid.  Need to
+encapsulate into a class or struct.
+"
     (check-type x matrix-like)
     (check-type y vector-like) ; vector-like might be too strict?
 					; maybe matrix-like?
@@ -573,7 +633,58 @@ as well."
 	      (nrows x) ; surrogate for n
 	      (ncols x)))) ; surrogate for p
 
+
+  (defun XtXinv (x)
+    "(XtX)^-1  as XtX is PxN, so whole is PxP.  Usually represents the
+   Vars for beta from Y = X \beta + \eps.   Uses LAPACK's dpotri
+    routine. We use a copy for now, until we understand whether or not
+    it is safe to destroy.  Perhaps have a destructive versino of this?"
+    (let (a (copy x))
+      (potri (m* (transpose a) a)))) ; invert symmetric matrix
+
+  (defun print-lm (lm-obj)
+    "transcribed from R"
+    (p (rank lm-obj)
+    (when (= p 0) 
+      ;; EVIL LOGIC!  Just to store for now.
+      (let ()
+	    (n (length (residuals lm-obj)))
+	    (w (if (weights lm-obj)
+		   (weights lm-obj)
+		   (ones n 1)))
+	    (r  (if (weights lm-obj)
+		      (residuals lm-obj)
+		      (v.* (residuals lm-obj)
+			   (mapcar #'sqrt (weights lm-obj)))))
+	    (rss (sum (v.* r r)))
+	    (resvar (/ rss (- n p)))
+	    ;; then answer, to be encapsulated in a struct/class
+	    ;; instance, 
+	    (aliased (is.na (coef lm-obj)))
+	    (residuals r)
+	    (df (list 0 n (length aliased)))
+	    (coefficients (list 'NA 0d0 4d0))o
+	    (sigma (sqrt resvar))
+	    (r.squared 0d0)
+	    (adj.r.squared 0d0)))
+      )
+    ;;otherwise...
+    (when (not (= p 0))
+      (let ((n (nrows (qr lm-obj)))
+	    (rdf  (- n p))
+	    
+	    
+
+	    ))
+
+      )
+    )
+  )
+  
+
   (lm *xv+1* *y2*)
   (lm (transpose *xv*) *y2*)
+
+
 
   (format nil "Linear Models Code setup"))

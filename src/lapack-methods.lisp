@@ -1,4 +1,4 @@
-;;; Time-stamp: <2009-01-23 17:10:14 tony>
+;;; Time-stamp: <2009-01-29 08:52:02 tony>
 
 
 (in-package :lisp-matrix)
@@ -154,13 +154,15 @@
                c
                (real-nrows c))))
 
-;;;; * Lapack
-;;;;
-;;;; Done:
-;;;;
-;;;; Need more work: xGELSY (current only supports 1d p).
-;;;;
-;;;; TODO: many many
+;;; * Lapack
+;;;
+;;; Done:
+;;;
+;;; Need more work:
+;;;   xGELSY (no complex support).
+;;;   xPOTRI (incomplete, tests)
+;;;   xGEQRF (incomplete, tests)
+;;; TODO: many many
 
 (defmacro call-with-work ((lwork work type) call)
   (let ((element-type (fnv-type->element-type type)))
@@ -255,3 +257,57 @@
 ;; (princ *temp-result*)
 
 
+
+
+
+
+;;; DPOTRI - compute the inverse of a real symmetric positive definite
+;;; matrix A using the Cholesky factorization A = U**T*U or A = L*L**T
+(def-lapack-method potri ((a !matrix-type))
+  (let ((info (make-fnv-int32 1 :initial-value 0)))
+    (assert (= (ncols a) (nrows a)))
+    (with-copies ((a (or (not unit-strides-p)
+                         transposed-p)))
+	(check-info (fnv-int32-ref info 0) "POTRI")
+      (call-with-work (lwork work !data-type)
+		      (!function "U" ;; "L"
+				 (ncols a) ;; N
+				 a ;; a 
+				 (real-nrows a) ;; LDA
+				 info)))))
+
+
+;;; QR decomposition.  Need one more front end to provide appropriate
+;;; processing.  A and TAU will have different values at the end, more
+;;; appropriate to the transformation (i.e. will be the QR, but stored
+;;; in common compact form).
+(def-lapack-method geqrf ((a !matrix-type) (tau !matrix-type)) ; tau is for output
+  (let ((tau (make-fnv-int32 (min (nrows a) (ncols a)) :initial-value 0))
+        (info (make-fnv-int32 1 :initial-value 0)))
+    ;; FIXME: B needs to be resized anyway if A has more columns than
+    ;; rows, to allow for enough storage for the result matrix =>
+    ;; quick fix: disallow A dimensions which might require this.
+    (assert (<= (ncols a) (nrows a)))
+    (with-copies ((a (or (not unit-strides-p)
+                         transposed-p))
+                  (tau (or (not unit-strides-p)
+			   transposed-p)))
+        ;; FIXME: the value RANK is not correct because the cffi type
+        ;; :FORTRAN-INT does not define a TRANSLATE-FROM-FOREIGN method?
+        ;; => why not use a standard cffi integer type anyway??
+        ;; (a fix is to make RANK a fnv-int32 with one element
+        (progn
+          (check-info (fnv-int32-ref info 0) "GELSY")
+          (list (if (= (nrows b) (ncols a))
+                    b
+                    (window b :nrows (ncols a)))
+                (fnv-int32-ref rank 0)))
+     (call-with-work (lwork work !data-type)
+                     (!function (nrows a)
+                                (ncols a)
+                                a
+                                (max 1 (nrows a))
+                                (data tau)
+                                (data work)
+                                lwork
+                                info)))))
