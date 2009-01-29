@@ -24,6 +24,10 @@ nn;;; Precursor systems
 ;; failures:
 ;; # ut         : make-predicate
 
+;; Note that when unit tests fail in m*- tests, it seems to do with a
+;; "macro vs defun" problem, related to compile-time vs. run-time
+;; evaluation that I (tony) am not quite getting.
+
 (in-package :lisp-matrix-user)
 
 ;; (lisp-matrix-unittests:run-lisp-matrix-tests)
