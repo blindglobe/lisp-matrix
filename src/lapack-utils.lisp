@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-01-23 07:56:43 tony>
+;;;; Time-stamp: <2009-01-28 08:06:41 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -85,34 +85,35 @@
        `(lambda (a)
           ,(aux form))))))
 
+
+
+
+
 (defmacro make-predicate-macro (form)
   "Trying to fix make-predicate, through a macro approach. DOES NOT WORK!"
-  (list form)
-#|
-  (typecase ,form
-    (symbol ;; fine.			;
-     (case ,form
+  (typecase form
+    (symbol
+     (case form
        ((t) '(constantly t))
        ((nil) '(constantly nil))
-       (t ,form)))
-    (list ;; variable capture in the defun version. ;
+       (t form)))
+    (list
+     ;; FIXME: we are getting scope capture according to SBCL.  See
+     ;; unittests for make-predicate, which currently fail.  Whoops!
      (labels ((aux (arg)
-		(etypecase arg
-		  (symbol (list arg 'a))
-		  (list
-		   (ecase (car arg)
-		     (or (cons 'or (mapcar #'aux (cdr arg))))
-		     (and (cons 'and (mapcar #'aux (cdr arg))))
-		     (not (list 'not (aux (cadr arg)))))))))
+                (etypecase arg
+                  (symbol (list arg 'a))
+                  (list
+                   (ecase (car arg)
+                     (or (cons 'or (mapcar #'aux (cdr arg))))
+                     (and (cons 'and (mapcar #'aux (cdr arg))))
+                     (not (list 'not (aux (cadr arg)))))))))
        `(lambda (a)
-	  ,(aux ,form)))))
-|#
-  )
+          ,(aux form))))))
 
 #|
-(make-predicate-macro )
-(make-predicate )
-
+  (make-predicate-macro )
+  (make-predicate )
 |#
 
 
@@ -267,8 +268,8 @@
   ;; FIXME: I don't like the fact that this macro uses templates, but
   ;; the code works. -- Evan Monroig 2008-05-04
   ;;
-  ;; FIXME: also create the generic function with documentation --
-  ;; Evan Monroig 2008-05-04
+  ;; FIXME: also create the generic function with CORRECT rather than
+  ;; approximate documentation -- Evan Monroig 2008-05-04
   (let ((name (%get-name name-and-options))
         (functions (%get-functions name-and-options)))
    `(progn
