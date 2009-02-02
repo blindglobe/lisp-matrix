@@ -41,12 +41,8 @@ nn;;; Precursor systems
 
 ;; Here is what we need to fix, based on the above:
 ;; #  make-predicate (and variable-capture, see macro-expansion)
-;; #  col selection on row-oriented strided matrices (col-oriented fine)
-;; #  mref access, index assertion done better.
 ;; #  creation of foreign-array matrices which are integer valued
 ;;    fails.
-;; # 
-
 
 ;; (typep -1 '(integer 0 *))
 ;; (typep 2  '(integer 0 *))
@@ -642,6 +638,18 @@ encapsulate into a class or struct.
     (let (a (copy x))
       (potri (m* (transpose a) a)))) ; invert symmetric matrix
 
+  (defparameter *potri-test1*
+    (make-matrix 2 2 :initial-contents #2A( ( 1d0 2d0 ) (2d0 1d0))))
+  (defparameter *potri-test2* (copy *potri-test1*))
+  (potri *potri-test1*)
+  (setf (mref *potri-test1* 1 0) (mref *potri-test1* 0 1))
+  (m* *potri-test1* *potri-test2*)
+
+
+
+  (geqrf (make-matrix 2 2 :initial-contents #2A( ( 1d0 2d0 ) (2d0 1d0)))
+	 (make-vector 2 :initial-contents '((1d0 1d0))))
+
   (defun print-lm (lm-obj)
     "transcribed from R"
     (p (rank lm-obj)
@@ -672,19 +680,10 @@ encapsulate into a class or struct.
     (when (not (= p 0))
       (let ((n (nrows (qr lm-obj)))
 	    (rdf  (- n p))
-	    
-	    
-
-	    ))
-
-      )
-    )
-  )
-  
+	    ))))
 
   (lm *xv+1* *y2*)
   (lm (transpose *xv*) *y2*)
 
-
-
-  (format nil "Linear Models Code setup"))
+  (format nil "Linear Models Code setup")
+  )
