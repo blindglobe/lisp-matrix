@@ -1,4 +1,4 @@
-;;; Time-stamp: <2009-01-29 08:52:02 tony>
+;;; Time-stamp: <2009-02-02 22:23:23 tony>
 
 
 (in-package :lisp-matrix)
@@ -117,17 +117,23 @@
 
 ;;;; ** Level 2 BLAS
 ;;;;
-;;;; xGEMV, xGBMV, xHBMV, xHPMV, xSYMV, xSBMV, xSPMV, xTRMV, xTBMV,
-;;;; xTPMV, xTRSV, xTBSV, xTPSV, xGER, xGERU, xGERC, xHER, xHPR,
-;;;; xHER2, xHPR2, xSYR, xSPR, xSYR2, xSPR2
+;;;; Done: none
+;;;; 
+;;;; To do: xGEMV, xGBMV, xHBMV, xHPMV, xSYMV, xSBMV, xSPMV, xTRMV,
+;;;; xTBMV, xTPMV, xTRSV, xTBSV, xTPSV, xGER, xGERU, xGERC, xHER,
+;;;; xHPR, xHER2, xHPR2, xSYR, xSPR, xSYR2, xSPR2
 ;;;;
 ;;;; ** Extended precision Level 2 BLAS
 ;;;;
+;;;; Done:
+;;;;
+;;;; To do:
+;;;; 
 ;;;; ** LEVEL 3 BLAS
 ;;;;
 ;;;; Done: xGEMM
 ;;;;
-;;;; xSYMM, xHEMM, xSYRK, xHERK, xSYR2K, xHER2K, xTRMM, xTRSM, 
+;;;; To do: xSYMM, xHEMM, xSYRK, xHERK, xSYR2K, xHER2K, xTRMM, xTRSM,
 
 (def-lapack-method gemm (alpha (a !matrix-type) (b !matrix-type) beta
                                (c !matrix-type))
@@ -257,23 +263,20 @@
 ;; (princ *temp-result*)
 
 
-
-
-
-
-;;; DPOTRI - compute the inverse of a real symmetric positive definite
+;;; POTRI - compute the inverse of a real symmetric positive definite
 ;;; matrix A using the Cholesky factorization A = U**T*U or A = L*L**T
 (def-lapack-method potri ((a !matrix-type))
   (let ((info (make-fnv-int32 1 :initial-value 0)))
-    (assert (= (ncols a) (nrows a)))
+    (assert (= (ncols a) (nrows a)))  ;; only works with square matrices
     (with-copies ((a (or (not unit-strides-p)
                          transposed-p)))
 	(check-info (fnv-int32-ref info 0) "POTRI")
       (call-with-work (lwork work !data-type)
-		      (!function "U" ;; "L"
-				 (ncols a) ;; N
-				 a ;; a 
-				 (real-nrows a) ;; LDA
+		      (!function "U"            ; "L" do we want lower
+   					        ; to be an option?
+				 (ncols a)      ; N
+				 a              ; a 
+				 (real-nrows a) ; LDA
 				 info)))))
 
 
@@ -281,27 +284,16 @@
 ;;; processing.  A and TAU will have different values at the end, more
 ;;; appropriate to the transformation (i.e. will be the QR, but stored
 ;;; in common compact form).
-(def-lapack-method geqrf ((a !matrix-type) (tau !matrix-type)) ; tau is for output
-  (let ((tau (make-fnv-int32 (min (nrows a) (ncols a)) :initial-value 0))
-        (info (make-fnv-int32 1 :initial-value 0)))
-    ;; FIXME: B needs to be resized anyway if A has more columns than
-    ;; rows, to allow for enough storage for the result matrix =>
-    ;; quick fix: disallow A dimensions which might require this.
-    (assert (<= (ncols a) (nrows a)))
+(def-lapack-method geqrf ((a !matrix-type)
+			  (tau !matrix-type)) ; tau is for output
+  (let ((info (make-fnv-int32 1 :initial-value 0)))
+    (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
     (with-copies ((a (or (not unit-strides-p)
                          transposed-p))
                   (tau (or (not unit-strides-p)
 			   transposed-p)))
-        ;; FIXME: the value RANK is not correct because the cffi type
-        ;; :FORTRAN-INT does not define a TRANSLATE-FROM-FOREIGN method?
-        ;; => why not use a standard cffi integer type anyway??
-        ;; (a fix is to make RANK a fnv-int32 with one element
         (progn
           (check-info (fnv-int32-ref info 0) "GELSY")
-          (list (if (= (nrows b) (ncols a))
-                    b
-                    (window b :nrows (ncols a)))
-                (fnv-int32-ref rank 0)))
      (call-with-work (lwork work !data-type)
                      (!function (nrows a)
                                 (ncols a)

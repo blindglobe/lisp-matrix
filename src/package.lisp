@@ -111,7 +111,8 @@
    
    list->vector-like
    vector-like->list
-   
+
+   potri geqrf
    ))
 
 
