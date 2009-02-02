@@ -184,12 +184,12 @@ FIXME: AWFUL."
       (setf result (append result (list (col M i)))))
     result))
 #|
-;; Is this right?
-(defun list-of-margins (M margin-type)) ;; 
-(defun list-of-matrix-partitions (M partition-walker)) ; could be
+  ;; Is this right?
+  (defun list-of-margins (M margin-type)) ;; 
+  (defun list-of-matrix-partitions (M partition-walker)) ; could be
 					; generalized to return diff
 					; types.
-(defun list-of-vector-partitions (M partition-walker))
+  (defun list-of-vector-partitions (M partition-walker))
 |#
 
 ;; (defgeneric map-matrix (withfn mat &key iterator result-type)
@@ -199,4 +199,17 @@ FIXME: AWFUL."
 ;;     (let ((result))
 ;;       )))
 
-;;; Need to add a walker in the sense of 
+;;; Need to add a walker in the sense of the affi accessor approach,
+;;; but needs to have a reset,
+
+
+;;; LAPACK-related numerical linear algebra.  Should we be precise?
+
+#| 
+ (defmethod qr-decomp (a)
+  (:documentation "Compute the QR decomposition of matrix A")
+  (:method ( (a fa-matrix-double))
+    (let ((tau (make-fnv-int32 (min (nrows a) (ncols a)) :initial-value 0)))
+      (dgeqrf a tau)
+      (values a tau))))
+|#
