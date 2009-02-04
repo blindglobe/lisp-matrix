@@ -1,4 +1,4 @@
-nn;;; Precursor systems
+;;; Precursor systems
 (in-package :cl-user)
 ;; (asdf:oos 'asdf:compile-op 'ffa :force t)
 ;; (asdf:oos 'asdf:compile-op 'array-operations :force t)
@@ -301,30 +301,48 @@ nn;;; Precursor systems
   (m* *m3-la* *m3-la*)
   (m* *m3-la* (transpose *m3-la*)))
 
-#+nil
-(progn ;; FIXME: vectorized arithmetic
+(progn ;; vectorized arithmetic
   ;;
   ;; So,  how do I vectorize something like:
   ;;     (a + b) / c  
   ;; (i.e. standard normalization) when a,b,c are vectors which have
-  ;; the correct pre-computed values?  So we'd like to do something
-  ;; like:
-  ;;     (v./ (v.+ a b) c)
+  ;; the correct pre-computed values?
+  ;;
   ;; or...?  where the v.# operators disregard row vs. column oriented
   ;; aspect, and the v# operators worry about orientation.    So if we
   ;; know what we've got, we would then be able to do something like 
+  ;;
   ;;     (v/ (v+ a b) c)
+  ;;
   ;; or possibly
-  ;;     (v/ (m+ a b) c)
+  ;;
+  ;;     (v/ (m+ a b) c)  ;; FIXME!
+  ;;
   ;; but we still need to figure out the API for vector ops, and whether
   ;; any of this is done by BLAS (which it should be) or LAPACK.
   
   ;; On a related note, we also could have m.# instead of v.# if
   ;; orientation needs to be ensured (rather than ignored).
-  (defparameter *v1* (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
-  (defparameter *v2* (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+  (defparameter *v1* (make-vector 4
+				  :type :row
+				  :initial-contents '((1d0 2d0 3d0 4d0))))
+  (defparameter *v2* (make-vector 4
+				  :type :row
+				  :initial-contents '((10d0 20d0 30d0 40d0))))
+
+
+  (defparameter *v1a* (make-vector 4
+				  :type :column
+				  :initial-contents '((1d0)(2d0)( 3d0 )(4d0))))
+  (defparameter *v2a* (make-vector 4
+				  :type :column
+				  :initial-contents '((10d0)( 20d0)( 30d0)( 40d0))))
   (vector-dimension *v1*)
-  (v+ *v1* *v2*)
+  (v=  (v+ *v1* *v2*)
+       (v+ *v1a* *v2a*))
+  (v=  (v+ *v1a* *v2*)
+       (v+ *v1* *v2a*))
+
   (v- *v1* *v2*)
   (v- *v2* *v1*)
   (v* *v1* *v2*)
