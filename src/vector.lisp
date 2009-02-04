@@ -481,6 +481,21 @@
            (unless (= (vref a i) (vref b i))
              (return-from v= nil))))))
 
+
+(defgeneric v=2 (&rest args)
+  (:documentation "Test for equality of both number of elements and
+  of the elements themselves, for the two vectors X and Y.  
+
+  A row vector and a column vector with the same number of elements
+  are equal.  To distinguish them, use M= instead.")
+  (:method (&rest args)
+    (reduce #'(lambda (x y) (and x y))  ;; rewrite to use no args?
+	    (loop while (and (typep 'vector-like (first  args))
+			     (typep 'vector-like (second args)))
+	       collect (v= (first args) (second args))))))
+          
+
+
 (defmethod print-object ((object vector-like) stream)
   (print-unreadable-object (object stream :type t)
     (format stream "(~d x ~d)" (nrows object) (ncols object))
