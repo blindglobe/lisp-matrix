@@ -1,4 +1,4 @@
-;;; Time-stamp: <2009-02-02 22:23:23 tony>
+;;; Time-stamp: <2009-02-03 14:24:46 tony>
 
 
 (in-package :lisp-matrix)
@@ -244,7 +244,6 @@
          (orig-b (copy b))
          (orig-x (copy x)))
     (list x (gelsy a b rcond)))))
-;; (princ *temp-result*)
 
 #+nil
 (setf *temp-result* 
@@ -260,17 +259,17 @@
          (orig-b (copy b))
          (orig-x (copy x)))
     (list x (gelsy a b rcond)))))
-;; (princ *temp-result*)
 
 
 ;;; POTRI - compute the inverse of a real symmetric positive definite
 ;;; matrix A using the Cholesky factorization A = U**T*U or A = L*L**T
+
 (def-lapack-method potri ((a !matrix-type))
   (let ((info (make-fnv-int32 1 :initial-value 0)))
     (assert (= (ncols a) (nrows a)))  ;; only works with square matrices
     (with-copies ((a (or (not unit-strides-p)
                          transposed-p)))
-	(check-info (fnv-int32-ref info 0) "POTRI")
+      (check-info (fnv-int32-ref info 0) "POTRI")
       (call-with-work (lwork work !data-type)
 		      (!function "U"            ; "L" do we want lower
    					        ; to be an option?
@@ -292,14 +291,14 @@
                          transposed-p))
                   (tau (or (not unit-strides-p)
 			   transposed-p)))
-        (progn
-          (check-info (fnv-int32-ref info 0) "GELSY")
-     (call-with-work (lwork work !data-type)
-                     (!function (nrows a)
+     (progn
+       (check-info (fnv-int32-ref info 0) "GELSY")
+       (call-with-work (lwork work !data-type)
+                      (!function (nrows a)
                                 (ncols a)
                                 a
                                 (max 1 (nrows a))
                                 (data tau)
                                 (data work)
                                 lwork
-                                info)))))
+                                info))))))
