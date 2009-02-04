@@ -159,10 +159,13 @@
   back.  HOWEVER, this could be done simpler by barfing (forcing
   explicit coercion) and this would be safer, numerically.")
   (:method ((mata matrix-like) (matb matrix-like))
-    (assert (and (= (matrix-dimensions mata)
-		    (matrix-dimensions matb))))
-    (let ((result (make-matrix ))))
-    ))
+    (assert (and (equal (matrix-dimensions mata)
+			(matrix-dimensions matb))))
+    (let ((result (make-matrix (values-list (matrix-dimensions mata)))))
+      (dotimes (i (matrix-dimension mata 0))
+	(dotimes (j (matrix-dimension mata 1))
+	  (setf (mref result i j) (* (mref mata i j) (mref matb i j)))))
+      result)))
 
 ;;; Need the equivalent of R's apply or the map-reduce
 
