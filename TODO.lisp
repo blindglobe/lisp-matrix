@@ -219,7 +219,6 @@
   (transpose *y2*)
   (format nil "Data set up"))
 
-
 ;;;; FIX ERRORS, MIGRATE INTO UNITTESTS:
 
 #+nil
@@ -227,7 +226,6 @@
 
   (function-lambda-expression #'make-predicate)
   (function-lambda-expression #'function-lambda-expression)
-
 
   (defmacro our-let (binds &body body)
     "test let"
@@ -275,10 +273,7 @@
   (funcall  (make-predicate 'integer-p) 1d0)
   (funcall  (make-predicate 'real-p) 1d0)
   (funcall  (make-predicate '(or stringp real-p) 1d0))
-
-
-  )
-
+  (format nil "make predicate test"))
 
 #+nil
 (progn ;; FIXME: integer-valued foreign arrays. (bug: matrix-2)
