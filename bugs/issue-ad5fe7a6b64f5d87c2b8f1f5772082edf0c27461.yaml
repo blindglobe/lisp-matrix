@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: m./ generic needs test cases
+desc: need to implement and write test cases for m./
+type: :task
+component: matrix
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2009-02-06 10:14:43.642727 Z
+references: []
+
+id: ad5fe7a6b64f5d87c2b8f1f5772082edf0c27461
+log_events: 
+- - 2009-02-06 10:14:46.754491 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - /stp
