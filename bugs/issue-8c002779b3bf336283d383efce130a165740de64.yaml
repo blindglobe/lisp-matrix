@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Need to add tools for triangular (trapazoidal) matrices.
+desc: special triangular structures are used in LAPACK/BLAS, need to be able to leverage.
+type: :feature
+component: matrix
+release: 
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2009-02-05 12:23:04.394995 Z
+references: []
+
+id: 8c002779b3bf336283d383efce130a165740de64
+log_events: 
+- - 2009-02-05 12:23:06.361288 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - ""
