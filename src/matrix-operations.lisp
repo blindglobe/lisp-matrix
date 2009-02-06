@@ -60,7 +60,9 @@
 
 
 ;; next variant, bind, should handle "unlimited" arguments to bind
-;; together
+;; together.  There might be a destructuring bind,
+;; i.e. metabang-bind-style, where we manage to specify the structure
+;; and how to remove, and given a proposed structure, how to put in. 
 (defgeneric bind2 (m1 m2 &key by)
   (:documentation "Simple experiment, not necessarily part of the API
   yet!  When type is :row, If the number of columns of m1 and m2
@@ -166,6 +168,23 @@
       (dotimes (i (matrix-dimension mata 0))
 	(dotimes (j (matrix-dimension mata 1))
 	  (setf (mref result i j) (* (mref mata i j) (mref matb i j)))))
+      result)))
+
+
+
+(defgeneric m./ (mata matb)
+  (:documentation "same as m+ which is inherently an element-wise
+  operation. How should we handle coercion?  probably the right way to
+  do this will be to consider the least specific form, and coerce
+  back.  HOWEVER, this could be done simpler by barfing (forcing
+  explicit coercion) and this would be safer, numerically.")
+  (:method ((mata matrix-like) (matb matrix-like))
+    (assert (and (equal (matrix-dimensions mata)
+			(matrix-dimensions matb))))
+    (let ((result (make-matrix (values-list (matrix-dimensions mata)))))
+      (dotimes (i (matrix-dimension mata 0))
+	(dotimes (j (matrix-dimension mata 1))
+	  (setf (mref result i j) (/ (mref mata i j) (mref matb i j)))))
       result)))
 
 ;;; Need the equivalent of R's apply or the map-reduce
