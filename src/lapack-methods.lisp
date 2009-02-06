@@ -1,23 +1,35 @@
-;;; Time-stamp: <2009-02-03 14:24:46 tony>
+;;; -*- mode: lisp -*-
 
+;;; Time-stamp: <2009-02-05 13:17:52 tony>
+;;; Creation:   <2009-02-05 11:18:51 tony>
+;;; File:       lapack-methods.lisp
+;;; Author:     Mark H. < @ >
+;;; Maintainer: AJ Rossini <blindglobe@gmail.com>
+;;; Copyright:  (c)2009--, AJ Rossini.  BSD, LLGPL, or GPLv2, depending
+;;;             on how it arrives.  
+;;; Purpose:    Invocation across storage types (local/foreign; precision
+;;;             / real/complex)
+
+;;; What is this talk of 'release'? Klingons do not make software
+;;; 'releases'.  Our software 'escapes', leaving a bloody trail of
+;;; designers and quality assurance people in its wake.
 
 (in-package :lisp-matrix)
 
 ;;; This file contains actual BLAS/LAPACK method invocation from Lisp.
 ;;; See functions in lapack-utils.lisp for how supporting utility
 ;;; macros and functions work.
-;;;
 
-;;;; * Blas methods
-;;;;
-;;;; ** Level 1 BLAS
-;;;;
-;;;; Done: xSCAL, xAXPY, xDOT xDOTU, xDOTC, 
-;;;;
-;;;; Miss some names: xNRM2, xASUM, IxAMAX
-;;;; FIXME (AJR): these look to be done?   What does the above mean??
-;;;;
-;;;; TODO: xROTG, xROTMG, xROT, xROTM, xSWAP, xCOPY, xSDOT
+;;; * Blas methods
+;;;
+;;; ** Level 1 BLAS
+;;;
+;;; Done: xSCAL, xAXPY, xDOT xDOTU, xDOTC, 
+;;;
+;;; Miss some names: xNRM2, xASUM, IxAMAX
+;;; FIXME (AJR): these look to be done?   What does the above mean??
+;;;
+;;; TODO: xROTG, xROTMG, xROT, xROTM, xSWAP, xCOPY, xSDOT
 
 (def-lapack-method scal (alpha (x !matrix-type))
   (assert (typep alpha '!element-type))
@@ -115,28 +127,31 @@
     ;; the lisp style starting from 0.
     (1- (!function (nelts x) x 1))))
 
-;;;; ** Level 2 BLAS
-;;;;
-;;;; Done: none
-;;;; 
-;;;; To do: xGEMV, xGBMV, xHBMV, xHPMV, xSYMV, xSBMV, xSPMV, xTRMV,
-;;;; xTBMV, xTPMV, xTRSV, xTBSV, xTPSV, xGER, xGERU, xGERC, xHER,
-;;;; xHPR, xHER2, xHPR2, xSYR, xSPR, xSYR2, xSPR2
-;;;;
-;;;; ** Extended precision Level 2 BLAS
-;;;;
-;;;; Done:
-;;;;
-;;;; To do:
-;;;; 
-;;;; ** LEVEL 3 BLAS
-;;;;
-;;;; Done: xGEMM
-;;;;
-;;;; To do: xSYMM, xHEMM, xSYRK, xHERK, xSYR2K, xHER2K, xTRMM, xTRSM,
+;;; ** Level 2 BLAS
+;;;
+;;; Done: none
+;;; 
+;;; To do: xGEMV, xGBMV, xHBMV, xHPMV, xSYMV, xSBMV, xSPMV, xTRMV,
+;;; xTBMV, xTPMV, xTRSV, xTBSV, xTPSV, xGER, xGERU, xGERC, xHER,
+;;; xHPR, xHER2, xHPR2, xSYR, xSPR, xSYR2, xSPR2
+;;;
+;;; ** Extended precision Level 2 BLAS
+;;;
+;;; Done:
+;;;
+;;; To do:
+;;; 
+;;; ** LEVEL 3 BLAS
+;;;
+;;; Done: xGEMM
+;;;
+;;; To do: xSYMM, xHEMM, xSYRK, xHERK, xSYR2K, xHER2K, xTRMM, xTRSM,
 
-(def-lapack-method gemm (alpha (a !matrix-type) (b !matrix-type) beta
-                               (c !matrix-type))
+(def-lapack-method gemm (alpha
+			 (a !matrix-type)
+			 (b !matrix-type)
+			 beta
+			 (c !matrix-type))
   (assert (= (ncols a) (nrows b)))
   (assert (= (nrows a) (nrows c)))
   (assert (= (ncols b) (ncols c)))
@@ -166,8 +181,9 @@
 ;;;
 ;;; Need more work:
 ;;;   xGELSY (no complex support).
-;;;   xPOTRI (incomplete, tests)
-;;;   xGEQRF (incomplete, tests)
+;;;   xPOTRF (incomplete, no tests)
+;;;   xPOTRI (incomplete, no tests)
+;;;   xGEQRF (incomplete, no tests)
 ;;; TODO: many many
 
 (defmacro call-with-work ((lwork work type) call)
@@ -185,12 +201,12 @@
   (unless (= info 0)
     (error "~a: error in argument ~d" function-name (- info))))
 
-
 ;;; Solving ax = b
 ;;; note that 'a' will be modified upon the call, and will have a
 ;;; different value at the end, more appropriate to the transformation
 ;;; (i.e. will be the QR, but stored in common compact form).
-(def-lapack-method gelsy ((a !matrix-type) (b !matrix-type)
+(def-lapack-method gelsy ((a !matrix-type)
+			  (b !matrix-type)
                           rcond &optional jpvt)
   ;; FIXME: has both LWORK and RWORK for %ZGELSY and %CGELSY
   (unless jpvt
@@ -261,9 +277,24 @@
     (list x (gelsy a b rcond)))))
 
 
+;;; CHOLESKY
+
+;;; POTRF - compute the Cholesky Factorization of a real sym pos-def
+;;; matrix A.
+(def-lapack-method potrf ((a !matrix-type))
+  (let ((info (make-fnv-int32 1 :initial-value 0)))
+    (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
+    (with-copies ((a (or (not unit-strides-p)
+                         transposed-p)))
+      (check-info (fnv-int32-ref info 0) "GELSY")
+      (!function "U"  ; store in Upper section
+		 (ncols a) ; N 
+		 a
+		 (real-nrows a) ; LDA
+		 info)))) ; info
+
 ;;; POTRI - compute the inverse of a real symmetric positive definite
 ;;; matrix A using the Cholesky factorization A = U**T*U or A = L*L**T
-
 (def-lapack-method potri ((a !matrix-type))
   (let ((info (make-fnv-int32 1 :initial-value 0)))
     (assert (= (ncols a) (nrows a)))  ;; only works with square matrices
@@ -276,8 +307,7 @@
 				 (ncols a)      ; N
 				 a              ; a 
 				 (real-nrows a) ; LDA
-				 info)))))
-
+				 info)))))      ; info
 
 ;;; QR decomposition.  Need one more front end to provide appropriate
 ;;; processing.  A and TAU will have different values at the end, more
@@ -292,13 +322,13 @@
                   (tau (or (not unit-strides-p)
 			   transposed-p)))
      (progn
-       (check-info (fnv-int32-ref info 0) "GELSY")
+       (check-info (fnv-int32-ref info 0) "GEQRF")
        (call-with-work (lwork work !data-type)
-                      (!function (nrows a)
-                                (ncols a)
-                                a
-                                (max 1 (nrows a))
-                                (data tau)
-                                (data work)
-                                lwork
-                                info))))))
+		       (!function (nrows a)
+				  (ncols a)
+				  a
+				  (max 1 (nrows a))
+				  (data tau)
+				  (data work)
+				  lwork
+				  info))))))

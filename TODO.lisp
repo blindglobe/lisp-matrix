@@ -644,18 +644,28 @@ encapsulate into a class or struct.
 
 
   (defun XtXinv (x)
-    "(XtX)^-1  as XtX is PxN, so whole is PxP.  Usually represents the
-   Vars for beta from Y = X \beta + \eps.   Uses LAPACK's dpotri
-    routine. We use a copy for now, until we understand whether or not
-    it is safe to destroy.  Perhaps have a destructive versino of this?"
+    "(XtX)^-1 as XtX is PxN, so whole is PxP.  Usually represents the
+   Vars for beta from Y = X \beta + \eps.  Uses LAPACK's dpotri
+   routine to invert, after using dpotrf to factorize.  We use a copy
+   for now, until we understand whether or not it is safe to destroy.
+   Perhaps have a destructive version of this?"
     (let (a (copy x))
-      (potri (m* (transpose a) a)))) ; invert symmetric matrix
+      (potri (potrf (m* (transpose a) a))))) ; invert symmetric matrix
 
+  (let* ((state1 (make-random-state))
+	 (state2 (make-random-state state1)))
+    (m= (rand 2 3 :state state1)
+	(rand 2 3 :state state2)))
+
+
+  (defparameter *basic-mat* (rand 3 3))
   (defparameter *potri-test1*
-    (make-matrix 2 2 :initial-contents #2A( ( 1d0 2d0 ) (2d0 1d0))))
+    (m* (transpose *basic-mat*) *basic-mat*))
   (defparameter *potri-test2* (copy *potri-test1*))
-  (potri *potri-test1*)
+  (potri (potrf *potri-test1*))
   (setf (mref *potri-test1* 1 0) (mref *potri-test1* 0 1))
+  (setf (mref *potri-test1* 2 0) (mref *potri-test1* 0 2))
+  (setf (mref *potri-test1* 2 1) (mref *potri-test1* 1 2))
   (m* *potri-test1* *potri-test2*)
 
 
