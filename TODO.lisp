@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 65, Failures = 1, Errors = 0 ;; 22.1.2009
+;; Tests = 65, Failures = 0, Errors = 0 ;; 9.2.2009
 
 (describe (run-tests :suite 'lisp-matrix-ut))
 (run-tests :suite 'lisp-matrix-ut)
