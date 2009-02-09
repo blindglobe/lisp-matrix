@@ -806,7 +806,7 @@ we've mucked up data.  Sign of usage means poor coding!"
       result)))
 
 #|
-(defmacro make-vectorized-generic-function (op)
+ (defmacro make-vectorized-generic-function (op)
 
   (defgeneric v`op (x y &optional return-type)
     (:documentation "add a vector-like, vector, or list and return in a
@@ -828,3 +828,72 @@ we've mucked up data.  Sign of usage means poor coding!"
     (:method ( (x vector-like) (y list)))
   ))
 |#
+
+
+
+
+(progn ;; vectorized arithmetic
+
+  ;; So,  how do I vectorize something like:
+  ;;     (a + b) / c  
+  ;; (i.e. standard normalization) when a,b,c are vectors which have
+  ;; the correct pre-computed values?
+
+  ;; or...?  where the v.# operators disregard row vs. column oriented
+  ;; aspect, and the v# operators worry about orientation.    So if we
+  ;; know what we've got, we would then be able to do something like 
+
+  ;;     (v/ (v+ a b) c)
+
+  ;; or possibly
+
+  ;;     (v/ (m+ a b) c)  ;; FIXME!
+
+  ;; but we still need to figure out the API for vector ops, and whether
+  ;; any of this is done by BLAS (which it should be) or LAPACK.
+  
+  ;; On a related note, we also could have m.# instead of v.# if
+  ;; orientation needs to be ensured (rather than ignored).
+  (defparameter *v1* (make-vector 4
+				  :type :row
+				  :initial-contents '((1d0 2d0 3d0 4d0))))
+  (defparameter *v2* (make-vector 4
+				  :type :row
+				  :initial-contents '((10d0 20d0 30d0 40d0))))
+
+
+  (defparameter *v1a* (make-vector 4
+				  :type :column
+				  :initial-contents '((1d0)(2d0)( 3d0 )(4d0))))
+  (defparameter *v2a* (make-vector 4
+				  :type :column
+				  :initial-contents '((10d0)( 20d0)( 30d0)( 40d0))))
+  (vector-dimension *v1*)
+  (v=  (v+ *v1* *v2*)
+       (v+ *v1a* *v2a*))
+  (v=  (v+ *v1a* *v2*)
+       (v+ *v1* *v2a*))
+
+  (v- *v1* *v2*)
+  (v- *v2* *v1*)
+  (v* *v1* *v2*)
+  (v/ *v1* *v2*)
+  (v/ *v2* *v1*)
+
+  (let* ((a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+	 (b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+	 (c (make-vector 4 :initial-contents '((11d0 22d0 33d0 44d0)))))
+    (v= (v+ a b)
+	c)
+    (v= (v+ b a)
+	c))
+
+  (defparameter a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
+  (defparameter b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
+  (defparameter c (make-vector 4 :initial-contents '((11d0 22d0 33d0 44d0))))
+  (v= (v+ a b)
+      c)
+  (v= (v+ b c)
+      c)
+
+  (princ "vector ops done."))

@@ -250,3 +250,88 @@ are discarded \(that is, the body is an implicit PROGN)."
   (ensure (equal (make-predicate-macro 'nil)
              '(constantly nil))))
 |#
+
+
+
+#+nil
+(progn
+
+  (function-lambda-expression #'make-predicate)
+  (function-lambda-expression #'function-lambda-expression)
+
+  (defmacro our-let (binds &body body)
+    "test let"
+    ‘((lambda ,(mapcar #’(lambda (x)
+			   (if (consp x) (car x) x))
+			 binds)
+	,@body)
+      ,@(mapcar #’(lambda (x)
+		    (if (consp x) (cadr x) nil))
+		  binds)))
+
+
+  (equal (make-predicate 'unit-strides-p)
+	 'unit-strides-p)
+  (equal (make-predicate '(not unit-strides-p))
+	 '(lambda (a) (not (unit-strides-p a))))
+  (equal (make-predicate '(or (not unit-strides-p)
+                               (not zero-offset-p)))
+             '(lambda (a)
+               (or (not (unit-strides-p a))
+                (not (zero-offset-p a)))))
+
+  (equal (make-predicate '(or (not unit-strides-p)
+			   (not zero-offset-p)
+			   transposed-p))
+	 '(lambda (a)
+	   (or (not (unit-strides-p a))
+	    (not (zero-offset-p a))
+	    (transposed-p a))))
+
+  ;; this works, the above doesn't!
+  (equal (make-predicate '(or (not unit-strides-p)
+			   (not zero-offset-p)
+			   transposed-p))
+	 '(lambda (lisp-matrix::a)
+	   (or (not (unit-strides-p lisp-matrix::a))
+	    (not (zero-offset-p lisp-matrix::a))
+	    (transposed-p lisp-matrix::a))))
+
+  ;; fails, due to capture
+  (equal (make-predicate-macro (or (not unit-strides-p)
+				   (not zero-offset-p)
+				   transposed-p))
+             '(lambda (a)
+               (or (not (unit-strides-p a))
+                (not (zero-offset-p a))
+                (transposed-p a))))
+
+  ;; success
+  (equal (make-predicate-macro (or (not unit-strides-p)
+				   (not zero-offset-p)
+				   transposed-p))
+	 '(lambda (lisp-matrix::a)
+	   (or (not (unit-strides-p lisp-matrix::a))
+	    (not (zero-offset-p lisp-matrix::a))
+	    (transposed-p lisp-matrix::a))))
+
+  ;; probably the right test:
+  (equal (macroexpand-1 '(make-predicate-macro (or (not unit-strides-p)
+						  (not zero-offset-p)
+						  transposed-p)))
+	 '(lambda (lisp-matrix::a)
+	   (or (not (unit-strides-p lisp-matrix::a))
+	    (not (zero-offset-p lisp-matrix::a))
+	    (transposed-p lisp-matrix::a))))
+ 
+  (defun integer-p (x) (typep x 'integer))
+  (defun real-p (x) ( typep x 'real))
+  (defun string-p (x) ( typep x 'string))
+  
+  (stringp "est")
+  (funcall  (make-predicate 'integer-p) 1)
+  (funcall  (make-predicate 'real-p) 1)
+  (funcall  (make-predicate 'integer-p) 1d0)
+  (funcall  (make-predicate 'real-p) 1d0)
+  (funcall  (make-predicate '(or stringp real-p) 1d0))
+  (format nil "make predicate test"))

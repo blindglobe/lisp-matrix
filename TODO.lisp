@@ -22,7 +22,6 @@
 (describe  (run-lisp-matrix-tests))
 
 ;; failures:
-;; # ut         : make-predicate
 
 ;; Note that when unit tests fail in m*- tests, it seems to do with a
 ;; "macro vs defun" problem, related to compile-time vs. run-time
@@ -40,12 +39,13 @@
 
 
 ;; Here is what we need to fix, based on the above:
-;; #  make-predicate (and variable-capture, see macro-expansion)
 ;; #  creation of foreign-array matrices which are integer valued
 ;;    fails.
 
+
+;; Just a reminder:
 ;; (typep -1 '(integer 0 *))
-;; (typep 2  '(integer 0 *))
+;; (typep  2 '(integer 0 *))
 
 (progn ;; SETUP DATA, these work
 
@@ -221,84 +221,6 @@
 
 ;;;; FIX ERRORS, MIGRATE INTO UNITTESTS:
 
-#+nil
-(progn
-
-  (function-lambda-expression #'make-predicate)
-  (function-lambda-expression #'function-lambda-expression)
-
-  (defmacro our-let (binds &body body)
-    "test let"
-    ‘((lambda ,(mapcar #’(lambda (x)
-			   (if (consp x) (car x) x))
-			 binds)
-	,@body)
-      ,@(mapcar #’(lambda (x)
-		    (if (consp x) (cadr x) nil))
-		  binds)))
-
-
-  (equal (make-predicate 'unit-strides-p)
-	 'unit-strides-p)
-  (equal (make-predicate '(not unit-strides-p))
-	 '(lambda (a) (not (unit-strides-p a))))
-  (equal (make-predicate '(or (not unit-strides-p)
-                               (not zero-offset-p)))
-             '(lambda (a)
-               (or (not (unit-strides-p a))
-                (not (zero-offset-p a)))))
-
-  (equal (make-predicate '(or (not unit-strides-p)
-			   (not zero-offset-p)
-			   transposed-p))
-	 '(lambda (a)
-	   (or (not (unit-strides-p a))
-	    (not (zero-offset-p a))
-	    (transposed-p a))))
-
-  (equal (make-predicate '(or (not unit-strides-p)
-			   (not zero-offset-p)
-			   transposed-p))
-	 '(lambda (lisp-matrix::a)
-	   (or (not (unit-strides-p lisp-matrix::a))
-	    (not (zero-offset-p lisp-matrix::a))
-	    (transposed-p lisp-matrix::a))))
-
-  (equal (make-predicate-macro (or (not unit-strides-p)
-				   (not zero-offset-p)
-				   transposed-p))
-             '(lambda (a)
-               (or (not (unit-strides-p a))
-                (not (zero-offset-p a))
-                (transposed-p a))))
-
-  (equal (make-predicate-macro (or (not unit-strides-p)
-				   (not zero-offset-p)
-				   transposed-p))
-	 '(lambda (lisp-matrix::a)
-	   (or (not (unit-strides-p lisp-matrix::a))
-	    (not (zero-offset-p lisp-matrix::a))
-	    (transposed-p lisp-matrix::a))))
-  ;; probably the right test:
-  (equal (macroexpand-1 '(make-predicate-macro (or (not unit-strides-p)
-						  (not zero-offset-p)
-						  transposed-p)))
-	 '(lambda (lisp-matrix::a)
-	   (or (not (unit-strides-p lisp-matrix::a))
-	    (not (zero-offset-p lisp-matrix::a))
-	    (transposed-p lisp-matrix::a))))
- 
-  (defun integer-p (x) (typep x 'integer))
-  (defun real-p (x) ( typep x 'real))
-  (defun string-p (x) ( typep x 'string))
-  
-  (stringp "est")
-  (funcall  (make-predicate 'integer-p) 1)
-  (funcall  (make-predicate 'real-p) 1)
-  (funcall  (make-predicate 'integer-p) 1d0)
-  (funcall  (make-predicate 'real-p) 1d0)
-  (funcall  (make-predicate '(or stringp real-p) 1d0))
-  (format nil "make predicate test"))
 
 #+nil
 (progn ;; FIXME: integer-valued foreign arrays. (bug: matrix-2)
@@ -307,7 +229,7 @@
 			:element-type 'integer 
 			:initial-contents #2A(( 1 2 3 4 5)
 					      ( 6 7 8 9 10)))
-    "placeholder 2"))
+    "test for integer-valued foreign arrays"))
 
 ;; Foreign array problems...
 #+nil
@@ -316,76 +238,11 @@
   (m* *m2-fa* (transpose *m2-fa*))
   (m* *m3-fa* (transpose *m3-fa*)))
 
-#+nil
-(progn ;; = FIXME: the following works (lisp-arrays)
+
+(progn ;; = SOLVED: the following works (lisp-arrays)
   (m* *m3-la* *m3-la*)
   (m* *m3-la* (transpose *m3-la*)))
 
-(progn ;; vectorized arithmetic
-  ;;
-  ;; So,  how do I vectorize something like:
-  ;;     (a + b) / c  
-  ;; (i.e. standard normalization) when a,b,c are vectors which have
-  ;; the correct pre-computed values?
-  ;;
-  ;; or...?  where the v.# operators disregard row vs. column oriented
-  ;; aspect, and the v# operators worry about orientation.    So if we
-  ;; know what we've got, we would then be able to do something like 
-  ;;
-  ;;     (v/ (v+ a b) c)
-  ;;
-  ;; or possibly
-  ;;
-  ;;     (v/ (m+ a b) c)  ;; FIXME!
-  ;;
-  ;; but we still need to figure out the API for vector ops, and whether
-  ;; any of this is done by BLAS (which it should be) or LAPACK.
-  
-  ;; On a related note, we also could have m.# instead of v.# if
-  ;; orientation needs to be ensured (rather than ignored).
-  (defparameter *v1* (make-vector 4
-				  :type :row
-				  :initial-contents '((1d0 2d0 3d0 4d0))))
-  (defparameter *v2* (make-vector 4
-				  :type :row
-				  :initial-contents '((10d0 20d0 30d0 40d0))))
-
-
-  (defparameter *v1a* (make-vector 4
-				  :type :column
-				  :initial-contents '((1d0)(2d0)( 3d0 )(4d0))))
-  (defparameter *v2a* (make-vector 4
-				  :type :column
-				  :initial-contents '((10d0)( 20d0)( 30d0)( 40d0))))
-  (vector-dimension *v1*)
-  (v=  (v+ *v1* *v2*)
-       (v+ *v1a* *v2a*))
-  (v=  (v+ *v1a* *v2*)
-       (v+ *v1* *v2a*))
-
-  (v- *v1* *v2*)
-  (v- *v2* *v1*)
-  (v* *v1* *v2*)
-  (v/ *v1* *v2*)
-  (v/ *v2* *v1*)
-
-  (let* ((a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
-	 (b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
-	 (c (make-vector 4 :initial-contents '((11d0 22d0 33d0 44d0)))))
-    (v= (v+ a b)
-	c)
-    (v= (v+ b a)
-	c))
-
-  (defparameter a (make-vector 4 :initial-contents '((1d0 2d0 3d0 4d0))))
-  (defparameter b (make-vector 4 :initial-contents '((10d0 20d0 30d0 40d0))))
-  (defparameter c (make-vector 4 :initial-contents '((11d0 22d0 33d0 44d0))))
-  (v= (v+ a b)
-      c)
-  (v= (v+ b c)
-      c)
-
-  (princ "vector ops done."))
 
 #+nil
 (progn ;; FIXME: R's apply across array indicies
@@ -451,9 +308,9 @@
 	  (princ (v= (nth i col-list)
 		      (ones 2 1)))))
 
-  (list-of-rows m01)
+  (list-of-rows *m01*)
   
-  (mapcar #'princ (list-of-columns m01))
+  (mapcar #'princ (list-of-columns *m01*))
   )
 
 
@@ -505,37 +362,35 @@
 
   ;; from docs:
 
-#|
   (setf *temp-result* 
 	(let ((*default-implementation* :foreign-array))
 	  (let* ((m 10)
-	       (n 10)
-         (a (rand m n))
-         (x (rand n 1))
-         (b (m* a x))
-         (rcond (* (coerce (expt 2 -52) 'double-float)
-                   (max (nrows a) (ncols a))))
-         (orig-a (copy a))
-         (orig-b (copy b))
-         (orig-x (copy x)))
-    (list x (gelsy a b rcond)))))
- (princ *temp-result*)
-
- (setf *temp-result* 
-      (let ((*default-implementation* :lisp-array))
-	(let* ((m 10)
-	       (n 10)
-         (a (rand m n))
-         (x (rand n 1))
-         (b (m* a x))
-         (rcond (* (coerce (expt 2 -52) 'double-float)
-                   (max (nrows a) (ncols a))))
-         (orig-a (copy a))
-         (orig-b (copy b))
-         (orig-x (copy x)))
-    (list x (gelsy a b rcond)))))
- (princ *temp-result*)
-|#
+		 (n 10)
+		 (a (rand m n))
+		 (x (rand n 1))
+		 (b (m* a x))
+		 (rcond (* (coerce (expt 2 -52) 'double-float)
+			   (max (nrows a) (ncols a))))
+		 (orig-a (copy a))
+		 (orig-b (copy b))
+		 (orig-x (copy x)))
+	    (list x (gelsy a b rcond)))))
+  (princ *temp-result*)
+  
+  (setf *temp-result* 
+	(let ((*default-implementation* :lisp-array))
+	  (let* ((m 10)
+		 (n 10)
+		 (a (rand m n))
+		 (x (rand n 1))
+		 (b (m* a x))
+		 (rcond (* (coerce (expt 2 -52) 'double-float)
+			   (max (nrows a) (ncols a))))
+		 (orig-a (copy a))
+		 (orig-b (copy b))
+		 (orig-x (copy x)))
+	    (list x (gelsy a b rcond)))))
+  (princ *temp-result*)
 
   ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
   (defparameter *xtx-1* (m* *xv* (transpose *xv*)))
