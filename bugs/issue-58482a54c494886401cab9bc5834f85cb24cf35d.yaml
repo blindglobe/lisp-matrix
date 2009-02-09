@@ -5,8 +5,8 @@ type: :bugfix
 component: lisp-matrix.git
 release: 
 reporter: Tony <blindglobe@gmail.com>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-12-09 07:32:47.465374 Z
 references: []
 
@@ -16,3 +16,14 @@ log_events:
   - Tony <blindglobe@gmail.com>
   - created
   - used for fast generic construction of predicates.
+- - 2009-02-09 07:36:42.647768 Z
+  - Tony <blindglobe@gmail.com>
+  - commented
+  - |-
+    Might not be solvable -- see current version of TODO and information surrounding
+    the make-predicate-macro version for why we might not be able to escape capturing A, and
+    perhaps more importantly, I think it just does not matter.
+- - 2009-02-09 07:37:17.220480 Z
+  - Tony <blindglobe@gmail.com>
+  - closed with disposition fixed
+  - It is understood, and that is the general fix.
