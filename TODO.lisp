@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 65, Failures = 0, Errors = 0 ;; 9.2.2009
+;; Tests = 67, Failures = 0, Errors = 1 ;; 9.2.2009
 
 (describe (run-tests :suite 'lisp-matrix-ut))
 (run-tests :suite 'lisp-matrix-ut)
@@ -231,17 +231,6 @@
 					      ( 6 7 8 9 10)))
     "test for integer-valued foreign arrays"))
 
-;; Foreign array problems...
-#+nil
-(progn ;; = FIXME: the following has no applicable method!
-  (m* *m3-fa* *m3-fa*)
-  (m* *m2-fa* (transpose *m2-fa*))
-  (m* *m3-fa* (transpose *m3-fa*)))
-
-
-(progn ;; = SOLVED: the following works (lisp-arrays)
-  (m* *m3-la* *m3-la*)
-  (m* *m3-la* (transpose *m3-la*)))
 
 
 #+nil

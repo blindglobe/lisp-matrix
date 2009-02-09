@@ -190,6 +190,40 @@
 
 ;;;; GEMM tests
 
+
+;; Foreign array problems...  Currently error, not failure!
+(addtest (lisp-matrix-ut-matrix-gemm)
+  sticky-matmult-cases
+  (let ((m2-fa (make-matrix
+		2 5
+		:implementation :foreign-array 
+		:element-type 'double-float
+		:initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+				      ( 6d0 7d0 8d0 9d0 10d0))))
+	(m3-fa (make-matrix
+		2 2
+		:implementation :foreign-array 
+		:element-type 'double-float
+		:initial-contents #2A(( 1d0 2d0 )
+				      ( 6d0 7d0 )))))
+
+    (m* m3-fa m3-fa)
+    (m* m2-fa (transpose m2-fa))
+    (m* m3-fa (transpose m3-fa))))
+
+;;; Working, but needs to be extended for testing!
+(addtest (lisp-matrix-ut-matrix-gemm)
+  working-matmult-cases
+  (let ((m3-la (make-matrix
+		2 2
+		:implementation :lisp-array 
+		:element-type 'double-float
+		:initial-contents #2A(( 1d0 2d0 )
+				      ( 6d0 7d0 )))))
+    (m* m3-la m3-la)
+    (m* m3-la (transpose m3-la))))
+
+
 (defun check-m* (a b)
   (let ((result (make-matrix 2 2 :initial-contents
                              '((19d0 22d0)
