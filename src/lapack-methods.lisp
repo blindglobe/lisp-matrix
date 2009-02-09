@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-02-05 13:17:52 tony>
+;;; Time-stamp: <2009-02-06 16:09:26 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       lapack-methods.lisp
 ;;; Author:     Mark H. < @ >
@@ -39,7 +39,7 @@
       x
     (!function (nelts x) alpha x 1)))
 
-;; FIXME: needed so to harmonize with matrix cases
+;; FIXME: needed so to harmonize vectors with matrix cases
 (defmethod scal (alpha (x la-vector-double))
   (assert (typep alpha 'double-float))
   (with-copies ((x (not real-stride) t))
@@ -191,7 +191,7 @@
     `(let ((work (make-vector 1 :element-type ',element-type
                                 :implementation :foreign-array))
            (,lwork -1))
-       ,call  ;;; WHY DO WE CALL TWICE?  JUST TO SET LWORK?
+       ,call  ;;; WHY DO WE CALL TWICE?  JUST TO SET LWORK? OR CHECK INFO?
        (setq ,lwork (floor (mref ,work 0 0)))
        (setq ,work (make-vector ,lwork :element-type ',element-type
                                 :implementation :foreign-array))
