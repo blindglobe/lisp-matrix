@@ -225,16 +225,16 @@ are discarded \(that is, the body is an implicit PROGN)."
 
 
 
-#|
+
 (addtest (lisp-matrix-ut-matrix-lapack)
   make-predicate-macro
-  (ensure (equal (make-predicate-macro 'unit-strides-p)
-             'unit-strides-p))
-  (ensure (equal (make-predicate-macro '(not unit-strides-p))
+  (ensure (equal (make-predicate-macro unit-strides-p)
+		 unit-strides-p))
+  (ensure (equal (make-predicate-macro (not unit-strides-p))
              '(lambda (a)
                (not (unit-strides-p a)))))
-  (ensure (equal (make-predicate-macro '(or (not unit-strides-p)
-                               (not zero-offset-p)))
+  (ensure (equal (make-predicate-macro (or (not unit-strides-p)
+					   (not zero-offset-p)))
              '(lambda (a)
                (or (not (unit-strides-p a))
                 (not (zero-offset-p a))))))
@@ -249,6 +249,6 @@ are discarded \(that is, the body is an implicit PROGN)."
              '(constantly t)))
   (ensure (equal (make-predicate-macro 'nil)
              '(constantly nil))))
-|#
+
 
 

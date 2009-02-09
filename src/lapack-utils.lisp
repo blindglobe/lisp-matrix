@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-01-28 08:06:41 tony>
+;;;; Time-stamp: <2009-02-09 08:00:43 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -90,7 +90,10 @@
 
 
 (defmacro make-predicate-macro (form)
-  "Trying to fix make-predicate, through a macro approach. DOES NOT WORK!"
+  "Trying to fix make-predicate, through a macro approach. DOES NOT
+WORK!  Idea: we want to return an anonymous function which implements
+the predicate desired.  However, this isn't used any where (though it
+could be used in countless situations)."
   (typecase form
     (symbol
      (case form
@@ -100,20 +103,25 @@
     (list
      ;; FIXME: we are getting scope capture according to SBCL.  See
      ;; unittests for make-predicate, which currently fail.  Whoops!
-     (labels ((aux (arg)
-                (etypecase arg
-                  (symbol (list arg 'a))
-                  (list
-                   (ecase (car arg)
-                     (or (cons 'or (mapcar #'aux (cdr arg))))
-                     (and (cons 'and (mapcar #'aux (cdr arg))))
-                     (not (list 'not (aux (cadr arg)))))))))
-       `(lambda (a)
-          ,(aux form))))))
+     (let ((a (gensym)))
+       (labels ((aux (arg)
+		  (etypecase arg
+		    (symbol (list arg 'a))
+		    (list
+		     (ecase (car arg)
+		       (or (cons 'or (mapcar #'aux (cdr arg))))
+		       (and (cons 'and (mapcar #'aux (cdr arg))))
+		       (not (list 'not (aux (cadr arg)))))))))
+	 `(lambda (a)
+	    ,(aux form)))))))
 
 #|
-  (make-predicate-macro )
-  (make-predicate )
+  (make-predicate-macro t)
+  (make-predicate-macro nil)
+  (make-predicate-macro real-p)
+  (make-predicate-macro (and real-p char-p))
+
+
 |#
 
 
