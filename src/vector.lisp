@@ -831,8 +831,8 @@ we've mucked up data.  Sign of usage means poor coding!"
 
 
 
-
-(progn ;; vectorized arithmetic
+#|
+ (progn ;; vectorized arithmetic
 
   ;; So,  how do I vectorize something like:
   ;;     (a + b) / c  
@@ -897,3 +897,4 @@ we've mucked up data.  Sign of usage means poor coding!"
       c)
 
   (princ "vector ops done."))
+|#
