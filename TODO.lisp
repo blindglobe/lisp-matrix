@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 67, Failures = 0, Errors = 1 ;; 9.2.2009
+;; Tests = 68, Failures = 0, Errors = 2 ;; 9.2.2009
 
 (describe (run-tests :suite 'lisp-matrix-ut))
 (run-tests :suite 'lisp-matrix-ut)
@@ -223,79 +223,6 @@
 
 
 
-
-#+nil
-(progn ;; FIXME: R's apply across array indicies
-
-  ;; Thought 1 (currently not planned for implementation)
-  ;; consider using affi as a general iterator/walker generator.
-  ;; So, R has a notion of apply, sapply, tapply, lapply -- what we
-  ;; should do is something like
-  ;;
-  ;;     (map-matrix with-fn this-matrix
-  ;;                 :by iterator
-  ;;                 :result-type 'list)
-  ;;
-  ;; silly or for later:        :computation-type [:parallel|:serial]
-  ;;
-  ;; or similar, where :result-type is something that can be coerced to
-  ;; from a sequence, and computation-type might drive whether there are
-  ;; dependencies or not.   (this last is probably too premature).
-
-  ;; The basic idea is to use vector functions (taking a vector, and
-  ;; returning a object) and use them to provide an object that can be
-  ;; part of a list (or generally, a sequence of homogeneous objects).
-
-  ;; Reviewing Tamas Papp's affi package provides one approach to this
-  ;; challenge.  He suggests that an obvious approach would be to
-  ;; break up the 2 actions needed for selection consist of describing
-  ;; the mapping from array to structure, and then walking the
-  ;; structure to extract (for copy or use).  For our needs, we need a
-  ;; means of doing this to partition the space, and then
-  ;; post-partition, deciding which partitions need to be considered
-  ;; for further processing, and which ones get discarded.
-
-  ;; So to clarify how this might work: 
-  ;; 1. we need a function which takes a matrix and creates a list of
-  ;; matrix-like or vector-like elements.
-  ;; 2. we have functions which operate in general on matrix-like or
-  ;; vector-like objects.
-  ;; 3. we use mapcar or similar to create the results.  
-  ;; 3a. multi-value return could be used to create multiple lists of
-  ;; vector-like or matrix-like objects, for example to get a complex
-  ;; computation using inner-products.   So for instance:
-  ;;   list1: v1a v2a v3a
-  ;;   list2: m1  m2  m3
-  ;;   list3: v1b v2b v3b
-  ;; and we compute
-  ;;   (list-of (IP v#a m1 v#b )) 
-  ;; via
-  ;;   (mapcar #'IP (list-of-vector-matrix-vector M))
-
-  ;; We would need such an "extractor" to make things work out right.  
-  (mapcar #'function-on-matrix (make-list-of-matrices original-matrix)) 
-
-  ;; The following approach would be required to do a proper map-back.
-  (list->vector-like (map 'list #'function-of-2-args (list1) (list2))
-		     :type :row) ; or :column
-  ;; this would take a list and create an appropriate vector-like of
-  ;; the appropriate type.
-
-  ;; Thought 2, the current immediate approach:
-  ;; What we currently do is break it out into components.
-  (list-of-columns m01)
-
-  (defparameter *m1-app* (ones 2 3))
-  (let ((col-list (list-of-columns *m1-app*)))
-    (dotimes (i (length col-list))
-	  (princ (v= (nth i col-list)
-		      (ones 2 1)))))
-
-  (list-of-rows *m01*)
-  
-  (mapcar #'princ (list-of-columns *m01*))
-
-  (format nil "R-Apply approach"))
 
 
 #+nil
@@ -510,35 +437,53 @@ encapsulate into a class or struct.
 						   (ncols y))))))
       ;; need computation for SEs, 
       (format t "")
-      (values betahat  ; LA-SIMPLE-VECTOR-DOUBLE
-	      betahat1 ; LA-SLICE-VECVIEW-DOUBLE
-	      ;; (m- betahat betahat1)
-	      ;; (sebetahat betahat x y) ; TODO: write me!
-	      (nrows x)    ; surrogate for n
-	      (ncols x)))) ; surrogate for p
+      (list betahat  ; LA-SIMPLE-VECTOR-DOUBLE
+	    betahat1 ; LA-SLICE-VECVIEW-DOUBLE
+	    ;; (v- betahat betahat1)
+	    ;; (sebetahat betahat x y) ; TODO: write me!
+	    (nrows x)    ; surrogate for n
+	    (ncols x)))) ; surrogate for p
 
 
-  (setf *n* 20) ; # rows = # obsns
-  (setf *p* 10) ; # cols = # vars 
-  (setf *x-temp*  (rand *n* *p*))
-  (setf *b-temp*  (rand *p* 1))
-  (setf *y-temp*  (m* *x-temp* *b-temp*))
+  (defparameter *n* 20) ; # rows = # obsns
+  (defparameter *p* 10) ; # cols = # vars 
+  (defparameter *x-temp*  (rand *n* *p*))
+  (defparameter *b-temp*  (rand *p* 1))
+  (defparameter *y-temp*  (m* *x-temp* *b-temp*))
   ;; so Y=Xb + \eps
-  (setf *rcond* (* (coerce (expt 2 -52) 'double-float)
+  (defparameter *rcond* (* (coerce (expt 2 -52) 'double-float)
 		   (max (nrows *x-temp*) (ncols *y-temp*))))
-  (setf *orig-x* (copy *x-temp*))
-  (setf *orig-b* (copy *b-temp*))
-  (setf *orig-y* (copy *y-temp*))
-  
-  (m- *b-temp*
-      (first (lm *x-temp* *y-temp*)))
+  (defparameter *orig-x* (copy *x-temp*))
+  (defparameter *orig-b* (copy *b-temp*))
+  (defparameter *orig-y* (copy *y-temp*))
+
+  (defparameter *lm-result* (lm *x-temp* *y-temp*))
+  (princ (first *lm-result*))
+  (princ (second *lm-result*))
+  (princ (third *lm-result*))
+  (v- (first *lm-result*) 
+      (second *lm-result*))
+
+  ;; looking at class inheritance.
+  (subtypep 'LA-SIMPLE-VECTOR-DOUBLE 'VECTOR-LIKE)
+  (subtypep 'LA-SLICE-VECVIEW-DOUBLE 'VECTOR-LIKE)
+  (subtypep 'LA-SIMPLE-VECTOR-DOUBLE 'LA-SLICE-VECVIEW-DOUBLE)
+  (subtypep  'LA-SLICE-VECVIEW-DOUBLE 'LA-SIMPLE-VECTOR-DOUBLE)
+
+
+  (typep  (first *lm-result*) 'vector-like)
+  (typep  (first *lm-result*) 'matrix-like)
+  (typep  (second *lm-result*) 'vector-like)
+  (typep  (second *lm-result*) 'matrix-like)
+  (typep *x-temp* 'vector-like)
+  (typep *x-temp* 'matrix-like) ; => T ,rest of this paragraph are false.
 
   (m- *x-temp* *x-temp*)
 
-  (setf *xtx-temp* (m* (transpose *x-temp*) *x-temp*))
-  (setf *xtx-temp-f* (copy *xtx-temp*))
+  (defparameter *xtx-temp* (m* (transpose *x-temp*) *x-temp*))
+  (defparameter *xtx-temp-f* (copy *xtx-temp*))
   (potrf *xtx-temp-f*)
-  (setf  *xtx-temp-i* (copy *xtx-temp-f*))
+  (defparameter  *xtx-temp-i* (copy *xtx-temp-f*))
   (m* *xtx-temp-i* *xtx-temp*)
 
   (defun XtXinv (x)
@@ -556,14 +501,28 @@ encapsulate into a class or struct.
 	(rand 2 3 :state state2)))
 
 
+  (defun TrapezoidToMatrix (m &key (type :upper))
+    "convert a upper/lower triangular storage to an actual normal but
+  symmetric matrix."
+    (check-type m matrix-like)
+    (let ((mc (copy m)))
+      (dotimes (i (nrows m))
+	(dotimes (j i)
+	  (ecase type
+	    (:upper (setf (mref mc i j) (mref m j i)))
+	    (:lower (setf (mref mc j i) (mref m i j))))))
+      mc))
+
+  ;; need to write unit tests for square and rect matrices.
+
   (defparameter *basic-mat* (rand 3 3))
   (defparameter *potri-test1*
     (m* (transpose *basic-mat*) *basic-mat*))
   (defparameter *potri-test2* (copy *potri-test1*))
   (potri (potrf *potri-test1*))
-  (setf (mref *potri-test1* 1 0) (mref *potri-test1* 0 1))
-  (setf (mref *potri-test1* 2 0) (mref *potri-test1* 0 2))
-  (setf (mref *potri-test1* 2 1) (mref *potri-test1* 1 2))
+  (defparameter (mref *potri-test1* 1 0) (mref *potri-test1* 0 1))
+  (defparameter (mref *potri-test1* 2 0) (mref *potri-test1* 0 2))
+  (defparameter (mref *potri-test1* 2 1) (mref *potri-test1* 1 2))
   (m* *potri-test1* *potri-test2*)
 
 
@@ -608,3 +567,79 @@ encapsulate into a class or struct.
 
   (format nil "Linear Models Code setup")
   )
+
+
+
+
+#+nil
+(progn ;; FIXME: R's apply across array indicies
+
+  ;; Thought 1 (currently not planned for implementation)
+  ;; consider using affi as a general iterator/walker generator.
+  ;; So, R has a notion of apply, sapply, tapply, lapply -- what we
+  ;; should do is something like
+  ;;
+  ;;     (map-matrix with-fn this-matrix
+  ;;                 :by iterator
+  ;;                 :result-type 'list)
+  ;;
+  ;; silly or for later:        :computation-type [:parallel|:serial]
+  ;;
+  ;; or similar, where :result-type is something that can be coerced to
+  ;; from a sequence, and computation-type might drive whether there are
+  ;; dependencies or not.   (this last is probably too premature).
+
+  ;; The basic idea is to use vector functions (taking a vector, and
+  ;; returning a object) and use them to provide an object that can be
+  ;; part of a list (or generally, a sequence of homogeneous objects).
+
+  ;; Reviewing Tamas Papp's affi package provides one approach to this
+  ;; challenge.  He suggests that an obvious approach would be to
+  ;; break up the 2 actions needed for selection consist of describing
+  ;; the mapping from array to structure, and then walking the
+  ;; structure to extract (for copy or use).  For our needs, we need a
+  ;; means of doing this to partition the space, and then
+  ;; post-partition, deciding which partitions need to be considered
+  ;; for further processing, and which ones get discarded.
+
+  ;; So to clarify how this might work: 
+  ;; 1. we need a function which takes a matrix and creates a list of
+  ;; matrix-like or vector-like elements.
+  ;; 2. we have functions which operate in general on matrix-like or
+  ;; vector-like objects.
+  ;; 3. we use mapcar or similar to create the results.  
+  ;; 3a. multi-value return could be used to create multiple lists of
+  ;; vector-like or matrix-like objects, for example to get a complex
+  ;; computation using inner-products.   So for instance:
+  ;;   list1: v1a v2a v3a
+  ;;   list2: m1  m2  m3
+  ;;   list3: v1b v2b v3b
+  ;; and we compute
+  ;;   (list-of (IP v#a m1 v#b )) 
+  ;; via
+  ;;   (mapcar #'IP (list-of-vector-matrix-vector M))
+
+  ;; We would need such an "extractor" to make things work out right.  
+  (mapcar #'function-on-matrix (make-list-of-matrices original-matrix)) 
+
+  ;; The following approach would be required to do a proper map-back.
+  (list->vector-like (map 'list #'function-of-2-args (list1) (list2))
+		     :type :row) ; or :column
+  ;; this would take a list and create an appropriate vector-like of
+  ;; the appropriate type.
+
+  ;; Thought 2, the current immediate approach:
+  ;; What we currently do is break it out into components.
+  (list-of-columns m01)
+
+  (defparameter *m1-app* (ones 2 3))
+  (let ((col-list (list-of-columns *m1-app*)))
+    (dotimes (i (length col-list))
+	  (princ (v= (nth i col-list)
+		      (ones 2 1)))))
+
+  (list-of-rows *m01*)
+  
+  (mapcar #'princ (list-of-columns *m01*))
+
+  (format nil "R-Apply approach"))
