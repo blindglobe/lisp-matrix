@@ -272,7 +272,10 @@
   ;; via
   ;;   (mapcar #'IP (list-of-vector-matrix-vector M))
 
+  ;; We would need such an "extractor" to make things work out right.  
   (mapcar #'function-on-matrix (make-list-of-matrices original-matrix)) 
+
+  ;; The following approach would be required to do a proper map-back.
   (list->vector-like (map 'list #'function-of-2-args (list1) (list2))
 		     :type :row) ; or :column
   ;; this would take a list and create an appropriate vector-like of
@@ -291,7 +294,8 @@
   (list-of-rows *m01*)
   
   (mapcar #'princ (list-of-columns *m01*))
-  )
+
+  (format nil "R-Apply approach"))
 
 
 #+nil
@@ -354,7 +358,9 @@
 		 (orig-a (copy a))
 		 (orig-b (copy b))
 		 (orig-x (copy x)))
-	    (list x (gelsy a b rcond)))))
+	    (list x (gelsy a b rcond))
+	    (m- x (gelsy a b rcond))
+	    )))
   (princ *temp-result*)
   
   (setf *temp-result* 
@@ -369,7 +375,9 @@
 		 (orig-a (copy a))
 		 (orig-b (copy b))
 		 (orig-x (copy x)))
-	    (list x (gelsy a b rcond)))))
+	    (list x (gelsy a b rcond))
+	    (m- x (gelsy a b rcond))
+	    )))
   (princ *temp-result*)
 
   ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
@@ -473,7 +481,7 @@
   ;; might add args: (method 'gelsy), or do we want to put a more
   ;; general front end, linear-least-square, across the range of
   ;; LAPACK solvers? 
-  (defun lm ( x y)
+  (defun lm (x y &optional rcond)
     "fit the linear model:
            y = x \beta + e 
 
@@ -492,16 +500,46 @@ encapsulate into a class or struct.
 	    (x y) "Can not multiply x:~S by y:~S" x y)
     (let ((betahat (gelsy (m* (transpose x) x)
  		 	  (m* (transpose x) y)
-			  (* (coerce (expt 2 -52) 'double-float)
-			     (max (nrows x)
-				  (ncols y))))))
+			  (if rcond rcond (* (coerce (expt 2 -52) 'double-float)
+					     (max (nrows x)
+						  (ncols y))))))
+	  (betahat1 (gelsy x
+			   y
+			   (* (coerce (expt 2 -52) 'double-float)
+					      (max (nrows x)
+						   (ncols y))))))
       ;; need computation for SEs, 
-
-      (values betahat 
-	      ;;(sebetahat betahat x y)
-	      (nrows x) ; surrogate for n
+      (format t "")
+      (values betahat  ; LA-SIMPLE-VECTOR-DOUBLE
+	      betahat1 ; LA-SLICE-VECVIEW-DOUBLE
+	      ;; (m- betahat betahat1)
+	      ;; (sebetahat betahat x y) ; TODO: write me!
+	      (nrows x)    ; surrogate for n
 	      (ncols x)))) ; surrogate for p
 
+
+  (setf *n* 20) ; # rows = # obsns
+  (setf *p* 10) ; # cols = # vars 
+  (setf *x-temp*  (rand *n* *p*))
+  (setf *b-temp*  (rand *p* 1))
+  (setf *y-temp*  (m* *x-temp* *b-temp*))
+  ;; so Y=Xb + \eps
+  (setf *rcond* (* (coerce (expt 2 -52) 'double-float)
+		   (max (nrows *x-temp*) (ncols *y-temp*))))
+  (setf *orig-x* (copy *x-temp*))
+  (setf *orig-b* (copy *b-temp*))
+  (setf *orig-y* (copy *y-temp*))
+  
+  (m- *b-temp*
+      (first (lm *x-temp* *y-temp*)))
+
+  (m- *x-temp* *x-temp*)
+
+  (setf *xtx-temp* (m* (transpose *x-temp*) *x-temp*))
+  (setf *xtx-temp-f* (copy *xtx-temp*))
+  (potrf *xtx-temp-f*)
+  (setf  *xtx-temp-i* (copy *xtx-temp-f*))
+  (m* *xtx-temp-i* *xtx-temp*)
 
   (defun XtXinv (x)
     "(XtX)^-1 as XtX is PxN, so whole is PxP.  Usually represents the
