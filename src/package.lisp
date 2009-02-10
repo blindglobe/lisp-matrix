@@ -69,11 +69,20 @@
    la-simple-vector-complex-single
    la-simple-vector-complex-double
    
+   la-slice-vecview-double
+   la-slice-vecview-single
+   la-slice-vecview-integer
+   la-slice-vecview-complex-double
+   la-slice-vecview-complex-single
+
    ;; Next paragrah of symbols are guesses... wrong?
-   fa-simple-matrix-double  fa-simple-matrix-integer
-   fa-simple-matrix-complex  fa-simple-matrix-float 
-   fa-simple-vector-double fa-simple-vector-integer
+   fa-simple-matrix-double
+   fa-simple-matrix-integer
+   fa-simple-matrix-complex
+   fa-simple-matrix-float 
    fa-simple-matrix-fixnum 
+   fa-simple-vector-double
+   fa-simple-vector-integer
    
    col-vector-p
    make-vector
