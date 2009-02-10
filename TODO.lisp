@@ -222,15 +222,6 @@
 ;;;; FIX ERRORS, MIGRATE INTO UNITTESTS:
 
 
-#+nil
-(progn ;; FIXME: integer-valued foreign arrays. (bug: matrix-2)
-  (defparameter *m2a*  (make-matrix 2 5
-			:implementation :foreign-array 
-			:element-type 'integer 
-			:initial-contents #2A(( 1 2 3 4 5)
-					      ( 6 7 8 9 10)))
-    "test for integer-valued foreign arrays"))
-
 
 
 #+nil

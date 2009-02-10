@@ -35,6 +35,16 @@
 
 ;;; TESTS: MATRICES toplevel/general
 
+;;; Current error -- NEED TO FIX!
+(addtest (lisp-matrix-ut-matrix)
+  matrix-foreign-array-integer-values
+  ;; FIXME: integer-valued foreign arrays. (bug: matrix-2)
+  (ensure  (make-matrix 2 5
+			:implementation :foreign-array 
+			:element-type 'integer 
+			:initial-contents #2A(( 1 2 3 4 5)
+					      ( 6 7 8 9 10)))))
+
 (addtest (lisp-matrix-ut-matrix)
   wrong-data-initially
   (ensure-error  ;; because data is integer, not double-float!
