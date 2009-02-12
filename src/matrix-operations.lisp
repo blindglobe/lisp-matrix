@@ -44,7 +44,18 @@
   (:documentation "Matrix subtraction: A - B.")
   (:method ((a matrix-like) (b matrix-like))
     (with-typed-values ((minus-one -1)) a
-      (axpy minus-one b (copy a)))))
+      (axpy minus-one b (copy a))))
+#|;; must handle more types!  Somehow we are missing something... 
+  (:method ((mata matrix-like) (matb matrix-like))
+    (assert (and (equal (matrix-dimensions mata)
+			(matrix-dimensions matb))))
+    (let ((result (make-matrix (values-list (matrix-dimensions mata)))))
+      (dotimes (i (matrix-dimension mata 0))
+	(dotimes (j (matrix-dimension mata 1))
+	  (setf (mref result i j) (- (mref mata i j) (mref matb i j)))))
+      result)))
+|#
+  )
 
 ;; TODO: SUM is not yet done
 #+ (or)
