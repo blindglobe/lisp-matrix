@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-02-06 16:09:26 tony>
+;;; Time-stamp: <2009-02-12 17:26:57 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       lapack-methods.lisp
 ;;; Author:     Mark H. < @ >
@@ -227,24 +227,24 @@
         ;; (a fix is to make RANK a fnv-int32 with one element
         (progn
           (check-info (fnv-int32-ref info 0) "GELSY")
-          (list (if (= (nrows b) (ncols a))
+          (list (if (= (nrows b) (ncols a)) ; returns (list b rank)
                     b
                     (window b :nrows (ncols a)))
                 (fnv-int32-ref rank 0)))
-     (call-with-work (lwork work !data-type)
-                     (!function (nrows a)
-                                (ncols a)
-                                (ncols b)
-                                a
-                                (real-nrows a)
-                                b
-                                (real-nrows b)
-                                jpvt
-                                rcond
-                                rank
-                                (data work)
-                                lwork
-                                info)))))
+      (call-with-work (lwork work !data-type)
+		      (!function (nrows a)
+				 (ncols a)
+				 (ncols b)
+				 a
+				 (real-nrows a)
+				 b
+				 (real-nrows b)
+				 jpvt
+				 rcond
+				 rank
+				 (data work)
+				 lwork
+				 info)))))
 
 #+nil
 (setf *temp-result* 
@@ -281,12 +281,15 @@
 
 ;;; POTRF - compute the Cholesky Factorization of a real sym pos-def
 ;;; matrix A.
+;;; Returns Matrix, upper/lower triang char, info
 (def-lapack-method potrf ((a !matrix-type))
   (let ((info (make-fnv-int32 1 :initial-value 0)))
     (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
     (with-copies ((a (or (not unit-strides-p)
                          transposed-p)))
-      (check-info (fnv-int32-ref info 0) "GELSY")
+      (list a
+	    "U"
+	    (check-info (fnv-int32-ref info 0) "POTRI"))
       (!function "U"  ; store in Upper section
 		 (ncols a) ; N 
 		 a
@@ -296,18 +299,18 @@
 ;;; POTRI - compute the inverse of a real symmetric positive definite
 ;;; matrix A using the Cholesky factorization A = U**T*U or A = L*L**T
 (def-lapack-method potri ((a !matrix-type))
+  (assert (= (ncols a) (nrows a)))  ;; only works with square matrices
   (let ((info (make-fnv-int32 1 :initial-value 0)))
-    (assert (= (ncols a) (nrows a)))  ;; only works with square matrices
     (with-copies ((a (or (not unit-strides-p)
                          transposed-p)))
-      (check-info (fnv-int32-ref info 0) "POTRI")
-      (call-with-work (lwork work !data-type)
-		      (!function "U"            ; "L" do we want lower
-   					        ; to be an option?
-				 (ncols a)      ; N
-				 a              ; a 
-				 (real-nrows a) ; LDA
-				 info)))))      ; info
+	(list a
+	      "U"
+	      (check-info (fnv-int32-ref info 0) "POTRI"))
+      (!function "U"            ; "L" do we want lower to be an option? 
+		 (ncols a)      ; N
+		 a              ; a 
+		 (real-nrows a) ; LDA
+		 info)))))      ; info
 
 ;;; QR decomposition.  Need one more front end to provide appropriate
 ;;; processing.  A and TAU will have different values at the end, more
@@ -315,20 +318,21 @@
 ;;; in common compact form).
 (def-lapack-method geqrf ((a !matrix-type)
 			  (tau !matrix-type)) ; tau is for output
+  (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
   (let ((info (make-fnv-int32 1 :initial-value 0)))
-    (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
     (with-copies ((a (or (not unit-strides-p)
                          transposed-p))
                   (tau (or (not unit-strides-p)
 			   transposed-p)))
-     (progn
-       (check-info (fnv-int32-ref info 0) "GEQRF")
-       (call-with-work (lwork work !data-type)
-		       (!function (nrows a)
-				  (ncols a)
-				  a
-				  (max 1 (nrows a))
-				  (data tau)
-				  (data work)
-				  lwork
-				  info))))))
+	(list a
+	      tau
+	      (check-info (fnv-int32-ref info 0) "GEQRF"))
+      (call-with-work (lwork work !data-type)
+		      (!function (nrows a)
+				 (ncols a)
+				 a
+				 (max 1 (nrows a))
+				 (data tau)
+				 (data work)
+				 lwork
+				 info)))))
