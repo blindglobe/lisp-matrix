@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-02-09 08:00:43 tony>
+;;;; Time-stamp: <2009-02-11 18:11:57 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -246,6 +246,7 @@ could be used in countless situations)."
               (list (car item))))
           lambda-list))
 
+;; misnomer -- handles blas and similar fractional naming conventions.
 (defmacro def-lapack-method (name-and-options (&rest lambda-list) &body body)
   "Define methods for supported datatypes for the lapack method named
   NAME.  The symbols !FUNCTION, !DATA-TYPE, and !MATRIX-TYPE are
@@ -268,6 +269,10 @@ could be used in countless situations)."
   double-float (complex double-float) (complex single-float)).
 
   See for example the definition of GEMM for how to use this macro."
+  ;;
+  ;; FIXME: bad job at handling mixed types, and the weird types. 
+  ;; -- Tony Rossini 2009-2-11
+  ;;
   ;; FIXME: It might not cover all edge cases yet (i.e. transposed
   ;; matrices which don't fall back on superclasses (see TODO.lisp for
   ;; example).  But this also might be my cluelessness?
