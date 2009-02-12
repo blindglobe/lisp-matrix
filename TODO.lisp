@@ -15,8 +15,8 @@
 
 ;; Tests = 68, Failures = 0, Errors = 2 ;; 9.2.2009
 
-(describe (run-tests :suite 'lisp-matrix-ut))
 (run-tests :suite 'lisp-matrix-ut)
+(describe (run-tests :suite 'lisp-matrix-ut))
 ;; or simply...
 (run-lisp-matrix-tests)
 (describe  (run-lisp-matrix-tests))
@@ -217,12 +217,56 @@
 			 (7d0)
 			 (8d0))))
   (transpose *y2*)
+
+
+
+  (defun trap2mat (m &key (type :upper))
+    "convert a upper/lower triangular storage to an actual normal but
+  symmetric matrix.  
+  FIXME: Current only workis for square matrices -- needs to work for
+  the square-ish minimal sized square matrix within a rectangular
+  matrix."
+    (check-type m matrix-like)
+    (let ((mc (copy m)))
+      (dotimes (i (nrows m))
+	(dotimes (j i)
+	  (ecase type
+	    (:upper (setf (mref mc i j) (mref m j i)))
+	    (:lower (setf (mref mc j i) (mref m i j))))))
+      mc))
+
+  ;; Tests for square matrices...
+  (defparameter *test-trap2mat-1*
+    (trap2mat (rand 3 3)))
+
+  (defparameter *test-trap2mat-2*
+    (trap2mat (make-matrix 3 3
+			   :initial-contents #2A((1d0 2d0 3d0)
+						 (4d0 5d0 6d0)
+						 (7d0 8d0 9d0)))))
+
+  (defparameter *test-trap2mat-3*
+    (trap2mat (make-matrix 3 3
+			   :initial-contents #2A((1d0 2d0 3d0)
+						 (4d0 5d0 6d0)
+						 (7d0 8d0 9d0)))
+	      :type :lower))
+
+  (defparameter *test-trap2mat-4*
+    (trap2mat (make-matrix 3 3
+			   :initial-contents #2A((1d0 2d0 3d0)
+						 (4d0 5d0 6d0)
+						 (7d0 8d0 9d0)))
+	      :type :upper))
+
+
+
+
+  ;; need to write unit tests for square and rect matrices.
+
   (format nil "Data set up"))
 
-;;;; FIX ERRORS, MIGRATE INTO UNITTESTS:
-
-
-
+;;; FIXME FOLLOWING ERRORS: MIGRATE INTO UNITTESTS...
 
 
 #+nil
@@ -286,8 +330,12 @@
 		 (orig-b (copy b))
 		 (orig-x (copy x)))
 	    (list x (gelsy a b rcond))
-	    (m- x (gelsy a b rcond))
-	    )))
+	    ;; no applicable conversion?
+	    ;; (m-   (#<FA-SIMPLE-VECTOR-DOUBLE (10 x 1)) 
+	    ;;       (#<FA-SIMPLE-VECTOR-DOUBLE (10 x 1)) )
+	    (v- x (first (gelsy a b rcond))))))
+
+  
   (princ *temp-result*)
   
   (setf *temp-result* 
@@ -439,7 +487,7 @@ encapsulate into a class or struct.
       (format t "")
       (list betahat  ; LA-SIMPLE-VECTOR-DOUBLE
 	    betahat1 ; LA-SLICE-VECVIEW-DOUBLE
-	    ;; (v- betahat betahat1)
+	    (v- (first  betahat) (first  betahat1))
 	    ;; (sebetahat betahat x y) ; TODO: write me!
 	    (nrows x)    ; surrogate for n
 	    (ncols x)))) ; surrogate for p
@@ -461,30 +509,15 @@ encapsulate into a class or struct.
   (princ (first *lm-result*))
   (princ (second *lm-result*))
   (princ (third *lm-result*))
-  (v- (first *lm-result*) 
-      (second *lm-result*))
-
-  ;; looking at class inheritance.
-  (subtypep 'LA-SIMPLE-VECTOR-DOUBLE 'VECTOR-LIKE)
-  (subtypep 'LA-SLICE-VECVIEW-DOUBLE 'VECTOR-LIKE)
-  (subtypep 'LA-SIMPLE-VECTOR-DOUBLE 'LA-SLICE-VECVIEW-DOUBLE)
-  (subtypep  'LA-SLICE-VECVIEW-DOUBLE 'LA-SIMPLE-VECTOR-DOUBLE)
-
-
-  (typep  (first *lm-result*) 'vector-like)
-  (typep  (first *lm-result*) 'matrix-like)
-  (typep  (second *lm-result*) 'vector-like)
-  (typep  (second *lm-result*) 'matrix-like)
-  (typep *x-temp* 'vector-like)
-  (typep *x-temp* 'matrix-like) ; => T ,rest of this paragraph are false.
-
-  (m- *x-temp* *x-temp*)
+  (v= (third *lm-result*)
+      (v- (first (first *lm-result*)) 
+	  (first  (second *lm-result*))))
 
   (defparameter *xtx-temp* (m* (transpose *x-temp*) *x-temp*))
   (defparameter *xtx-temp-f* (copy *xtx-temp*))
-  (potrf *xtx-temp-f*)
-  (defparameter  *xtx-temp-i* (copy *xtx-temp-f*))
-  (m* *xtx-temp-i* *xtx-temp*)
+  (potri *xtx-temp-f*)
+  (defparameter  *xtx-temp-i* (trap2mat (copy *xtx-temp-f*)))
+  (defparameter *is-it-i* (m* *xtx-temp-i* *xtx-temp*))
 
   (defun XtXinv (x)
     "(XtX)^-1 as XtX is PxN, so whole is PxP.  Usually represents the
@@ -501,34 +534,19 @@ encapsulate into a class or struct.
 	(rand 2 3 :state state2)))
 
 
-  (defun TrapezoidToMatrix (m &key (type :upper))
-    "convert a upper/lower triangular storage to an actual normal but
-  symmetric matrix."
-    (check-type m matrix-like)
-    (let ((mc (copy m)))
-      (dotimes (i (nrows m))
-	(dotimes (j i)
-	  (ecase type
-	    (:upper (setf (mref mc i j) (mref m j i)))
-	    (:lower (setf (mref mc j i) (mref m i j))))))
-      mc))
-
-  ;; need to write unit tests for square and rect matrices.
-
-  (defparameter *basic-mat* (rand 3 3))
+  
+  (defparameter *basic-mat* (rand 3 3)) ; start with a square matrix
   (defparameter *potri-test1*
-    (m* (transpose *basic-mat*) *basic-mat*))
-  (defparameter *potri-test2* (copy *potri-test1*))
-  (potri (potrf *potri-test1*))
-  (defparameter (mref *potri-test1* 1 0) (mref *potri-test1* 0 1))
-  (defparameter (mref *potri-test1* 2 0) (mref *potri-test1* 0 2))
-  (defparameter (mref *potri-test1* 2 1) (mref *potri-test1* 1 2))
-  (m* *potri-test1* *potri-test2*)
+    (m* (transpose *basic-mat*) *basic-mat*)) ; symmetrize via XtX
+  (defparameter *potri-test2* (copy *potri-test1*)) ; save a copy
+  (potri (potrf *potri-test1*)) ; factor and then invert
+  (defparameter *porti-test3 (trap2mat *potri-test1*)) ; un-triangulize
+  (m* *potri-test1* *potri-test2*) ; test for inversion
 
 
-
-  (geqrf (make-matrix 2 2 :initial-contents #2A( ( 1d0 2d0 ) (2d0 1d0)))
-	 (make-vector 2 :initial-contents '((1d0 1d0))))
+  ;;; Problems here...
+  (geqrf (make-matrix 2 2 :initial-contents #2A(( 1d0 2d0 ) (2d0 1d0)))
+	 (make-vector 2 :type :column :initial-contents '((1d0)(1d0))))
 
   (defun print-lm (lm-obj)
     "transcribed from R"
@@ -565,8 +583,7 @@ encapsulate into a class or struct.
   (lm *xv+1* *y2*)
   (lm (transpose *xv*) *y2*)
 
-  (format nil "Linear Models Code setup")
-  )
+  (princ "Linear Models Code setup"))
 
 
 
@@ -643,3 +660,43 @@ encapsulate into a class or struct.
   (mapcar #'princ (list-of-columns *m01*))
 
   (format nil "R-Apply approach"))
+
+
+#+nil
+(progn
+  ;; Studies in Class inheritance
+
+  (subtypep 'LA-SIMPLE-VECTOR-DOUBLE 'VECTOR-LIKE)
+  (subtypep 'LA-SLICE-VECVIEW-DOUBLE 'VECTOR-LIKE)
+  (subtypep 'LA-SIMPLE-VECTOR-DOUBLE 'LA-SLICE-VECVIEW-DOUBLE)
+  (subtypep  'LA-SLICE-VECVIEW-DOUBLE 'LA-SIMPLE-VECTOR-DOUBLE)
+
+  (subtypep 'FA-SIMPLE-VECTOR-DOUBLE 'MATRIX-LIKE)
+
+  ;;; weird!
+  (m- (make-vector 2 :initial-contents '((1d0 1d0)))
+      (make-vector 2 :initial-contents '((1d0 1d0))))
+
+  (let ((*default-implementation* :foreign-array))
+    (m- (make-vector 2 :initial-contents '((1d0 1d0)))
+	(make-vector 2 :initial-contents '((1d0 1d0)))))
+
+  (let ((*default-implementation* :lisp-array))
+    (m- (make-vector 2 :initial-contents '((1d0 1d0)))
+	(make-vector 2 :initial-contents '((1d0 1d0)))))
+
+  (m- (make-vector 2
+		   :implementation :lisp-array
+		   :initial-contents '((1d0 1d0)))
+      (make-vector 2
+		   :implementation :foreign-array
+		   :initial-contents '((1d0 1d0))))
+
+  (typep  (first *lm-result*) 'vector-like)
+  (typep  (first *lm-result*) 'matrix-like)
+  (typep  (second *lm-result*) 'vector-like)
+  (typep  (second *lm-result*) 'matrix-like)
+  (typep *x-temp* 'vector-like)
+  (typep *x-temp* 'matrix-like) ; => T ,rest of this paragraph are false.
+
+  (m- *x-temp* *x-temp*))
