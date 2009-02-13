@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-02-12 17:26:57 tony>
+;;; Time-stamp: <2009-02-12 17:32:20 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       lapack-methods.lisp
 ;;; Author:     Mark H. < @ >
@@ -310,7 +310,7 @@
 		 (ncols a)      ; N
 		 a              ; a 
 		 (real-nrows a) ; LDA
-		 info)))))      ; info
+		 info))))      ; info
 
 ;;; QR decomposition.  Need one more front end to provide appropriate
 ;;; processing.  A and TAU will have different values at the end, more
