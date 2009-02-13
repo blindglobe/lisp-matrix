@@ -351,7 +351,7 @@
 		 (orig-b (copy b))
 		 (orig-x (copy x)))
 	    (list x (gelsy a b rcond))
-	    (m- x (gelsy a b rcond))
+	    (m- x (first  (gelsy a b rcond)))
 	    )))
   (princ *temp-result*)
 
@@ -363,135 +363,27 @@
 				   (ncols *xty-1*))))
 
   (defparameter *betahat*  (gelsy *xtx-1* *xty-1* *rcond-in*))
-  *betahat*
 
-#|
- (#<LA-SIMPLE-VECTOR-DOUBLE (1 x 1)
- 1.293103448275862>
- 1)
+  ;;  (#<LA-SIMPLE-VECTOR-DOUBLE (1 x 1)
+  ;;  1.293103448275862>
+  ;;  1)
+
+  ;;   ## Test case in R:
+  ;;   x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
+  ;;   y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+  ;;   lm(y~x-1)
+  ;;   ## => 
+  ;;   Call:
+  ;;   lm(formula = y ~ x - 1)
+
+  ;;   Coefficients:
+  ;;       x  
+  ;;   1.293  
+
+  (first  *betahat*))
 
 
-  ## Test case in R:
-  x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
-  y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
-  lm(y~x-1)
-  ## => 
-  Call:
-  lm(formula = y ~ x - 1)
-
-  Coefficients:
-      x  
-  1.293  
-|#
-
-  ;; so something like (NOTE: matrices are transposed to begin with, hence the incongruety)
-  (defparameter *xtx-2* (m* (transpose *xv+1*) *xv+1*))
-  ;; #<LA-SIMPLE-MATRIX-DOUBLE  2 x 2
-  ;;  8.0d0 28.0d0
-  ;;  28.0d0 116.0d0>
-
-  (defparameter *xty-2* (m* (transpose *xv+1*)  (transpose *y*)))
-  ;; #<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
-  ;;  36.0d0
-  ;;  150.0d0>
-
-  (defparameter *rcond-2* 0.000001)
-  (defparameter *betahat-2*  (gelsy *xtx-2* *xty-2* *rcond-2*))
-  ;; *xtx-2* => "details of complete orthogonal factorization"
-  ;; according to man page:
-  ;; #<LA-SIMPLE-MATRIX-DOUBLE  2 x 2
-  ;;  -119.33147112141039d0 -29.095426104883202d0
-  ;;  0.7873402682880205d0 -1.20672274167718d0>
-
-  ;; *xty-2* => output becomes solution:
-  ;; #<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
-  ;;  -0.16666666666668312d0
-  ;;  1.333333333333337d0>
-
-  *betahat-2* ; which matches R, see below
-
-  (documentation 'gelsy 'function)
-#|
-
-  (#<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
-   -0.16666666666668312 1.333333333333337>
-   2)
-
-  ## Test case in R:
-  x <- c( 1.0, 3.0, 2.0, 4.0, 3.0, 5.0, 4.0, 6.0)
-  y <- c( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
-  lm(y~x)
-  ## => Call:  lm(formula = y ~ x)
-
-  Coefficients:  (Intercept)            x  
-                     -0.1667       1.3333  
-
-  summary(lm(y~x))
-  ## =>
-
-  Call:
-  lm(formula = y ~ x)
-
-  Residuals:
-         Min         1Q     Median         3Q        Max 
-  -1.833e+00 -6.667e-01 -3.886e-16  6.667e-01  1.833e+00 
-
-  Coefficients:
-              Estimate Std. Error t value Pr(>|t|)   
-  (Intercept)  -0.1667     1.1587  -0.144  0.89034   
-  x             1.3333     0.3043   4.382  0.00466 **
-  ---
-  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
-
-  Residual standard error: 1.291 on 6 degrees of freedom
-  Multiple R-squared: 0.7619,	Adjusted R-squared: 0.7222 
-  F-statistic:  19.2 on 1 and 6 DF,  p-value: 0.004659 
-
-|#
-
-  ;; which suggests one might do (modulo ensuring correct
-  ;; orientations).  When this is finalized, it should migrate to
-  ;; CLS.
-  ;;
-  ;; might add args: (method 'gelsy), or do we want to put a more
-  ;; general front end, linear-least-square, across the range of
-  ;; LAPACK solvers? 
-  (defun lm (x y &optional rcond)
-    "fit the linear model:
-           y = x \beta + e 
-
-and estimate \beta.  X,Y should be in cases-by-vars form, i.e. X
-should be n x p, Y should be n x 1.  Returns estimates, n and p.
-Probably should return a form providing the call, as well.
-
-R's lm object returns: coefficients, residuals, effects, rank, fitted,
-qr-results for numerical considerations, DF_resid.  Need to
-encapsulate into a class or struct.
-"
-    (check-type x matrix-like)
-    (check-type y vector-like) ; vector-like might be too strict?
-					; maybe matrix-like?
-    (assert (= (nrows y) (nrows x)) ; same number of observations/cases
-	    (x y) "Can not multiply x:~S by y:~S" x y)
-    (let ((betahat (gelsy (m* (transpose x) x)
- 		 	  (m* (transpose x) y)
-			  (if rcond rcond (* (coerce (expt 2 -52) 'double-float)
-					     (max (nrows x)
-						  (ncols y))))))
-	  (betahat1 (gelsy x
-			   y
-			   (* (coerce (expt 2 -52) 'double-float)
-					      (max (nrows x)
-						   (ncols y))))))
-      ;; need computation for SEs, 
-      (format t "")
-      (list betahat  ; LA-SIMPLE-VECTOR-DOUBLE
-	    betahat1 ; LA-SLICE-VECVIEW-DOUBLE
-	    (v- (first  betahat) (first  betahat1))
-	    ;; (sebetahat betahat x y) ; TODO: write me!
-	    (nrows x)    ; surrogate for n
-	    (ncols x)))) ; surrogate for p
-
+(progn  ;;#FIXME: factorization and inversion via LAPACK
 
   (defparameter *n* 20) ; # rows = # obsns
   (defparameter *p* 10) ; # cols = # vars 
@@ -504,14 +396,6 @@ encapsulate into a class or struct.
   (defparameter *orig-x* (copy *x-temp*))
   (defparameter *orig-b* (copy *b-temp*))
   (defparameter *orig-y* (copy *y-temp*))
-
-  (defparameter *lm-result* (lm *x-temp* *y-temp*))
-  (princ (first *lm-result*))
-  (princ (second *lm-result*))
-  (princ (third *lm-result*))
-  (v= (third *lm-result*)
-      (v- (first (first *lm-result*)) 
-	  (first  (second *lm-result*))))
 
   (defparameter *xtx-temp* (m* (transpose *x-temp*) *x-temp*))
   (defparameter *xtx-temp-f* (copy *xtx-temp*))
