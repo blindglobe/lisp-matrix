@@ -529,14 +529,12 @@
   (make-vector 3 :type :column 
 	       :initial-contents
 	       (mapcar #'(lambda (x) (list (coerce x 'double-float)))
-		       (list 1d0 2d0 3d0))
-	       )
+		       (list 1d0 2d0 3d0)))
 
   (make-vector 3 :type :row 
 	       :initial-contents
 	       (list (mapcar  #'(lambda (x) (coerce x 'double-float))
-			      (list 1d0 2d0 3d0)))
-	       )
+			      (list 1d0 2d0 3d0))))
 
   ;; The following approach would be required to do a proper map-back.
   (list->vector-like (map 'list #'function-of-2-args (list1) (list2))
