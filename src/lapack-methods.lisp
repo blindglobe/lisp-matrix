@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-02-12 17:32:20 tony>
+;;; Time-stamp: <2009-02-17 17:28:21 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       lapack-methods.lisp
 ;;; Author:     Mark H. < @ >
@@ -289,7 +289,7 @@
                          transposed-p)))
       (list a
 	    "U"
-	    (check-info (fnv-int32-ref info 0) "POTRI"))
+	    (check-info (fnv-int32-ref info 0) "POTRF"))
       (!function "U"  ; store in Upper section
 		 (ncols a) ; N 
 		 a
