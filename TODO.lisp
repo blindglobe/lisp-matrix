@@ -403,7 +403,24 @@
   (defparameter  *xtx-temp-i* (trap2mat (copy *xtx-temp-f*)))
   (defparameter *is-it-i* (m* *xtx-temp-i* *xtx-temp*))
 
-  (defun XtXinv (x)
+  (defun lispmatrix2r (m &key (rvarname "my.mat"))
+    "Write out a string that can be used to read in the matrix into R.
+Used for creating verfication scripts and test cases."
+    (check-type m matrix-like)
+    (concatenate 'string 
+		 (format nil "~%~s <- matrix ( data = c(" rvarname)
+		 (dotimes (i (matrix-dimension m 0))
+		   (dotimes (j (matrix-dimension m 1))
+		     (format nil "~s," (mref m i j))))
+		 (format nil "), nrows=~d, ncols=~d, by.row=TRUE)"
+			 (matrix-dimension m 0)
+			 (matrix-dimension m 1))))
+
+  (lispmatrix2R *x-temp*)
+
+
+
+  (defun xtxinv (x)
     "(XtX)^-1 as XtX is PxN, so whole is PxP.  Usually represents the
    Vars for beta from Y = X \beta + \eps.  Uses LAPACK's dpotri
    routine to invert, after using dpotrf to factorize.  We use a copy
