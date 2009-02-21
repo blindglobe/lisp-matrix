@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 68, Failures = 0, Errors = 2 ;; 9.2.2009
+;; Tests = 68, Failures = 1, Errors = 2 ;; 9.2.2009
 
 (run-tests :suite 'lisp-matrix-ut)
 (describe (run-tests :suite 'lisp-matrix-ut))
@@ -56,21 +56,32 @@
 (progn  ;;#FIXME: factorization and inversion via LAPACK
 
   (defparameter *eye* (eye 7 7))
-  (potri *eye*)
+  (m*  (first  (potri *eye*)) *eye*)
 
-  (defparameter *rand* (rand 7 7))
-  (defparameter *symrand* (m* (transpose *rand*) *rand*))
 
   (defun matrix-like-symmetric-p (m)
     "FIXME"
     (check-type m matrix-like)
+    (assert (= (nrows m) (ncols m)))
     (dotimes (i (matrix-dimension m 0))
       (dotimes (j i)
-	(assert (= (mref m i j) (mref m j i)))))
+	(unless (= (mref m i j) (mref m j i))
+	  (return-from matrix-like-symmetric-p nil))))
     t)
+  
 
   (matrix-like-symmetric-p *rand*)
   (matrix-like-symmetric-p *symrand*)
+
+  
+  (defparameter *rand* (rand 4 4))
+  (defparameter *symrand* (m* (transpose *rand*) *rand*))
+  (matrix-like-symmetric-p *symrand*)
+  (defparameter *symrand-copy* (copy *symrand*))
+  (defparameter *symrand-chol* (copy (first (potrf *symrand-copy*))))
+  (defparameter *symrand-inv* (copy (first (potri *symrand-chol*))))
+  (m* *symrand* *symrand-inv*)
+
   (potri *symrand*)
 
   
