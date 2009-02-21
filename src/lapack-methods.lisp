@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-02-17 17:28:21 tony>
+;;; Time-stamp: <2009-02-21 11:41:56 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       lapack-methods.lisp
 ;;; Author:     Mark H. < @ >
@@ -220,7 +220,8 @@
     (with-copies ((a (or (not unit-strides-p)
                          transposed-p))
                   (b (or (not unit-strides-p)
-                         transposed-p)))
+                         transposed-p)
+		     t))
         ;; FIXME: the value RANK is not correct because the cffi type
         ;; :FORTRAN-INT does not define a TRANSLATE-FROM-FOREIGN method?
         ;; => why not use a standard cffi integer type anyway??
@@ -286,7 +287,8 @@
   (let ((info (make-fnv-int32 1 :initial-value 0)))
     (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
     (with-copies ((a (or (not unit-strides-p)
-                         transposed-p)))
+                         transposed-p) 
+		     t))
       (list a
 	    "U"
 	    (check-info (fnv-int32-ref info 0) "POTRF"))
@@ -302,15 +304,22 @@
   (assert (= (ncols a) (nrows a)))  ;; only works with square matrices
   (let ((info (make-fnv-int32 1 :initial-value 0)))
     (with-copies ((a (or (not unit-strides-p)
-                         transposed-p)))
+                         transposed-p)
+		     t))
+	;; Returning:
+	;; - inverse,
+	;; - "U" since upper format trangular,
+	;; - info, for correctness of results.  
+	;; Should we put INFO first?!
 	(list a
-	      "U"
+	      "U" ; not useful until we add option for lowercase.
 	      (check-info (fnv-int32-ref info 0) "POTRI"))
-      (!function "U"            ; "L" do we want lower to be an option? 
-		 (ncols a)      ; N
-		 a              ; a 
-		 (real-nrows a) ; LDA
-		 info))))      ; info
+      (!function "U"        ; "L" (in) is lower an option? 
+		 (ncols a)  ; N (in) (order of matrix, columns, 2nd index
+		 a          ; a (in/out) matrix
+		 (nrows a)  ; LDA (in) leading dimension, LDA >= max(1,N)
+		            ; above was "(real-nrows a)" ?
+		 info))))   ; info (out)
 
 ;;; QR decomposition.  Need one more front end to provide appropriate
 ;;; processing.  A and TAU will have different values at the end, more
@@ -321,9 +330,11 @@
   (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
   (let ((info (make-fnv-int32 1 :initial-value 0)))
     (with-copies ((a (or (not unit-strides-p)
-                         transposed-p))
+                         transposed-p)
+		     t)
                   (tau (or (not unit-strides-p)
-			   transposed-p)))
+			   transposed-p)
+		       t))
 	(list a
 	      tau
 	      (check-info (fnv-int32-ref info 0) "GEQRF"))
