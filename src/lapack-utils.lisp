@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-02-11 18:11:57 tony>
+;;;; Time-stamp: <2009-02-17 17:38:37 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -120,11 +120,10 @@ could be used in countless situations)."
   (make-predicate-macro nil)
   (make-predicate-macro real-p)
   (make-predicate-macro (and real-p char-p))
-
-
 |#
 
 
+;;; Does copy-back-p have any effect?  I think not?
 (defmacro with-copies ((&rest forms) result &body body)
   "Each form in FORMS is a lambda-list defined as (VARIABLE PREDICATE
   &optional COPY-BACK-P).  VARIABLE is a symbol bound to a matrix,
