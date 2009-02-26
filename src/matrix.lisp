@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2008-12-09 21:26:19 tony>
+;;; Time-stamp: <2009-02-21 15:55:53 tony>
 
 (in-package :lisp-matrix)
 
@@ -34,6 +34,11 @@
 ;;; classes for supporting matrix work.  All the hard guts are found
 ;;; in the implementations and subsets.  But the cool soft guts are
 ;;; here, and as much as possible on a virtual level is done.
+
+;;; So object instantiation, access, special common objects (random,
+;;; identity matrices) go here.   But numerical methods do not.
+
+
 
 (defclass matrix-like ()
   ((nrows :initarg :nrows

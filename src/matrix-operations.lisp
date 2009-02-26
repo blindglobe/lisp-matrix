@@ -239,7 +239,7 @@ FIXME: AWFUL."
 
 ;;; LAPACK-related numerical linear algebra.  Should we be precise?
 
-#| 
+#|
  (defmethod qr-decomp (a)
   (:documentation "Compute the QR decomposition of matrix A")
   (:method ( (a fa-matrix-double))
