@@ -1,4 +1,3 @@
-
 (in-package :lisp-matrix)
 
 ;;; CHOLESKY

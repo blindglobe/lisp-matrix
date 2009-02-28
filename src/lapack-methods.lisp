@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-02-28 18:15:51 tony>
+;;; Time-stamp: <2009-02-28 20:52:26 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       lapack-methods.lisp
 ;;; Author:     Mark H. < @ >
@@ -204,78 +204,3 @@
   (unless (= info 0)
     (error "~a: error in argument ~d" function-name (- info))))
 
-;;; Solving ax = b
-;;; note that 'a' will be modified upon the call, and will have a
-;;; different value at the end, more appropriate to the transformation
-;;; (i.e. will be the QR, but stored in common compact form).
-(def-lapack-method gelsy ((a !matrix-type)
-			  (b !matrix-type)
-                          rcond &optional jpvt)
-  ;; FIXME: has both LWORK and RWORK for %ZGELSY and %CGELSY
-  (unless jpvt
-    (setq jpvt (make-fnv-int32 (ncols a) :initial-value 0)))
-  (let ((rank (make-fnv-int32 1 :initial-value 0))
-        (info (make-fnv-int32 1 :initial-value 0)))
-    ;; FIXME: B needs to be resized anyway if A has more columns than
-    ;; rows, to allow for enough storage for the result matrix =>
-    ;; quick fix: disallow this
-    (assert (<= (ncols a) (nrows a)))
-    (with-copies ((a (or (not unit-strides-p)
-                         transposed-p))
-                  (b (or (not unit-strides-p)
-                         transposed-p)
-		     t))
-        ;; FIXME: the value RANK is not correct because the cffi type
-        ;; :FORTRAN-INT does not define a TRANSLATE-FROM-FOREIGN method?
-        ;; => why not use a standard cffi integer type anyway??
-        ;; (a fix is to make RANK a fnv-int32 with one element
-        (progn
-          (check-info (fnv-int32-ref info 0) "GELSY")
-          (list (if (= (nrows b) (ncols a)) ; returns (list b rank)
-                    b
-                    (window b :nrows (ncols a)))
-                (fnv-int32-ref rank 0)))
-      (call-with-work (lwork work !data-type)
-		      (!function (nrows a)
-				 (ncols a)
-				 (ncols b)
-				 a
-				 (real-nrows a)
-				 b
-				 (real-nrows b)
-				 jpvt
-				 rcond
-				 rank
-				 (data work)
-				 lwork
-				 info)))))
-
-#+nil
-(setf *temp-result* 
-      (let ((*default-implementation* :foreign-array))
-	(let* ((m 10)
-	       (n 10)
-         (a (rand m n))
-         (x (rand n 1))
-         (b (m* a x))
-         (rcond (* (coerce (expt 2 -52) 'double-float)
-                   (max (nrows a) (ncols a))))
-         (orig-a (copy a))
-         (orig-b (copy b))
-         (orig-x (copy x)))
-    (list x (gelsy a b rcond)))))
-
-#+nil
-(setf *temp-result* 
-      (let ((*default-implementation* :lisp-array))
-	(let* ((m 10)
-	       (n 10)
-         (a (rand m n))
-         (x (rand n 1))
-         (b (m* a x))
-         (rcond (* (coerce (expt 2 -52) 'double-float)
-                   (max (nrows a) (ncols a))))
-         (orig-a (copy a))
-         (orig-b (copy b))
-         (orig-x (copy x)))
-    (list x (gelsy a b rcond)))))

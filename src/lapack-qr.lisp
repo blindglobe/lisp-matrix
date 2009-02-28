@@ -1,15 +1,12 @@
-
 (in-package :lisp-matrix)
 
-;;; QR
+;;; QR decomposition.  
 
+;;; Need one more front end to provide appropriate processing.  A and
+;;; TAU will have different values at the end, more appropriate to the
+;;; transformation (i.e. will be the QR, but stored in common compact
+;;; form).
 
-
-;;; QR decomposition.  Need one more front end to provide appropriate
-;;; processing.  A and TAU will have different values at the end, more
-;;; appropriate to the transformation (i.e. will be the QR, but stored
-;;; in common compact form).
-;;;
 ;;        M       (input) INTEGER
 ;;                The number of rows of the matrix A.  M >= 0.
 ;;        N       (input) INTEGER
