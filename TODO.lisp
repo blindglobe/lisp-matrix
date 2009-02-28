@@ -13,7 +13,7 @@
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 68, Failures = 1, Errors = 2 ;; 9.2.2009
+;; Tests = 68, Failures = 1, Errors = 2 ;; 26.2.2009
 
 (run-tests :suite 'lisp-matrix-ut)
 (describe (run-tests :suite 'lisp-matrix-ut))
@@ -70,8 +70,9 @@
     t)
   
 
-  (matrix-like-symmetric-p *rand*)
-  (matrix-like-symmetric-p *symrand*)
+  (matrix-like-symmetric-p (rand 4 4))
+  (let ((myrand (rand 4 4)))
+    (matrix-like-symmetric-p (m* (transpose myrand) myrand)))
 
   
   (defparameter *rand* (rand 4 4))
