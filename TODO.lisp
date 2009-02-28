@@ -85,6 +85,18 @@
 
   (potri *symrand*)
 
+  (defun trap2mat (m &key (type :upper))
+    "Copy the trapezoid, lower or upper, into the other side.  For
+  non-square matrices, there might be a bit of excess to ignore; but we
+  only handle the top square of the rectangle."
+    (let ((mindim (min (matrix-dimensions m))))
+      (ecase type
+	(:upper (dotimes (i mindim)
+		  (dotimes (j i)
+		    (setf (mref m i j) (mref m j i)))))
+	(:lower (dotimes (i mindim)
+		  (dotimes (j i)
+		    (setf (mref m j i) (mref m i j))))))))
   
   (defparameter *n* 20) ; # rows = # obsns
   (defparameter *p* 10) ; # cols = # vars 
