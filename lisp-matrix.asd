@@ -56,10 +56,19 @@
       :components
       ((:file "matrix-lisp-array")
        (:file "matrix-foreign-array")
+       ;; probably should move the remainder into a numerical linear
+       ;; algebra place.
        (:file "lapack-utils" :depends-on ("matrix-foreign-array"
 					  "matrix-lisp-array"))
        (:file "lapack-methods" :depends-on ("lapack-utils"))
-       (:file "matrix-operations" :depends-on ("lapack-methods"))))
+       (:file "lapack-cholesky" :depends-on ("lapack-utils"))
+       (:file "lapack-lu" :depends-on ("lapack-utils"))
+       (:file "lapack-qr" :depends-on ("lapack-utils"))
+
+       (:file "matrix-operations" :depends-on ("lapack-methods"
+					       "lapack-cholesky"
+					       "lapack-lu"
+					       "lapack-qr"))))
 
      (:module
       "testing"
