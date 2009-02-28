@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2009-02-21 15:55:53 tony>
+;;; Time-stamp: <2009-02-28 21:02:53 tony>
 
 (in-package :lisp-matrix)
 
@@ -51,7 +51,7 @@
    views.  We assume for now that matrices are stored in column
    order (Fortran style), for BLAS and LAPACK compatibility.  
  
-   Note that there is NO DATA in the base class! (storage comes upon
+   There is NO DATA in the base class! (storage only comes with
    derived classes).  Matrix-like data only has nrows/ncols as
    essential data -- derived classes will have additional slots."))
 
