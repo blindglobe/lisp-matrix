@@ -175,7 +175,8 @@
   (:method ((mata matrix-like) (matb matrix-like))
     (assert (and (equal (matrix-dimensions mata)
 			(matrix-dimensions matb))))
-    (let ((result (make-matrix (values-list (matrix-dimensions mata)))))
+    (let ((result (make-matrix (matrix-dimension mata 0)
+			       (matrix-dimension mata 1))))
       (dotimes (i (matrix-dimension mata 0))
 	(dotimes (j (matrix-dimension mata 1))
 	  (setf (mref result i j) (* (mref mata i j) (mref matb i j)))))
@@ -192,14 +193,14 @@
   (:method ((mata matrix-like) (matb matrix-like))
     (assert (and (equal (matrix-dimensions mata)
 			(matrix-dimensions matb))))
-    (let ((result (make-matrix (values-list (matrix-dimensions mata)))))
+    (let ((result (make-matrix (matrix-dimension mata 0)
+			       (matrix-dimension mata 1))))
       (dotimes (i (matrix-dimension mata 0))
 	(dotimes (j (matrix-dimension mata 1))
 	  (setf (mref result i j) (/ (mref mata i j) (mref matb i j)))))
       result)))
 
-;;; Need the equivalent of R's apply or the map-reduce
-
+;;; Need equiv of R's apply or the googly python's map-reduce
 
 (defun list-of-rows (M)
   "Returns a list of vector-like elements from matrix M.
