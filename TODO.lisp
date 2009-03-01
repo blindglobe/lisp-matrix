@@ -50,9 +50,6 @@
 
 ;;; FIXME FOLLOWING ERRORS: MIGRATE INTO UNITTESTS...
 
-
-
-
 (progn  ;;#FIXME: factorization and inversion via LAPACK
 
   (defparameter *eye* (eye 7 7))
@@ -85,18 +82,31 @@
 
   (potri *symrand*)
 
+  (min (values (list 4d0 2d0 3d0 5d0 3d0)))
+  (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
+
+
   (defun trap2mat (m &key (type :upper))
-    "Copy the trapezoid, lower or upper, into the other side.  For
-  non-square matrices, there might be a bit of excess to ignore; but we
-  only handle the top square of the rectangle."
-    (let ((mindim (min (matrix-dimensions m))))
+    "Copy the trapezoid, lower or upper, into the other
+  side (i.e. upper triagular storage into full storage).  For
+  non-square matrices, there might be a bit of excess to ignore; but
+  we only handle the top square of the rectangle."
+    (let ((mindim (reduce #'min (matrix-dimensions m)))
+	  (result (copy m)))
       (ecase type
 	(:upper (dotimes (i mindim)
 		  (dotimes (j i)
-		    (setf (mref m i j) (mref m j i)))))
+		    (setf (mref result i j) (mref m j i)))))
 	(:lower (dotimes (i mindim)
 		  (dotimes (j i)
-		    (setf (mref m j i) (mref m i j))))))))
+		    (setf (mref result j i) (mref m i j))))))
+      result))
+
+  (defparameter *trap2mat-test1*
+    (make-matrix 3 3 :initial-contents '((1d0 2d0 3d0) (4d0 5d0 6d0) (7d0 8d0 9d0))))
+  (trap2mat *trap2mat-test1*)
+  (trap2mat *trap2mat-test1* :type :upper)
+  (trap2mat *trap2mat-test1* :type :lower)
   
   (defparameter *n* 20) ; # rows = # obsns
   (defparameter *p* 10) ; # cols = # vars 
@@ -133,14 +143,22 @@ Used for creating verfication scripts and test cases."
 
 
 
+
   (defun xtxinv (x)
     "(XtX)^-1 as XtX is PxN, so whole is PxP.  Usually represents the
    Vars for beta from Y = X \beta + \eps.  Uses LAPACK's dpotri
    routine to invert, after using dpotrf to factorize.  We use a copy
    for now, until we understand whether or not it is safe to destroy.
    Perhaps have a destructive version of this?"
-    (let (a (copy x))
-      (potri (potrf (m* (transpose a) a))))) ; invert symmetric matrix
+    (check-type x matrix-like)
+    (assert (matrix-like-symmetric-p x))
+    (trap2mat (first  (potri (first  (potrf x))))
+		:type :upper))	; invert symmetric matrix
+
+  (defparameter *x-test1* (rand 3 3))
+  (defparameter *xtx-test1* (m* (transpose *x-test1*) *x-test1*))
+  (m*  (xtxinv *xtx-test1*) *xtx-test1*)
+
 
   (let* ((state1 (make-random-state))
 	 (state2 (make-random-state state1)))
@@ -153,7 +171,7 @@ Used for creating verfication scripts and test cases."
   (defparameter *potri-test1*
     (m* (transpose *basic-mat*) *basic-mat*)) ; symmetrize via XtX
   (defparameter *potri-test2* (copy *potri-test1*)) ; save a copy
-  (potri (potrf *potri-test1*)) ; factor and then invert
+  (potri (first  (potrf *potri-test1*))) ; factor and then invert
   (defparameter *porti-test3 (trap2mat *potri-test1*)) ; un-triangulize
   (m* *potri-test1* *potri-test2*) ; test for inversion
 
