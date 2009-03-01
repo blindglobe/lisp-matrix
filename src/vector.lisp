@@ -618,6 +618,8 @@ we've mucked up data.  Sign of usage means poor coding!"
 	    ;; (return-type symbol)
 	    return-type)
     (assert (= (vector-dimension x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (+ (vref x i)
@@ -626,6 +628,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector-like) (y vector)
 	    &optional return-type)
     (assert (= (vector-dimension x) (length y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (+ (vref x i)
@@ -634,6 +638,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector) (y vector-like)
 	    &optional return-type)
     (assert (= (length x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (length x))))
       (dotimes (i (length x))
 	(setf (vref result i) (+ (aref x i)
@@ -642,6 +648,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector-like) (y list)
 	    &optional return-type)
     (assert (= (vector-dimension x) (length y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (+ (vref x i)
@@ -650,6 +658,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x list) (y vector-like)
 	    &optional return-type)
     (assert (= (length x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (length x))))
       (dotimes (i (length x))
 	(setf (vref result i) (+ (nth i x)
@@ -668,6 +678,8 @@ we've mucked up data.  Sign of usage means poor coding!"
 	    ;; (return-type symbol)
 	    return-type)
     (assert (= (vector-dimension x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (- (vref x i)
@@ -676,6 +688,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector-like) (y vector)
 	    &optional return-type)
     (assert (= (vector-dimension x) (length y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (- (vref x i)
@@ -684,6 +698,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector) (y vector-like)
 	    &optional return-type)
     (assert (= (length x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (length x))))
       (dotimes (i (length x))
 	(setf (vref result i) (- (aref x i)
@@ -692,6 +708,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector-like) (y list)
 	    &optional return-type)
     (assert (= (vector-dimension x) (length y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (- (vref x i)
@@ -700,6 +718,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x list) (y vector-like)
 	    &optional return-type)
     (assert (= (length x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (length x))))
       (dotimes (i (length x))
 	(setf (vref result i) (- (nth i x)
@@ -717,6 +737,8 @@ we've mucked up data.  Sign of usage means poor coding!"
 	    ;;   (return-type symbol)
 	    return-type)
     (assert (= (vector-dimension x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (* (vref x i)
@@ -724,7 +746,9 @@ we've mucked up data.  Sign of usage means poor coding!"
       result))
   (:method ((x vector-like) (y vector)
 	    &optional return-type)
-    (assert (= (vector-dimension x) (array-dimension y)))
+    (assert (= (vector-dimension x) (array-dimension y 0)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (* (vref x i)
@@ -732,7 +756,9 @@ we've mucked up data.  Sign of usage means poor coding!"
       result))
   (:method ((x vector) (y vector-like)
 	    &optional return-type)
-    (assert (= (array-dimension x) (vector-dimension y)))
+    (assert (= (array-dimension x 0) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (length x))))
       (dotimes (i (length x))
 	(setf (vref result i) (* (aref x i)
@@ -741,6 +767,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector-like) (y list)
 	    &optional return-type)
     (assert (= (vector-dimension x) (length y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (* (vref x i)
@@ -749,6 +777,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x list) (y vector-like)
 	    &optional return-type)
     (assert (= (length x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (length x))))
       (dotimes (i (length x))
 	(setf (vref result i) (* (nth i x)
@@ -763,10 +793,10 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector-like)
 	    (y vector-like)
 	    &optional 
-	    ;; ((return-type 'vector-like) symbol)
-	    ;;   (return-type symbol)
 	    return-type)
     (assert (= (vector-dimension x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (/ (vref x i)
@@ -774,7 +804,9 @@ we've mucked up data.  Sign of usage means poor coding!"
       result))
   (:method ((x vector-like) (y vector)
 	    &optional return-type)
-    (assert (= (vector-dimension x) (array-dimension y)))
+    (assert (= (vector-dimension x) (array-dimension y 0)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (/ (vref x i)
@@ -782,7 +814,9 @@ we've mucked up data.  Sign of usage means poor coding!"
       result))
   (:method ((x vector) (y vector-like)
 	    &optional return-type)
-    (assert (= (array-dimension x) (vector-dimension y)))
+    (assert (= (array-dimension x 0) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (length x))))
       (dotimes (i (length x))
 	(setf (vref result i) (/ (aref x i)
@@ -791,6 +825,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x vector-like) (y list)
 	    &optional return-type)
     (assert (= (vector-dimension x) (length y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (vector-dimension x))))
       (dotimes (i (vector-dimension x))
 	(setf (vref result i) (/ (vref x i)
@@ -799,6 +835,8 @@ we've mucked up data.  Sign of usage means poor coding!"
   (:method ((x list) (y vector-like)
 	    &optional return-type)
     (assert (= (length x) (vector-dimension y)))
+    (unless return-type
+      (setf return-type 'vector-like))
     (let ((result (make-vector (length x))))
       (dotimes (i (length x))
 	(setf (vref result i) (/ (nth i x)
