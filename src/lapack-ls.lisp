@@ -7,10 +7,15 @@
 ;;; note that 'a' will be modified upon the call, and will have a
 ;;; different value at the end, more appropriate to the transformation
 ;;; (i.e. will be the QR, but stored in common compact form).
-(def-lapack-method gelsy ((a !matrix-type)
-			  (b !matrix-type)
-                          rcond &optional jpvt)
+
+(def-lapack-method (gelsy :function-names
+			  ((%sgelsy single-float single-float)
+			   (%dgelsy double-float double-float)))
+    ((a !matrix-type)
+     (b !matrix-type)
+     rcond &optional jpvt)
   ;; FIXME: has both LWORK and RWORK for %ZGELSY and %CGELSY
+  ;; so need to handle those via explicit methods
   (unless jpvt
     (setq jpvt (make-fnv-int32 (ncols a) :initial-value 0)))
   (let ((rank (make-fnv-int32 1 :initial-value 0))
