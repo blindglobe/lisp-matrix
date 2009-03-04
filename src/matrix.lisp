@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2009-02-28 21:02:53 tony>
+;;; Time-stamp: <2009-03-01 12:18:25 tony>
 
 (in-package :lisp-matrix)
 
@@ -799,7 +799,7 @@
 (defmethod m= ((a matrix-like) (b matrix-like))
   ;; Note: this will not work for matrices of things that are not
   ;; numbers
-  ;; FIXME: fix so tht comparison is more equal, not eq (print-based
+  ;; FIXME: fix so that comparison is more equal, not eq (print-based
   ;; equality).
   (and (= (nrows a) (nrows b))
        (= (ncols a) (ncols b))
