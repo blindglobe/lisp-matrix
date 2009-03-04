@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-02-16 08:20:05 tony>
+;;; Time-stamp: <2009-03-01 12:21:34 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
 ;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -52,7 +52,7 @@ variables, not cases, and therefore convert to column."
     result))
 
 #| coding logic only at this point.
-(defun listoflists->matrix-like (lol &optional (coerce-to 'double-float))
+ (defun listoflists->matrix-like (lol &optional (coerce-to 'double-float))
   (let ((dims (loop lol counting number of subunits, first number is
 		 number in inside, second is nil if they don't all
 		 equal each other))
@@ -61,16 +61,37 @@ variables, not cases, and therefore convert to column."
 	  )
       (loop-over-lol counting i j and setting value, and
 	   (setf (mref result i j) value)))  )  )
+
+
+ (defun matrix-like->listoflists ())
+
+
+
+ (defun matrix-like->array ())
+
+ (defun array->matrix-like ())
 |#
 
+
+(defun trap2mat (m &key (type :upper))
+  "Copy the trapezoid, lower or upper, into the other side (i.e. upper triagular storage into full storage).  For non-square matrices, there might be a bit of excess to ignore; but we only handle the top square of the rectangle."
+  (let ((mindim (reduce #'min (matrix-dimensions m)))
+	(result (copy m)))
+    (ecase type
+      (:upper (dotimes (i mindim)
+		(dotimes (j i)
+		  (setf (mref result i j) (mref m j i)))))
+      (:lower (dotimes (i mindim)
+		(dotimes (j i)
+		  (setf (mref result j i) (mref m i j))))))
+    result))
 
 #|
-(defun matrix-like->listoflists ())
 
+ (defparameter *trap2mat-test1*
+  (make-matrix 3 3 :initial-contents '((1d0 2d0 3d0) (4d0 5d0 6d0) (7d0 8d0 9d0))))
+ (assert (matrix-like-symmetric-p (trap2mat *trap2mat-test1*)))
+ (assert (matrix-like-symmetric-p (trap2mat *trap2mat-test1* :type :upper)))
+ (assert (matrix-like-symmetric-p (trap2mat *trap2mat-test1* :type :lower)))
 
-
-(defun matrix-like->array ())
-
-(defun array->matrix-like ())
 |#
-

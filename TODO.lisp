@@ -85,31 +85,8 @@
   (min (values (list 4d0 2d0 3d0 5d0 3d0)))
   (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
 
-
-  (defun trap2mat (m &key (type :upper))
-    "Copy the trapezoid, lower or upper, into the other
-  side (i.e. upper triagular storage into full storage).  For
-  non-square matrices, there might be a bit of excess to ignore; but
-  we only handle the top square of the rectangle."
-    (let ((mindim (reduce #'min (matrix-dimensions m)))
-	  (result (copy m)))
-      (ecase type
-	(:upper (dotimes (i mindim)
-		  (dotimes (j i)
-		    (setf (mref result i j) (mref m j i)))))
-	(:lower (dotimes (i mindim)
-		  (dotimes (j i)
-		    (setf (mref result j i) (mref m i j))))))
-      result))
-
-  (defparameter *trap2mat-test1*
-    (make-matrix 3 3 :initial-contents '((1d0 2d0 3d0) (4d0 5d0 6d0) (7d0 8d0 9d0))))
-  (trap2mat *trap2mat-test1*)
-  (trap2mat *trap2mat-test1* :type :upper)
-  (trap2mat *trap2mat-test1* :type :lower)
-  
-  (defparameter *n* 20) ; # rows = # obsns
-  (defparameter *p* 10) ; # cols = # vars 
+  (defparameter *n* 3) ; # rows = # obsns
+  (defparameter *p* 5) ; # cols = # vars 
   (defparameter *x-temp*  (rand *n* *p*))
   (defparameter *b-temp*  (rand *p* 1))
   (defparameter *y-temp*  (m* *x-temp* *b-temp*))
@@ -126,22 +103,47 @@
   (defparameter  *xtx-temp-i* (trap2mat (copy *xtx-temp-f*)))
   (defparameter *is-it-i* (m* *xtx-temp-i* *xtx-temp*))
 
+
+  (reduce #'(lambda (x y) (concatenate 'string x y))
+	  "test"
+	  " "
+	  (list "a2" " s3 " "asdf")
+	  "end.")
+	  
+
   (defun lispmatrix2r (m &key (rvarname "my.mat"))
     "Write out a string that can be used to read in the matrix into R.
 Used for creating verfication scripts and test cases."
     (check-type m matrix-like)
-    (concatenate 'string 
-		 (format nil "~%~s <- matrix ( data = c(" rvarname)
-		 (dotimes (i (matrix-dimension m 0))
-		   (dotimes (j (matrix-dimension m 1))
-		     (format nil "~s," (mref m i j))))
-		 (format nil "), nrows=~d, ncols=~d, by.row=TRUE)"
-			 (matrix-dimension m 0)
-			 (matrix-dimension m 1))))
+    (apply 
+     #'concatenate 'string
+     (format nil "~%~s <- matrix ( data = c(" rvarname)
+     (let ((result (list)))
+		    (dotimes (i (matrix-dimension m 0))
+		      (dotimes (j (matrix-dimension m 1))
+			(cons (format nil "~d," (mref m i j)) result)))
+		    (reverse result))
+     (list  (format nil "), nrows=~d, ncols=~d, by.row=TRUE)"
+	     (matrix-dimension m 0)
+	     (matrix-dimension m 1)))))
 
   (lispmatrix2R *x-temp*)
 
 
+
+  (concatenate 'string
+	       (format nil "~%~s <- matrix ( data = c(" "testme")
+	       (values-list (list "test" "test" "test")))
+
+  (apply #'concatenate  'string (list "test" "test" "test"))
+
+
+ (let ((result (make-array (list 3 5) :element-type 'string)))
+				(dotimes (i 3)
+				  (dotimes (j 5)
+				    (format t "~s ~s ~%" i j)
+				    (setf (aref result i j) (format t "(~d ~d)," i j))))
+				(reverse result))))
 
 
   (defun xtxinv (x)
