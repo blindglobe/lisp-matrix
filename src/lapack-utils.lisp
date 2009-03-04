@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-02-17 17:38:37 tony>
+;;;; Time-stamp: <2009-03-04 17:15:57 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -160,7 +160,7 @@ could be used in countless situations)."
            ,@body
            ,@(loop for form in forms
                    for g in gensyms
-                   when (third form)
+                   when (third form)  ;; copy-back-p -- why list ref?
                    collect `(copy! ,(first form) ,g))))
        ,@(when result `(,result)))))
 

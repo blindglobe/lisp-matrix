@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-02-28 20:52:26 tony>
+;;; Time-stamp: <2009-03-04 17:29:20 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       lapack-methods.lisp
 ;;; Author:     Mark H. < @ >
@@ -192,9 +192,8 @@
                                 :implementation :foreign-array))
            (,lwork -1))
        ,call
-       ;; WHY DO WE CALL TWICE, above?  JUST TO SET LWORK? OR CHECK
-       ;; INFO? Looks like to set LWORK (first time is initial
-       ;; framework, second time is actual computation).
+       ;; We call twice to set lwork (first time is initial framework,
+       ;; second time is actual computation).
        (setq ,lwork (floor (mref ,work 0 0)))
        (setq ,work (make-vector ,lwork :element-type ',element-type
                                 :implementation :foreign-array))
