@@ -123,6 +123,8 @@
 
    potri potrf ;; cholesky
    geqrf ;; qr
+
+   trap2mat
    ))
 
 
