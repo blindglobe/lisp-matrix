@@ -173,7 +173,7 @@ LAPACK version 3.0               15 June 2000                        DGETRI(3)
 
 ;;; GETRS - Solve Ax=b using LU factorization.
 ;;; Returns Matrix, upper/lower triang char, info
-(def-lapack-method getrs ((a !matrix-type) ipiv)
+(def-lapack-method getrs ((a !matrix-type) (b !matrix-type) ipiv-a)
   (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
   (let ((trans "N")
 	(info (make-fnv-int32 1 :initial-value 0)))
@@ -181,21 +181,18 @@ LAPACK version 3.0               15 June 2000                        DGETRI(3)
                          transposed-p))
 		  (b (or (not unit-strides-p)
                          transposed-p)))
-	(list b
-	      (check-info (fnv-int32-ref info 0) "GETRS"))
-
-      (!function trans
+      (list b
+	    (check-info (fnv-int32-ref info 0) "GETRS"))
+      (!function trans     ; matrix orientation, None, Transpose, Adjoint
 		 (ncols a) ; N
 		 (ncols b) ; NHRS
 		 a	   ; A
 		 (nrows a) ; LDA
-		 ipiv      ; from getrf result
+		 ipiv-a    ; from getrf result
 		 b         ; B
 		 (nrows b) ; LDB
-		 info))))) ; info
-
+		 info)))) ; info
 #|
-
 DGETRS(3)                                    )                                    DGETRS(3)
 
 NAME   DGETRS  -  solve a system of linear equations A * X = B or A’ * X = B with a general
@@ -219,30 +216,22 @@ ARGUMENTS
                = ’N’:  A * X = B  (No transpose)
                = ’T’:  A’* X = B  (Transpose)
                = ’C’:  A’* X = B  (Conjugate transpose = Transpose)
-
        N       (input) INTEGER
                The order of the matrix A.  N >= 0.
-
        NRHS    (input) INTEGER
                The number of right hand sides, i.e., the number of columns of the matrix B.
                NRHS >= 0.
-
        A       (input) DOUBLE PRECISION array, dimension (LDA,N)
                The factors L and U from the factorization A = P*L*U as computed by  DGETRF.
-
        LDA     (input) INTEGER
                The leading dimension of the array A.  LDA >= max(1,N).
-
        IPIV    (input) INTEGER array, dimension (N)
                The  pivot  indices from DGETRF; for 1<=i<=N, row i of the matrix was inter‐
                changed with row IPIV(i).
-
        B       (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS)
                On entry, the right hand side matrix B.  On exit, the solution matrix X.
-
        LDB     (input) INTEGER
                The leading dimension of the array B.  LDB >= max(1,N).
-
        INFO    (output) INTEGER
                = 0:  successful exit
                < 0:  if INFO = -i, the i-th argument had an illegal value
@@ -262,9 +251,15 @@ LAPACK version 3.0                      15 June 2000                            
 
 #+nil (progn
 	(let ((m1 (rand 3 3)))
-	  (m* m1 (minv m1))))
+	  (m* m1 (minv-lu m1))))
 
 (defun msolve-lu (a b)
   "Compute `x1' solving `A x = b', with LU factorization."
   (let ((a-fac (getrf (copy a))))
-    (first (getrs (first a-fac) (second a-fac) b))))
+    (first (getrs (first a-fac) b (second a-fac)))))
+
+#+nil (progn
+	(let* ((a (rand 3 3))
+	       (x-pre (rand 3 1))
+ 	       (b (m* a x-pre)))
+	  (m- x-pre (msolve-lu a b))))
