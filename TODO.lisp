@@ -56,16 +56,6 @@
   (m*  (first  (potri *eye*)) *eye*)
 
 
-  (defun matrix-like-symmetric-p (m)
-    "FIXME"
-    (check-type m matrix-like)
-    (assert (= (nrows m) (ncols m)))
-    (dotimes (i (matrix-dimension m 0))
-      (dotimes (j i)
-	(unless (= (mref m i j) (mref m j i))
-	  (return-from matrix-like-symmetric-p nil))))
-    t)
-  
 
   (matrix-like-symmetric-p (rand 4 4))
   (let ((myrand (rand 4 4)))
@@ -137,13 +127,12 @@ Used for creating verfication scripts and test cases."
 
   (apply #'concatenate  'string (list "test" "test" "test"))
 
-
- (let ((result (make-array (list 3 5) :element-type 'string)))
-				(dotimes (i 3)
-				  (dotimes (j 5)
-				    (format t "~s ~s ~%" i j)
-				    (setf (aref result i j) (format t "(~d ~d)," i j))))
-				(reverse result))))
+  (let ((result (make-array (list 3 5) :element-type 'string)))
+    (dotimes (i 3)
+      (dotimes (j 5)
+	(format t "~s ~s ~%" i j)
+	(setf (aref result i j) (format t "(~d ~d)," i j))))
+    (reverse result))
 
 
   (defun xtxinv (x)
@@ -154,8 +143,7 @@ Used for creating verfication scripts and test cases."
    Perhaps have a destructive version of this?"
     (check-type x matrix-like)
     (assert (matrix-like-symmetric-p x))
-    (trap2mat (first  (potri (first  (potrf x))))
-		:type :upper))	; invert symmetric matrix
+    (minv-cholesky x))
 
   (defparameter *x-test1* (rand 3 3))
   (defparameter *xtx-test1* (m* (transpose *x-test1*) *x-test1*))
