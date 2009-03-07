@@ -121,10 +121,13 @@
    list->vector-like
    vector-like->list
 
-   potri potrf ;; cholesky
+   getrf getri getrs minv-lu msolve-lu;; LU, general
+   potrf potri potrs minv-cholesky msolve-cholesky ;; cholesky, symm matrices
    geqrf ;; qr
 
    trap2mat
+
+   matrix-like-symmetric-p
    ))
 
 
