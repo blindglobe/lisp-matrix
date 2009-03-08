@@ -53,24 +53,17 @@
 (progn  ;;#FIXME: factorization and inversion via LAPACK
 
   (defparameter *eye* (eye 7 7))
-  (m*  (first  (potri *eye*)) *eye*)
-
-
+  (m*  (minv-lu  *eye*) *eye*)
 
   (matrix-like-symmetric-p (rand 4 4))
   (let ((myrand (rand 4 4)))
     (matrix-like-symmetric-p (m* (transpose myrand) myrand)))
 
-  
   (defparameter *rand* (rand 4 4))
   (defparameter *symrand* (m* (transpose *rand*) *rand*))
   (matrix-like-symmetric-p *symrand*)
   (defparameter *symrand-copy* (copy *symrand*))
-  (defparameter *symrand-chol* (copy (first (potrf *symrand-copy*))))
-  (defparameter *symrand-inv* (copy (first (potri *symrand-chol*))))
-  (m* *symrand* *symrand-inv*)
-
-  (potri *symrand*)
+  (m* *symrand* (minv-cholesky *symrand*))
 
   (min (values (list 4d0 2d0 3d0 5d0 3d0)))
   (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
@@ -88,9 +81,7 @@
   (defparameter *orig-y* (copy *y-temp*))
 
   (defparameter *xtx-temp* (m* (transpose *x-temp*) *x-temp*))
-  (defparameter *xtx-temp-f* (copy *xtx-temp*))
-  (potri *xtx-temp-f*)
-  (defparameter  *xtx-temp-i* (trap2mat (copy *xtx-temp-f*)))
+  (defparameter  *xtx-temp-i* (minv-cholesky  *xtx-temp*))
   (defparameter *is-it-i* (m* *xtx-temp-i* *xtx-temp*))
 
 
@@ -180,7 +171,7 @@ Used for creating verfication scripts and test cases."
 	    (w (if (weights lm-obj)
 		   (weights lm-obj)
 		   (ones n 1)))
-	    (r  (if (weights lm-obj)
+	    (r  (if (weights lm-obj)
 		      (residuals lm-obj)
 		      (v.* (residuals lm-obj)
 			   (mapcar #'sqrt (weights lm-obj)))))
