@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "Matrix Decomposition method: incremental QR decom, AS274 (Applied stats)"
+desc: suggestion from Thomas
+type: :feature
+component: statnumeric
+release: 
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2009-03-08 11:54:35.029407 Z
+references: []
+
+id: 38ad886f49fe1d0d74a18de622a5ae87f6e5d2bf
+log_events: 
+- - 2009-03-08 11:54:42.057281 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - postponed for a bit.
