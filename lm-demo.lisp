@@ -1,3 +1,6 @@
+
+(in-package :lisp-matrix-user)
+
 (progn ;; SETUP DATA, these work
 
   (defparameter *m01*
