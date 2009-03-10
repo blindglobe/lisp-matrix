@@ -126,21 +126,6 @@ Used for creating verfication scripts and test cases."
     (reverse result))
 
 
-  (defun xtxinv (x)
-    "(XtX)^-1 as XtX is PxN, so whole is PxP.  Usually represents the
-   Vars for beta from Y = X \beta + \eps.  Uses LAPACK's dpotri
-   routine to invert, after using dpotrf to factorize.  We use a copy
-   for now, until we understand whether or not it is safe to destroy.
-   Perhaps have a destructive version of this?"
-    (check-type x matrix-like)
-    (assert (matrix-like-symmetric-p x))
-    (minv-cholesky x))
-
-  (defparameter *x-test1* (rand 3 3))
-  (defparameter *xtx-test1* (m* (transpose *x-test1*) *x-test1*))
-  (m*  (xtxinv *xtx-test1*) *xtx-test1*)
-
-
   (let* ((state1 (make-random-state))
 	 (state2 (make-random-state state1)))
     (m= (rand 2 3 :state state1)
