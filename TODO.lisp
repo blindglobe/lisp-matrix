@@ -52,37 +52,30 @@
 
 (progn  ;;#FIXME: factorization and inversion via LAPACK
 
-  (defparameter *eye* (eye 7 7))
-  (m*  (minv-lu  *eye*) *eye*)
 
-  (matrix-like-symmetric-p (rand 4 4))
+  (let ((test-eye (eye 7 7)))
+    (m* test-eye (minv-lu test-eye)))
+
   (let ((myrand (rand 4 4)))
-    (matrix-like-symmetric-p (m* (transpose myrand) myrand)))
-
-  (defparameter *rand* (rand 4 4))
-  (defparameter *symrand* (m* (transpose *rand*) *rand*))
-  (matrix-like-symmetric-p *symrand*)
-  (defparameter *symrand-copy* (copy *symrand*))
-  (m* *symrand* (minv-cholesky *symrand*))
+    (princ myrand)
+    (princ (matrix-like-symmetric-p (m* (transpose myrand) myrand)))
+    (princ (m*  (m* (transpose myrand) myrand)
+		(minv-cholesky  (m* (transpose myrand) myrand)))))
 
   (min (values (list 4d0 2d0 3d0 5d0 3d0)))
   (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
 
-  (defparameter *n* 3) ; # rows = # obsns
-  (defparameter *p* 5) ; # cols = # vars 
-  (defparameter *x-temp*  (rand *n* *p*))
-  (defparameter *b-temp*  (rand *p* 1))
-  (defparameter *y-temp*  (m* *x-temp* *b-temp*))
-  ;; so Y=Xb + \eps
-  (defparameter *rcond* (* (coerce (expt 2 -52) 'double-float)
+  (let* ((n 3)
+	 (p 5)
+	 (x-temp (rand n p))
+	 (b-temp (rand p 1))
+	 (y-temp (m* x-temp b-temp))  ;; so Y=Xb
+	 (rcond (* (coerce (expt 2 -52) 'double-float)
 		   (max (nrows *x-temp*) (ncols *y-temp*))))
-  (defparameter *orig-x* (copy *x-temp*))
-  (defparameter *orig-b* (copy *b-temp*))
-  (defparameter *orig-y* (copy *y-temp*))
 
-  (defparameter *xtx-temp* (m* (transpose *x-temp*) *x-temp*))
-  (defparameter  *xtx-temp-i* (minv-cholesky  *xtx-temp*))
-  (defparameter *is-it-i* (m* *xtx-temp-i* *xtx-temp*))
+	 ))
+
+
 
 
   (reduce #'(lambda (x y) (concatenate 'string x y))
@@ -110,8 +103,6 @@ Used for creating verfication scripts and test cases."
 
   (lispmatrix2R *x-temp*)
 
-
-
   (concatenate 'string
 	       (format nil "~%~s <- matrix ( data = c(" "testme")
 	       (values-list (list "test" "test" "test")))
@@ -132,56 +123,10 @@ Used for creating verfication scripts and test cases."
 	(rand 2 3 :state state2)))
 
 
-  
-  (defparameter *basic-mat* (rand 3 3)) ; start with a square matrix
-  (defparameter *potri-test1*
-    (m* (transpose *basic-mat*) *basic-mat*)) ; symmetrize via XtX
-  (defparameter *potri-test2* (copy *potri-test1*)) ; save a copy
-  (potri (first  (potrf *potri-test1*))) ; factor and then invert
-  (defparameter *porti-test3 (trap2mat *potri-test1*)) ; un-triangulize
-  (m* *potri-test1* *potri-test2*) ; test for inversion
-
-
   ;;; Problems here...
   (geqrf (make-matrix 2 2 :initial-contents #2A(( 1d0 2d0 ) (2d0 1d0)))
 	 (make-vector 2 :type :column :initial-contents '((1d0)(1d0))))
-
-  (defun print-lm (lm-obj)
-    "transcribed from R"
-    (p (rank lm-obj)
-    (when (= p 0) 
-      ;; EVIL LOGIC!  Just to store for now.
-      (let ()
-	    (n (length (residuals lm-obj)))
-	    (w (if (weights lm-obj)
-		   (weights lm-obj)
-		   (ones n 1)))
-	    (r  (if (weights lm-obj)
-		      (residuals lm-obj)
-		      (v.* (residuals lm-obj)
-			   (mapcar #'sqrt (weights lm-obj)))))
-	    (rss (sum (v.* r r)))
-	    (resvar (/ rss (- n p)))
-	    ;; then answer, to be encapsulated in a struct/class
-	    ;; instance, 
-	    (aliased (is.na (coef lm-obj)))
-	    (residuals r)
-	    (df (list 0 n (length aliased)))
-	    (coefficients (list 'NA 0d0 4d0))o
-	    (sigma (sqrt resvar))
-	    (r.squared 0d0)
-	    (adj.r.squared 0d0)))
-      )
-    ;;otherwise...
-    (when (not (= p 0))
-      (let ((n (nrows (qr lm-obj)))
-	    (rdf  (- n p))
-	    ))))
-
-  (lm *xv+1* *y2*)
-  (lm (transpose *xv*) *y2*)
-
-  (princ "Linear Models Code setup"))
+  )
 
 
 
