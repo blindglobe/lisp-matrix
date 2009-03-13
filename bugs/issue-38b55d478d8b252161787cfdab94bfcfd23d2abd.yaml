@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: SVD decomp and inversion and solution to write
+desc: interface to LAPACK SVD functions
+type: :feature
+component: blapack
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2009-03-13 17:36:28.893682 Z
+references: []
+
+id: 38b55d478d8b252161787cfdab94bfcfd23d2abd
+log_events: 
+- - 2009-03-13 17:36:49.460784 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - to do so we can compare all factorizsation methods unlike R
