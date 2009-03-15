@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2009-03-07 17:22:22 tony>
+;;; Time-stamp: <2009-03-15 16:55:31 tony>
 
 (in-package :lisp-matrix)
 
@@ -821,16 +821,15 @@
 
 
 ;;; REFACTOR ME PLEASE!
-  (defun matrix-like-symmetric-p (m)
-    "FIXME: basically right, but too long."
-    (check-type m matrix-like)
-    (assert (= (nrows m) (ncols m)))
-    (dotimes (i (matrix-dimension m 0))
-      (dotimes (j i)
-	(unless (= (mref m i j) (mref m j i))
-	  (return-from matrix-like-symmetric-p nil))))
+(defun matrix-like-symmetric-p (m)
+  "FIXME: basically right, but too long."
+  (check-type m matrix-like)
+  (assert (= (nrows m) (ncols m)))
+  (dotimes (i (matrix-dimension m 0))
+    (dotimes (j i)
+      (unless (= (mref m i j) (mref m j i))
+	(return-from matrix-like-symmetric-p nil))))
     t)
-  
 
 
 ;;; Local Variables:
