@@ -44,7 +44,8 @@ We, of course, means "them".
 
 * Requirements:
 
-not firm: SBCL or CLISP.
+Works with: SBCL
+Others: not clear (though CLISP is targetted)
 
 * Packages:
 
@@ -57,6 +58,10 @@ From Tomas:
 
 ** ffa
 ** array-operations
+
+From Mark:
+
+** lisp-matrix integration (also found in ffa and cl-blapack).
 
 In general:
 
@@ -71,3 +76,7 @@ These dependencies need to be better worked out.
 
 * Usage
 
+See:
+
+TODO.lisp    : things that don't work but should
+lm-demo.lisp : things that might work but should
