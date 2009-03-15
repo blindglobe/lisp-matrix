@@ -19,10 +19,9 @@
 		 (real-nrows a) ; LDA
 		 info))))       ; info
 
-
 #|
 
-DPOTRF(3)                                    )                                    DPOTRF(3)
+DPOTRF(3)                                                                        DPOTRF(3)
 
 NAME   DPOTRF  -  compute  the Cholesky factorization of a real symmetric positive definite
        matrix A
@@ -99,9 +98,6 @@ LAPACK version 3.0                      15 June 2000                            
 		 info))))   ; info (out)
 
 
-
-
-
 (def-lapack-method potrs ((a !matrix-type) (b !matrix-type) ipiv-a)
   (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
   (let ((uplo "U")
@@ -169,18 +165,15 @@ ARGUMENTS
   (let ((a-fac (first  (potrf (copy a)))))
     (trap2mat  (first (potri a-fac)))))
 
-
 #+nil(progn
 	(let* ((m1 (rand 3 3))
 	       (m1tm1 (m* (transpose m1) m1)))
 	  (m* m1tm1 (minv-cholesky m1tm1))))
 
-
 (defun msolve-cholesky (a b)
   "Compute `x1' solving `A x = b', with LU factorization."
   (let ((a-fac (potrf (copy a))))
     (first (potrs (first a-fac) b (second a-fac)))))
-
 
 #+nil (progn
 	(let* ((a (rand 3 3))
