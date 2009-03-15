@@ -15,6 +15,7 @@
     "6x5 matrix with entries representing row+1,col+1 values, for
      test purposes.")
 
+  (documentation  '*m01* 'variable)
   (defparameter *m1-ex*  (make-matrix 2 5
 			   :implementation :lisp-array  ;; :foreign-array
 			   :element-type 'double-float)
@@ -345,3 +346,18 @@
   ;;   1.293  
 
   (first  *betahat*))
+
+
+(progn
+  (let ((test-eye (eye 7 7)))
+    (m* test-eye (minv-lu test-eye))))
+
+(progn  ;;#FIXME: factorization and inversion via LAPACK
+
+  (let ((myrand (rand 4 4)))
+    (princ myrand)
+    (princ (matrix-like-symmetric-p (m* (transpose myrand) myrand)))
+    (princ (m*  (m* (transpose myrand) myrand)
+		(minv-cholesky  (m* (transpose myrand) myrand))))))
+
+

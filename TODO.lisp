@@ -53,16 +53,7 @@
 (progn  ;;#FIXME: factorization and inversion via LAPACK
 
 
-  (let ((test-eye (eye 7 7)))
-    (m* test-eye (minv-lu test-eye)))
-
-  (let ((myrand (rand 4 4)))
-    (princ myrand)
-    (princ (matrix-like-symmetric-p (m* (transpose myrand) myrand)))
-    (princ (m*  (m* (transpose myrand) myrand)
-		(minv-cholesky  (m* (transpose myrand) myrand)))))
-
-  (min (values (list 4d0 2d0 3d0 5d0 3d0)))
+  ;; bad:  (min (values (list 4d0 2d0 3d0 5d0 3d0)))
   (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
 
   (let* ((n 3)
@@ -71,9 +62,8 @@
 	 (b-temp (rand p 1))
 	 (y-temp (m* x-temp b-temp))  ;; so Y=Xb
 	 (rcond (* (coerce (expt 2 -52) 'double-float)
-		   (max (nrows *x-temp*) (ncols *y-temp*))))
-
-	 ))
+		   (max (nrows x-temp) (ncols y-temp)))))
+	    (gelsy x-temp b-temp rcond))
 
 
 
