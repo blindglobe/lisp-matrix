@@ -56,14 +56,19 @@
   ;; bad:  (min (values (list 4d0 2d0 3d0 5d0 3d0)))
   (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
 
-  (let* ((n 3)
-	 (p 5)
-	 (x-temp (rand n p))
-	 (b-temp (rand p 1))
-	 (y-temp (m* x-temp b-temp))  ;; so Y=Xb
-	 (rcond (* (coerce (expt 2 -52) 'double-float)
-		   (max (nrows x-temp) (ncols y-temp)))))
-	    (gelsy x-temp b-temp rcond))
+  ;; consider Y = X b (or normal approach, X b = Y)
+  (defparameter *gelsy-result*
+    (let* ((n 10)
+	   (p 5)
+	   (x-temp (rand n p))
+	   (b-temp (rand p 1))
+	   (y-temp (m* x-temp b-temp))  ;; so Y=Xb
+	   (rcond (* (coerce (expt 2 -52) 'double-float)
+		     (max (nrows x-temp) (ncols y-temp)))))
+      ;; should be numerically 0
+      (v- b-temp (first  (gelsy x-temp y-temp rcond)))))
+
+  (princ  *gelsy-result*)
 
 
 
