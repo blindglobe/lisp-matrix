@@ -5,3 +5,4 @@
 run-emacs.sh
 test-results/
 .ditz-config
+html/*
