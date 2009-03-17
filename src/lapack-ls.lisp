@@ -198,31 +198,58 @@ LAPACK version 3.0           15 June 2000                    DGELSY(3)
 |#
 
 #+nil
-(setf *temp-result* 
-      (let ((*default-implementation* :foreign-array))
-	(let* ((m 10)
-	       (n 10)
-         (a (rand m n))
-         (x (rand n 1))
-         (b (m* a x))
-         (rcond (* (coerce (expt 2 -52) 'double-float)
-                   (max (nrows a) (ncols a))))
-         (orig-a (copy a))
-         (orig-b (copy b))
-         (orig-x (copy x)))
-    (list x (gelsy a b rcond)))))
+(progn
+  (let ((*default-implementation* :foreign-array))
+    (let* ((m 10)
+	   (n 10)
+	   (a (rand m n))
+	   (x (rand n 1))
+	   (b (m* a x))
+	   (rcond (* (coerce (expt 2 -52) 'double-float)
+		     (max (nrows a) (ncols a))))
+	   (orig-a (copy a))
+	   (orig-b (copy b))
+	   (orig-x (copy x)))
+      (list x (gelsy a b rcond)))))
 
 #+nil
 (setf *temp-result* 
       (let ((*default-implementation* :lisp-array))
 	(let* ((m 10)
 	       (n 10)
-         (a (rand m n))
-         (x (rand n 1))
-         (b (m* a x))
-         (rcond (* (coerce (expt 2 -52) 'double-float)
-                   (max (nrows a) (ncols a))))
-         (orig-a (copy a))
-         (orig-b (copy b))
-         (orig-x (copy x)))
-    (list x (gelsy a b rcond)))))
+	       (a (rand m n))
+	       (x (rand n 1))
+	       (b (m* a x))
+	       (rcond (* (coerce (expt 2 -52) 'double-float)
+			 (max (nrows a) (ncols a))))
+	       (orig-a (copy a))
+	       (orig-b (copy b))
+	       (orig-x (copy x)))
+	  (list x (gelsy a b rcond)))))
+
+
+
+#+nil
+(progn
+  ;; consider Y = X b (or normal approach, X b = Y)
+  (defparameter *gelsy-result*
+    (let* ((n 10)
+	   (p 5)
+	   (x-temp (rand n p))
+	   (b-temp (rand p 1))
+	   (y-temp (m* x-temp b-temp))  ;; so Y=Xb
+	   (rcond (* (coerce (expt 2 -52) 'double-float)
+		     (max (nrows x-temp) (ncols y-temp)))))
+      ;; should be numerically 0
+      (v- b-temp (first  (gelsy x-temp y-temp rcond)))))
+
+  (princ  *gelsy-result*) )
+
+
+(defun least-squares-gelsy (x y)
+  "Solves:
+       X beta = Y,
+for beta."
+  (list x (gelsy x y
+		 (* (coerce (expt 2 -52) 'double-float)
+		    (max (nrows x) (ncols x))))))
