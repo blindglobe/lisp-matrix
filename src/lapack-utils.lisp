@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-03-04 17:15:57 tony>
+;;;; Time-stamp: <2009-03-16 13:36:22 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -41,6 +41,8 @@
 ;;;; copy when the arguments may be modified and we don't want to
 ;;;; modify the matrices.  We may wish to provide destructive and
 ;;;; non-destructive versions of each LAPACK operators.
+;;;;
+;;;; (AJR notes:  YES, required!)
 ;;;;
 ;;;; For dgemm, zgemm, sgemm and cgemm there would then be two generic
 ;;;; functions, namely GEMM and GEMM!.  The two could be defined
@@ -123,7 +125,6 @@ could be used in countless situations)."
 |#
 
 
-;;; Does copy-back-p have any effect?  I think not?
 (defmacro with-copies ((&rest forms) result &body body)
   "Each form in FORMS is a lambda-list defined as (VARIABLE PREDICATE
   &optional COPY-BACK-P).  VARIABLE is a symbol bound to a matrix,
