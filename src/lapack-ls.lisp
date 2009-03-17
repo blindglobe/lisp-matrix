@@ -67,45 +67,52 @@ SYNOPSIS
            INTEGER        JPVT( * )
            DOUBLE         PRECISION  A( LDA, * ), B( LDB, *), WORK(*)
 PURPOSE
-       DGELSY computes the minimum-norm  solution  to  a  real  linear
-       least squares problem:     minimize || A * X - B ||
+
+       DGELSY computes the minimum-norm solution to a real linear
+       least squares problem:
+
+             minimize || A * X - B ||
+
        using a complete orthogonal factorization of A.  A is an M-by-N
        matrix which may be rank-deficient.
 
        Several right hand side vectors b and solution vectors x can be
        handled in a single call; they are stored as the columns of the
-       M-by-NRHS right hand side matrix B and the  N-by-NRHS  solution
+       M-by-NRHS right hand side matrix B and the N-by-NRHS solution
        matrix X.
 
-       The  routine first computes a QR factorization with column piv‐
-       oting:
+       The routine first computes a QR factorization with column
+       pivoting:
+
            A * P = Q * [ R11 R12 ]
                        [  0  R22 ]
-       with R11 defined as the largest leading submatrix  whose  esti‐
-       mated condition number is less than 1/RCOND.  The order of R11,
-       RANK, is the effective rank of A.
 
-       Then, R22 is considered to be negligible, and  R12  is  annihi‐
-       lated by orthogonal transformations from the right, arriving at
-       the complete orthogonal factorization:
+       with R11 defined as the largest leading submatrix whose
+       estimated condition number is less than 1/RCOND.  The order of
+       R11, RANK, is the effective rank of A.
+
+       Then, R22 is considered to be negligible, and R12 is
+       annihilated by orthogonal transformations from the right,
+       arriving at the complete orthogonal factorization:
+
           A * P = Q * [ T11 0 ] * Z
                       [  0  0 ]
        The minimum-norm solution is then
+
           X = P * Z’ [ inv(T11)*Q1’*B ]
                      [        0       ]
        where Q1 consists of the first RANK columns of Q.
 
-       This routine is basically  identical  to  the  original  xGELSX
+       This routine is basically identical to the original xGELSX
        except three differences:
-         o  The  call to the subroutine xGEQPF has been substituted by
-       the
-           the call to the subroutine xGEQP3.  This  subroutine  is  a
-       Blas-3
-           version of the QR factorization with column pivoting.
+
+         o The call to the subroutine xGEQPF has been substituted by
+           the the call to the subroutine xGEQP3.  This subroutine is
+           a Blas-3 version of the QR factorization with column
+           pivoting.
          o Matrix B (the right hand side) is updated with Blas-3.
          o The permutation of matrix B (the right hand side) is faster
-       and
-           more simple.
+           and more simple.
 
 ARGUMENTS
        M       (input) INTEGER
@@ -115,22 +122,21 @@ ARGUMENTS
                The number of columns of the matrix A.  N >= 0.
 
        NRHS    (input) INTEGER
-               The number of right hand sides,  i.e.,  the  number  of
+               The number of right hand sides, i.e., the number of
                columns of matrices B and X. NRHS >= 0.
 
-       A         (input/output)   DOUBLE  PRECISION  array,  dimension
-       (LDA,N)
-               On  entry,  the  M-by-N  matrix A.  On exit, A has been
-               overwritten by details of its complete orthogonal  fac‐
-               torization.
+       A       (input/output)   DOUBLE  PRECISION  array,  dimension
+               (LDA,N) On entry, the M-by-N matrix A.  On exit, A has
+               been overwritten by details of its complete orthogonal
+               factorization.
 
        LDA     (input) INTEGER
                The leading dimension of the array A.  LDA >= max(1,M).
 
-       B        (input/output)  DOUBLE  PRECISION   array,   dimension
-       (LDB,NRHS)
-               On entry, the M-by-NRHS right hand side matrix  B.   On
-               exit, the N-by-NRHS solution matrix X.
+       B       (input/output) DOUBLE PRECISION array,
+               dimension (LDB,NRHS) On entry, the M-by-NRHS right hand
+               side matrix B.  On exit, the N-by-NRHS solution matrix
+               X.
 
        LDB     (input) INTEGER
                The   leading   dimension   of  the  array  B.  LDB  >=
