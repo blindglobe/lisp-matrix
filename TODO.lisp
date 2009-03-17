@@ -47,38 +47,18 @@
 ;; (typep -1 '(integer 0 *))
 ;; (typep  2 '(integer 0 *))
 
-
 ;;; FIXME FOLLOWING ERRORS: MIGRATE INTO UNITTESTS...
 
-(progn  ;;#FIXME: factorization and inversion via LAPACK
-
+(progn  ;;#FIXME: writing out R matrices -- as strings and via RCLG
 
   ;; bad:  (min (values (list 4d0 2d0 3d0 5d0 3d0)))
   (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
-
-  ;; consider Y = X b (or normal approach, X b = Y)
-  (defparameter *gelsy-result*
-    (let* ((n 10)
-	   (p 5)
-	   (x-temp (rand n p))
-	   (b-temp (rand p 1))
-	   (y-temp (m* x-temp b-temp))  ;; so Y=Xb
-	   (rcond (* (coerce (expt 2 -52) 'double-float)
-		     (max (nrows x-temp) (ncols y-temp)))))
-      ;; should be numerically 0
-      (v- b-temp (first  (gelsy x-temp y-temp rcond)))))
-
-  (princ  *gelsy-result*)
-
-
-
 
   (reduce #'(lambda (x y) (concatenate 'string x y))
 	  "test"
 	  " "
 	  (list "a2" " s3 " "asdf")
 	  "end.")
-	  
 
   (defun lispmatrix2r (m &key (rvarname "my.mat"))
     "Write out a string that can be used to read in the matrix into R.
@@ -110,20 +90,22 @@ Used for creating verfication scripts and test cases."
 	(format t "~s ~s ~%" i j)
 	(setf (aref result i j) (format t "(~d ~d)," i j))))
     (reverse result))
+  )
 
+
+#+nil 
+(progn   ;; QR decomp
 
   (let* ((state1 (make-random-state))
 	 (state2 (make-random-state state1)))
     (m= (rand 2 3 :state state1)
 	(rand 2 3 :state state2)))
 
-
   ;;; Problems here...
   (geqrf (make-matrix 2 2 :initial-contents #2A(( 1d0 2d0 ) (2d0 1d0)))
 	 (make-vector 2 :type :column :initial-contents '((1d0)(1d0))))
+
   )
-
-
 
 
 #+nil
@@ -175,7 +157,7 @@ Used for creating verfication scripts and test cases."
   ;;   (mapcar #'IP (list-of-vector-matrix-vector M))
 
   ;; We would need such an "extractor" to make things work out right.  
-  (mapcar #'function-on-matrix (make-list-of-matrices original-matrix)) 
+  #+nil(mapcar #'function-on-matrix (make-list-of-matrices original-matrix)) 
 
 
   (list->vector-like (list 1d0 2d0 3d0) :orientation :row)
@@ -191,14 +173,12 @@ Used for creating verfication scripts and test cases."
 			      (list 1d0 2d0 3d0))))
 
   ;; The following approach would be required to do a proper map-back.
-  (list->vector-like (map 'list #'function-of-2-args (list1) (list2))
-		     :type :row) ; or :column
+  #+nil(list->vector-like (map 'list #'function-of-2-args (list1) (list2)) :type :row) ; or :column
   ;; this would take a list and create an appropriate vector-like of
   ;; the appropriate type.
 
   ;; Thought 2, the current immediate approach:
   ;; What we currently do is break it out into components.
-  (list-of-columns m01)
 
   (defparameter *m1-app* (ones 2 3))
   (let ((col-list (list-of-columns *m1-app*)))
@@ -206,9 +186,10 @@ Used for creating verfication scripts and test cases."
 	  (princ (v= (nth i col-list)
 		      (ones 2 1)))))
 
-  (list-of-rows *m01*)
+  (list-of-columns *m1-app*)
+  (list-of-rows *m1-app*)
   
-  (mapcar #'princ (list-of-columns *m01*))
+  (mapcar #'princ (list-of-columns *m1-app*))
 
   (format nil "R-Apply approach"))
 

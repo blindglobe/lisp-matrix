@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-03-01 12:21:34 tony>
+;;; Time-stamp: <2009-03-17 18:18:55 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
 ;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -74,7 +74,10 @@ variables, not cases, and therefore convert to column."
 
 
 (defun trap2mat (m &key (type :upper))
-  "Copy the trapezoid, lower or upper, into the other side (i.e. upper triagular storage into full storage).  For non-square matrices, there might be a bit of excess to ignore; but we only handle the top square of the rectangle."
+  "Copy the trapezoid, lower or upper, into the other side (i.e. upper
+triagular storage into full storage).  For non-square matrices, there
+might be a bit of excess to ignore; but we only handle the top square
+of the rectangle."
   (let ((mindim (reduce #'min (matrix-dimensions m)))
 	(result (copy m)))
     (ecase type
@@ -87,6 +90,21 @@ variables, not cases, and therefore convert to column."
     result))
 
 #|
+
+  (defun trap2mat (m &key (type :upper))
+    "convert a upper/lower triangular storage to an actual normal but
+  symmetric matrix.  
+  FIXME: Current only workis for square matrices -- needs to work for
+  the square-ish minimal sized square matrix within a rectangular
+  matrix."
+    (check-type m matrix-like)
+    (let ((mc (copy m)))
+      (dotimes (i (nrows m))
+	(dotimes (j i)
+	  (ecase type
+	    (:upper (setf (mref mc i j) (mref m j i)))
+	    (:lower (setf (mref mc j i) (mref m i j))))))
+      mc))
 
  (defparameter *trap2mat-test1*
   (make-matrix 3 3 :initial-contents '((1d0 2d0 3d0) (4d0 5d0 6d0) (7d0 8d0 9d0))))
