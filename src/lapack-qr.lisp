@@ -38,15 +38,16 @@
 ;;                < 0:  if INFO = -i, the i-th argument had an illegal value
 
 (def-lapack-method geqrf ((a !matrix-type)
-			  (tau !matrix-type)) ; tau is for output
+			  ;; (tau !matrix-type) ; tau is for output
+			  )
   (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
-  (let ((info (make-fnv-int32 1 :initial-value 0)))
+  (let ((info (make-fnv-int32 1 :initial-value 0))
+	(tau (make-matrix (nrows a) (ncols a)
+			  :element-type (element-type a))))
     (with-copies ((a (or (not unit-strides-p)
-                         transposed-p)
-		     t)
+                         transposed-p))
                   (tau (or (not unit-strides-p)
-			   transposed-p)
-		       t))
+			   transposed-p)))
 	(list a
 	      tau
 	      (check-info (fnv-int32-ref info 0) "GEQRF"))
