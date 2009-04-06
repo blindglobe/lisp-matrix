@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-03-18 14:20:37 tony>
+;;;; Time-stamp: <2009-03-18 15:00:37 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -108,7 +108,7 @@ could be used in countless situations)."
      (let ((a (gensym)))
        (labels ((aux (arg)
 		  (etypecase arg
-		    (symbol (list arg 'a))
+		    (symbol (list arg a))
 		    (list
 		     (ecase (car arg)
 		       (or (cons 'or (mapcar #'aux (cdr arg))))
@@ -179,7 +179,7 @@ could be used in countless situations)."
 BLAS and LAPACK.
 
 Use Example:
-  (string= "D" (datatype->letter 'double))
+  (string= \"D\" (datatype->letter 'double))
 "
   (or (cdr (assoc datatype *supported-datatypes* :test #'equal))
       (error "LAPACK does not support the datatype ~A" datatype)))
