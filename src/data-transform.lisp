@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-03-17 18:18:55 tony>
+;;; Time-stamp: <2009-04-03 08:07:03 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
 ;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -31,7 +31,8 @@
 			  (orientation :column))
   "Create a vector-like using default implementation. Use globals to
 change implementation, etc.  By default, we assume lists are
-variables, not cases, and therefore convert to column."
+variables, not cases (i.e. follow lispstat convention), and therefore
+convert to column."
   (make-vector (length listvar)
 	       :type orientation
 	       :initial-contents
