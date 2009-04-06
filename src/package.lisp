@@ -89,7 +89,8 @@
    parent
    real-stride
    row-vector-p
-   
+   map-vec
+
    ;; exported BLAS/LAPACK, the "simple" versions which handle the
    ;; various types (double, complex-float, integer, etc...)
    gemm scal

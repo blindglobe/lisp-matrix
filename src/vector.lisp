@@ -936,3 +936,19 @@ we've mucked up data.  Sign of usage means poor coding!"
 
   (princ "vector ops done."))
 |#
+
+
+(defun map-vec (unifcn vec)
+  "Apply univariate function to each element of old vector, returning
+new one.
+ (map-vec #'(lambda (x) (* 2.0 x))
+          (make-vector 4 :initial-element 2d0))
+ => #<LA-SIMPLE-VECTOR-DOUBLE (1 x 4) 4.0 4.0 4.0 4.0>
+ (map-vec #'sqrt
+          (make-vector 4 :initial-element 2d0))
+ => #<LA-SIMPLE-VECTOR-DOUBLE (1 x 4) 1.4142135623730951 1.4142135623730951 1.4142135623730951 1.4142135623730951>"
+  (check-type vec vector-like)
+  (let ((tempvec (make-vector (nelts vec) :initial-element 0d0)))
+    (dotimes (i (nelts vec))
+      (setf (vref tempvec i)  (funcall unifcn (vref vec i)) ))
+    tempvec))
