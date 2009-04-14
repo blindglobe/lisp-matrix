@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-04-03 08:07:03 tony>
+;;; Time-stamp: <2009-04-14 07:58:08 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
 ;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -74,6 +74,13 @@ convert to column."
 |#
 
 
+
+;; FIXME: this function needs to be:
+;; - improved (efficiency/speed)
+;; - made generic possibly with a different name/API, to support
+;;   sparse trapezoid and triangular matrices, and other similar
+;;   types.
+;; - possible: learn to use classes to determine TYPE.
 (defun trap2mat (m &key (type :upper))
   "Copy the trapezoid, lower or upper, into the other side (i.e. upper
 triagular storage into full storage).  For non-square matrices, there
