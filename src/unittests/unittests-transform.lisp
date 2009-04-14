@@ -37,10 +37,22 @@
 ;;; TESTS: VECTORS
 
 (addtest (lisp-matrix-ut-datatrans)
-  list-to-vector-like
+  list-to-vector-like-row
   (for-all-implementations
-    (ensure (m= (make-vector 3 :initial-element 0d0)
-		(list->vector-like (list 0d0 0d0 0d0))))))
+    (ensure (m= (make-vector 3
+			     :initial-element 0d0
+			     :type :row )
+		(list->vector-like (list 0d0 0d0 0d0)
+				   :orientation :row)))))
+
+(addtest (lisp-matrix-ut-datatrans)
+  list-to-vector-like-column
+  (for-all-implementations
+    (ensure (m= (make-vector 3
+			     :initial-element 0d0
+			     :type :column )
+		(list->vector-like (list 0d0 0d0 0d0)
+				   :orientation :column)))))
 
 
 
