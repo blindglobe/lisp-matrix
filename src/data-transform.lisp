@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-04-14 07:58:08 tony>
+;;; Time-stamp: <2009-04-16 17:27:53 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
 ;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -28,7 +28,7 @@
 
 (defun list->vector-like (listvar &key
 			  (coerce-to 'double-float)
-			  (orientation :column))
+			  (orientation :column-major))
   "Create a vector-like using default implementation. Use globals to
 change implementation, etc.  By default, we assume lists are
 variables, not cases (i.e. follow lispstat convention), and therefore
@@ -37,11 +37,11 @@ convert to column."
 	       :type orientation
 	       :initial-contents
 	       (ecase orientation
-		 (:row
+		 (:row-major
 		  (list 
 		   (mapcar #'(lambda (x) (coerce x coerce-to))
 			   listvar)))
-		 (:column
+		 (:column-major
 		  (mapcar #'(lambda (x) (list (coerce x coerce-to)))
 			  listvar)))))
 
