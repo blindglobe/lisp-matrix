@@ -8,12 +8,11 @@
 
 ;;; The main thing...
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix :force t)
-;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
 
 (in-package :lisp-matrix-unittests)
 
-;; Tests = 68, Failures = 0, Errors = 2 ;; 26.2.2009
+;; Tests = 69, Failures = 0, Errors = 2 ;; 26.2.2009
 (run-tests :suite 'lisp-matrix-ut)
 (describe (run-tests :suite 'lisp-matrix-ut))
 ;; or simply...
@@ -43,8 +42,10 @@
 
 
 ;; Just a reminder:
-;; (typep -1 '(integer 0 *))
-;; (typep  2 '(integer 0 *))
+;; (typep -1 '(integer 0 *))   ;=> nil
+;; (typep  2 '(integer 0 *))   ;=> T
+;; (typep  3 '(integer -1 2))  ;=> nil
+;; (typep  2 '(integer -1 2))  ;=> T
 
 ;;; FIXME FOLLOWING ERRORS: MIGRATE INTO UNITTESTS...
 
@@ -52,6 +53,8 @@
 
   ;; bad:  (min (values (list 4d0 2d0 3d0 5d0 3d0)))
   (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
+  (reduce #'min (list 2d0 4d0 3d0 5d0 3d0))
+  (reduce #'min (list 4d0 3d0 5d0 3d0 2d0))
 
   (reduce #'(lambda (x y) (concatenate 'string x y))
 	  "test"
@@ -101,8 +104,9 @@ Used for creating verfication scripts and test cases."
 	(rand 2 3 :state state2)))
 
   ;;; Problems here...
-  (geqrf (make-matrix 2 2 :initial-contents #2A(( 1d0 2d0 ) (2d0 1d0)))
-	 (make-vector 2 :type :column :initial-contents '((1d0)(1d0))))
+  (geqrf (make-matrix 2 2 :initial-contents #2A(( 1d0 2d0 ) (2d0 1d0))))
+  (geqrf (make-matrix 2 2 :initial-contents '(( 1d0 2d0 ) (2d0 1d0))))
+  ;;  (make-vector 2 :type :column :initial-contents '((1d0)(1d0))))
 
   )
 
