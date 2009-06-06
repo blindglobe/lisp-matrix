@@ -1,13 +1,11 @@
 (in-package :lisp-matrix)
 
-;;; LU
+;;; LU-decomp tools
 
 ;;; Need: tests
-;;;       GETRS
 
 ;;; GETRF - compute the LU Factorization of a matrix.
 ;;; Returns Matrix, upper/lower triang char, info
-
 #|
 
 DGETRF(3)                                    )                                    DGETRF(3)
