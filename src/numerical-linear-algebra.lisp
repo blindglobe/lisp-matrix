@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-06-09 08:47:59 tony>
+;;; Time-stamp: <2009-06-09 18:56:51 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       numerical.linear.algebra.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -25,14 +25,16 @@
 (defclass matrix-factorized-results ()
   ((results
     :initarg :results
+    :initform nil
     :reader results)
    (factorization-type
     :initarg :type
-    :reader :factorization-type)))
+    :initform nil
+    :reader factorization-type)))
 
 (defgeneric factorized-matrix (a)
-  (:documentation "Return the matrix (and not the structure) which is
-  the result from factorization routine")
+  (:documentation "Return the matrix (and not the structure).  The
+    latter is the standard result from factorization routine. ")
   (:method ((a matrix-factorized-results))
     (ecase (factorization-type a)
       (:qr )
@@ -43,7 +45,8 @@
     (warn "Returning same matrix, assuming prior factorization.")))
 
 (defgeneric factorize (a &key by)
-  (:documentation "matrix decomposition, M -> SVD/LU/AtA etc")
+  (:documentation "matrix decomposition, M -> SVD/LU/AtA etc.  
+    FIXME: do we want a default type?   If BY is NIL then return A untouched.")
   (:method ((a data-frame-like) &key by)
     (factorize (data-frame-like->matrix-like a) :by by))
   (:method ((a matrix-like) &key (by :qr)) ;; is this the right way to get :qr as default?
@@ -52,12 +55,9 @@
 			      (:qr (geqrf a))
 			      (:lu (getrf a))
 			      (:cholesky (potrf a))
-			      (:svd (gesvf a)))
+			      (:svd (gesvf a))
+			      (nil a))
 		   :type by)))
-
-
-
-;;; inversion based on factorization
 
 (defgeneric invert (a &optional by)
   (:documentation "compute inverse of A using the appropriate factorization.")
@@ -77,8 +77,8 @@
   (:method ((a matrix-like) &optional by)
     (if (not by) (setf by :qr))
     (let ((results (ecase by
-		     (:qr (geqri a) )
-		     (:lu ( a))
+		     (:qr (minv-qr a) )
+		     (:lu (minv-lu a))
 		     (:cholesky (potri a))
 		     (:svd (gesvi a))
 		     (:otherwise
