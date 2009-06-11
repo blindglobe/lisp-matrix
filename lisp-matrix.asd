@@ -72,6 +72,14 @@
 					       "lapack-lu"
 					       "lapack-qr"))))
 
+
+     (:module
+      "api"
+      :pathname #p"src/"
+      :depends-on ("basics" "implementations") 
+      :components
+      ((:file "numerical-linear-algebra")))
+
      (:module
       "testing"
       :pathname #p "src/unittests/"
