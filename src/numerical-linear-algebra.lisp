@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-06-09 18:56:51 tony>
+;;; Time-stamp: <2009-06-11 08:36:15 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       numerical.linear.algebra.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -22,7 +22,7 @@
 ;; we have: SVD, LU, QR, Cholesky.
 ;; note that some are "special case only" factorizations.
 
-(defclass matrix-factorized-results ()
+(defclass factorized-matrix-results ()
   ((results
     :initarg :results
     :initform nil
@@ -35,7 +35,7 @@
 (defgeneric factorized-matrix (a)
   (:documentation "Return the matrix (and not the structure).  The
     latter is the standard result from factorization routine. ")
-  (:method ((a matrix-factorized-results))
+  (:method ((a factorized-matrix-results))
     (ecase (factorization-type a)
       (:qr )
       (:lu )
@@ -47,10 +47,12 @@
 (defgeneric factorize (a &key by)
   (:documentation "matrix decomposition, M -> SVD/LU/AtA etc.  
     FIXME: do we want a default type?   If BY is NIL then return A untouched.")
+#| Move to CLS.git
   (:method ((a data-frame-like) &key by)
     (factorize (data-frame-like->matrix-like a) :by by))
+|#
   (:method ((a matrix-like) &key (by :qr)) ;; is this the right way to get :qr as default?
-    (make-instance 'matrix-factorized-results
+    (make-instance 'factorized-matrix-results
 		   :results (ecase by
 			      (:qr (geqrf a))
 			      (:lu (getrf a))
@@ -66,7 +68,7 @@
       (warn "method to factor BY does not match FACTORIZATION-TYPE."))
     (let ((results (ecase (factorization-type a)
 		     (:qr (geqri a) )
-		     (:lu ( a))
+		     (:lu a ) ;; FIXME!
 		     (:cholesky (potri a))
 		     (:svd (gesvi a))
 		     (:otherwise
@@ -79,7 +81,9 @@
     (let ((results (ecase by
 		     (:qr (minv-qr a) )
 		     (:lu (minv-lu a))
-		     (:cholesky (potri a))
+		     (:cholesky (if (symmetric-p a)
+				    (minv-cholesky a)
+				    (error "Cholesky only works for symmetric matrices.")))
 		     (:svd (gesvi a))
 		     (:otherwise
 		      (error
@@ -95,7 +99,7 @@
 
 (defgeneric least-squares (y x &key w)
   (:documentation "Compute the (weighted/generalized) least-squares solution B to W(Y-XB)")
-  (:method ((y vector-like) (x matrix-like) &key (w matrix-like) )
+  (:method ((y vector-like) (x matrix-like) &key (w matrix-like))
     (error "implement me!")))
 
 ;;; Eigensystems
@@ -105,12 +109,12 @@
   (:method ((x matrix-like))
     (error "implement me!")))
 
-
+#|
 ;;; Optimization: should we put this someowhere else?  It is similar
 ;;; to Least Squares, which is one method for optimization, but is
 ;;; also similar to root-finding
 
-(defgeneric optimize (f data params &key method maximize-p)
+ (defgeneric optimize (f data params &key method maximize-p)
   (:documentation "given a function F, F(DATA,PARAMS), compute the
   PARAM values that optimize F for DATA, using METHOD, and maximize or
   minimize according to MAXIMIZE-P.")
@@ -121,7 +125,7 @@
 	    &key method maximize-p)
     (error "implement me!")))
 
-(defgeneric root-find (f data params &key method)
+ (defgeneric root-find (f data params &key method)
   (:documentation "given a function F, F(DATA,PARAMS), compute PARAM
   such that with DATA, we use METHOD to solve F(DATA,PARAM)=0.")
   (:method ((f function) (data matrix-like) (params vector-like)
@@ -130,3 +134,4 @@
   (:method ((f function) (data array) (params vector)
 	    &key method)
     (error "implement me!")))
+|#
