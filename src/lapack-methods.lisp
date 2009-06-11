@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-03-04 17:29:20 tony>
+;;; Time-stamp: <2009-06-11 18:42:20 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       lapack-methods.lisp
 ;;; Author:     Mark H. < @ >
@@ -187,6 +187,10 @@
 ;;; TODO: many many
 
 (defmacro call-with-work ((lwork work type) call)
+  "This macro computes the needed workspace, and then recalls the
+function with the correct-sized array (appropriately allocated).
+lwork, work are the appropraite symbols, and type should be the
+replaceable type from def-lapack-method."
   (let ((element-type (fnv-type->element-type type)))
     `(let ((work (make-vector 1 :element-type ',element-type
                                 :implementation :foreign-array))
