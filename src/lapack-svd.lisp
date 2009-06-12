@@ -111,18 +111,25 @@ ARGUMENTS
  LAPACK driver routine (version 3.2)    November 2008                        DGESVD(3lapack)
 |#
 
-(def-lapack-method gesvd ((a !matrix-type)
-			  ;; (tau !matrix-type) ; tau is for output
-			  )
+(def-lapack-method
+    (gesvd
+     :function-names ((%sgesvd single-float)
+		      (%dgesvd double-float)))
+    ((a !matrix-type))
   (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
   (let ((info (make-fnv-int32 1 :initial-value 0))
-	(tau (make-matrix (nrows a) (ncols a)
-			  :element-type (element-type a))))
+	(u (make-matrix (nrows a) (nrows a)
+			  :element-type (element-type a)))
+	(s (make-vector (min (nrows a) (ncols a))
+			:element-type (element-type a)))
+	(vt (make-matrix (min  (nrows a) (ncols a))
+			 (ncols a)
+			 :element-type (element-type a)))
+
+	)
     (with-copies ((a (or (not unit-strides-p)
-                         transposed-p))
-                  (tau (or (not unit-strides-p)
-			   transposed-p)))
-	(list u s tv
+                         transposed-p)))
+	(list u s vt
 	      (check-info (fnv-int32-ref info 0) "GESVF"))
       (call-with-work (lwork work !data-type)
 		      (!function "A" ; jobu, see man page above.
@@ -130,11 +137,12 @@ ARGUMENTS
 				 (nrows a) ; m
 				 (ncols a) ; n
 				 a
-				 (min 1 (nrows a)) ; lda
+				 (real-nrows a) ; lda
 				 s
 				 u
 				 (nrows a) ; ldu 
 				 vt
 				 (nrows vt) ; ldvt
 				 work lwork
+				 ;; complex needs:  rwork.
 				 info)))))

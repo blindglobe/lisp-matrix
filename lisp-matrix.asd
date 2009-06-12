@@ -65,6 +65,8 @@
        (:file "lapack-cholesky" :depends-on ("lapack-utils"))
        (:file "lapack-lu" :depends-on ("lapack-utils"))
        (:file "lapack-qr" :depends-on ("lapack-utils"))
+       (:file "lapack-svd" :depends-on ("lapack-utils"))
+
        (:file "lapack-ls" :depends-on ("lapack-utils"))
 
        (:file "matrix-operations" :depends-on ("lapack-methods"
