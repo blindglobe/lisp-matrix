@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-06-23 18:37:12 tony>
+;;; Time-stamp: <2009-06-23 18:44:05 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       numerical.linear.algebra.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -67,10 +67,10 @@
     (unless (equal by (factorization-type a))
       (warn "method to factor BY does not match FACTORIZATION-TYPE."))
     (let ((results (ecase (factorization-type a)
-		     (:qr (geqri a) )
+		     (:qr (error "not implemented, is there an obvious lapack/blas fcn?" ))
 		     (:lu a ) ;; FIXME!
 		     (:cholesky (potri a))
-		     (:svd (gesvi a))
+		     (:svd (error "not implemented, is there an obvious lapack/blas fcn?" ))
 		     (:otherwise
 		      (error
 		       "Unimplemented or not a proper factorized-matrix type ~A."
@@ -79,12 +79,12 @@
   (:method ((a matrix-like) &optional by)
     (if (not by) (setf by :qr))
     (let ((results (ecase by
-		     (:qr (minv-qr a) )
+		     (:qr (error "not implemented, is there an obvious lapack/blas fcn?" ))
 		     (:lu (minv-lu a))
 		     (:cholesky (if (matrix-like-symmetric-p a)
 				    (minv-cholesky a)
 				    (error "Cholesky only works for symmetric matrices.")))
-		     (:svd (gesvi a))
+		     (:svd (error "not implemented, is there an obvious lapack/blas fcn?" ))
 		     (:otherwise
 		      (error
 		       "Unimplemented or not a proper factorized-matrix type ~A."
