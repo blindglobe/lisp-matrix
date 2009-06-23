@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-06-11 08:36:15 tony>
+;;; Time-stamp: <2009-06-12 07:53:10 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       numerical.linear.algebra.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -53,12 +53,12 @@
 |#
   (:method ((a matrix-like) &key (by :qr)) ;; is this the right way to get :qr as default?
     (make-instance 'factorized-matrix-results
-		   :results (ecase by
+		   :results (case by
 			      (:qr (geqrf a))
 			      (:lu (getrf a))
 			      (:cholesky (potrf a))
-			      (:svd (gesvf a))
-			      (nil a))
+			      (:svd (gesvd a))
+			      (otherwise a))
 		   :type by)))
 
 (defgeneric invert (a &optional by)
@@ -81,7 +81,7 @@
     (let ((results (ecase by
 		     (:qr (minv-qr a) )
 		     (:lu (minv-lu a))
-		     (:cholesky (if (symmetric-p a)
+		     (:cholesky (if (matrix-like-symmetric-p a)
 				    (minv-cholesky a)
 				    (error "Cholesky only works for symmetric matrices.")))
 		     (:svd (gesvi a))
