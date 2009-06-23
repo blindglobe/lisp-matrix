@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: integrate the xarray API
+desc: need to use/leverage the common xarray API (tamas papp's 2nd gen array access tool).
+type: :feature
+component: manip
+release: "1.0"
+reporter: Tony <blindglobe@gmail.com>
+status: :unstarted
+disposition: 
+creation_time: 2009-06-23 06:09:44.938397 Z
+references: []
+
+id: 4d95b924a4defd3adf23fe68f35ac2affb57b79d
+log_events: 
+- - 2009-06-23 06:10:01.176165 Z
+  - Tony <blindglobe@gmail.com>
+  - created
+  - working on it, same time as CLS integration for dataframes.
