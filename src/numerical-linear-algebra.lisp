@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-06-12 07:53:10 tony>
+;;; Time-stamp: <2009-06-23 18:37:12 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
 ;;; File:       numerical.linear.algebra.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -64,7 +64,7 @@
 (defgeneric invert (a &optional by)
   (:documentation "compute inverse of A using the appropriate factorization.")
   (:method ((a factorized-matrix-results) &optional by)
-    (unless (equal by (factorization-by a))
+    (unless (equal by (factorization-type a))
       (warn "method to factor BY does not match FACTORIZATION-TYPE."))
     (let ((results (ecase (factorization-type a)
 		     (:qr (geqri a) )
@@ -73,8 +73,8 @@
 		     (:svd (gesvi a))
 		     (:otherwise
 		      (error
-		       "Unimplemented or not a proper factorized-matrix type."
-		       (factor-type a))))))
+		       "Unimplemented or not a proper factorized-matrix type ~A."
+		       (factorization-type a))))))
       results))
   (:method ((a matrix-like) &optional by)
     (if (not by) (setf by :qr))
@@ -87,8 +87,8 @@
 		     (:svd (gesvi a))
 		     (:otherwise
 		      (error
-		       "Unimplemented or not a proper factorized-matrix type."
-		       (factor-type a))))))
+		       "Unimplemented or not a proper factorized-matrix type ~A."
+		       (factorization-type a))))))
       results)))
 
 
@@ -99,7 +99,8 @@
 
 (defgeneric least-squares (y x &key w)
   (:documentation "Compute the (weighted/generalized) least-squares solution B to W(Y-XB)")
-  (:method ((y vector-like) (x matrix-like) &key (w matrix-like))
+  (:method ((y vector-like) (x matrix-like) &key w)
+    (check-type w vector-like)
     (error "implement me!")))
 
 ;;; Eigensystems
