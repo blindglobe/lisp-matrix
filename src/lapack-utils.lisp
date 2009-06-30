@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-03-18 15:00:37 tony>
+;;;; Time-stamp: <2009-06-24 07:52:04 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -56,6 +56,12 @@
 ;;;; Finally, for example for GEMM!, after the copies are made we need
 ;;;; to inspect the resulting matrices to tell LAPACK the actual sizes
 ;;;; and orientations of the matrices.
+
+;;; Note that some of the functions have additional WORK requirements
+;;; for complex/double-complex versions, and hence require more
+;;; parameters.  Must ensure that we don't create too many generics,
+;;; or that we allow for a variant of def-lapack-method which is
+;;; generic-free.
 
 (defun make-predicate (form)
   "From an expression combining predicates, construct a function of

@@ -6,14 +6,15 @@
 ;;; matrix A.
 ;;; Returns Matrix, upper/lower triang char, info
 (def-lapack-method potrf ((a !matrix-type))
-  (assert (<= (ncols a) (nrows a))) ; make sure A supports options 
+  (assert (<= (ncols a) (nrows a))) ; LAPACK condition, kill in lisp
+				    ; not fortran.
   (let ((info (make-fnv-int32 1 :initial-value 0)))
     (with-copies ((a (or (not unit-strides-p)
                          transposed-p)))
       (list a
 	    "U"
 	    (check-info (fnv-int32-ref info 0) "POTRF"))
-      (!function "U"            ; store in Upper section
+      (!function "U"            ; store in Upper Triang.  Option for "L"?
 		 (ncols a)      ; N 
 		 a              ; matrix (in/out)
 		 (real-nrows a) ; LDA
