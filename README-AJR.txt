@@ -1,4 +1,4 @@
-	-*- mode: text -*-
+	-*- mode: org -*-
 
 
 * TODO:
@@ -49,30 +49,36 @@ Others: not clear (though CLISP is targetted)
 
 * Packages:
 
-From Rif:
+** From Rif:
 
-** org.middleangle.cl-blapack
-** org.middleangle.foreign-numeric-vector
+*** org.middleangle.cl-blapack
+*** org.middleangle.foreign-numeric-vector
 
-From Tomas:
+** From Tomas:
 
-** ffa
-** array-operations
+*** ffa
+*** array-operations
 
 From Mark:
 
-** lisp-matrix integration (also found in ffa and cl-blapack).
+*** lisp-matrix integration (also found in ffa and cl-blapack).
 
 In general:
 
-** cffi  (depends on babel, alexandria )
-** cl-utilities
-** iterate
-** metabang-bind
-** asdf-system-connections
-** lift (depends on trivial-timeout)
+*** cffi  (depends on babel, alexandria )
+*** cl-utilities
+*** iterate
+*** metabang-bind
+*** asdf-system-connections
+*** lift (depends on trivial-timeout)
 
 These dependencies need to be better worked out.
+
+
+** Others (AJR?)
+
+*** xarray (generic array-like accessors)
+
 
 * Usage
 
