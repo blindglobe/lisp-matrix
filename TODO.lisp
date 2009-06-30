@@ -4,14 +4,18 @@
 ;; (asdf:oos 'asdf:compile-op 'array-operations :force t)
 
 ;; (asdf:oos 'asdf:compile-op 'org.middleangle.foreign-numeric-vector :force t)
-;; (asdf:oos 'asdf:compile-op 'org.middleangle.cl-blapack :force t)
+;; (asdf:oos 'asdf:compile-op 'org.middleangle.cl-blapack :force t) ;  :force t
 
 ;;; The main thing...
+;; (delete-package 'lisp-matrix) ;; fails, but we need to cleanup a bit more.
+
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix :force t)
+;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
 
-(in-package :lisp-matrix-unittests)
+;; (asdf:oos 'asdf:compile-op 'cffi :force t)
 
+(in-package :lisp-matrix-unittests)
 ;; Tests = 69, Failures = 0, Errors = 2 ;; 26.2.2009
 (run-tests :suite 'lisp-matrix-ut)
 (describe (run-tests :suite 'lisp-matrix-ut))
@@ -23,7 +27,15 @@
 
 ;; Note that when unit tests fail in m*- tests, it seems to do with a
 ;; "macro vs defun" problem, related to compile-time vs. run-time
-;; evaluation that I (tony) am not quite getting.
+;; evaluation that I (tony) am not quite understanding, causing a
+;; possible increase in the number of errors beyond the number
+;; reported above.
+;;
+;; The current two errors are:  
+;; * foreign arrays with integer values are not supported.
+;; * mixed CL-BLAPACK calls are not yet supported (lisp/foreign stored
+;;   matrix-like calls).
+;; I'm sure there will be more.
 
 (in-package :lisp-matrix-user)
 
