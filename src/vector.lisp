@@ -96,6 +96,11 @@
   vector.  That view may be treated as a (readable and writeable)
   reference to the elements of the vector."))
 
+;;; Do we want to add the xref concept of possible read-only data
+;;; structures for views, in order to do some form of protection?
+;;; This would save space, with the penalty of checking for every setf
+;;; operation to prevent inappropriate nuking.
+
 (defgeneric vecview-p (vector)
   (:documentation "Is VECTOR a VECVIEW?")
   (:method (vector) nil)
