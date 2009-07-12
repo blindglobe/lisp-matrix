@@ -38,7 +38,9 @@
   (:method ((vector vector-like))
     (nelts vector)))
 
-(defgeneric vector-type (vector)
+;; This API should be changed -- we are using type to denote data
+;; type, so we should use ORIENTATION to denote row/column-ness.
+(defgeneric vector-orientation (vector)
   (:documentation "Whether the vector is considered as a row
   vector (:ROW) or a column vector (:COLUMN) for matrix operations.
   This has no effect on storage since the values are stored
@@ -140,7 +142,7 @@
 
 ;; needed so that  m= works properly
 (defmethod mref ((mat diagonal-vecview) i j)
-  (ecase (vector-type mat)
+  (ecase (vector-orientation mat)
     (:row
      (assert (zerop i))
      (vref mat j))
@@ -233,13 +235,13 @@
          ;; FIXME: need to take into account orientation of MATRIX
          ;; (and its parent?)
          (matrix-like
-          (ecase (vector-type matrix)
+          (ecase (vector-orientation matrix)
             (:row (= 1 (/ (stride matrix) (nrows (parent matrix)))))
             (:column (= 1 (stride matrix))))))))
 
 ;; FIXME: ugly
 (defmethod mref ((matrix slice-vecview) i j)
-  (ecase (vector-type matrix)
+  (ecase (vector-orientation matrix)
     (:row
      (assert (zerop i))
      (vref matrix j))
