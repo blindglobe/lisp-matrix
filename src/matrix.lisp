@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2009-03-15 16:55:31 tony>
+;;; Time-stamp: <2009-07-14 11:51:31 tony>
 
 (in-package :lisp-matrix)
 
@@ -737,13 +737,12 @@
         (setf (mref b i j) (aref a i j)))))
   b)
 
-
-;;; This particular method is weird -- dictates a row-major
-;;; orientation for the lists.  Is there any reason to consider a
-;;; column-major orientation for the lists used to form the matrix?
-;;; Or do we just figure it out from the structure of the lists which
-;;; are used for input.
 (defmethod copy! ((a list) (b matrix-like))
+  "Copy A into B.  This particular method is weird -- dictates that
+the LOL datastructure presents a row-major orientation for the lists.
+Is there any reason to consider a column-major orientation for the
+lists used to form the matrix?  Or do we just figure it out from the
+structure of the lists which are used for input."
   (unless (and (= (nrows b) (length a))
                (= (ncols b) (length (first a))))
     (error "A doesn't have the correct dimensions"))
