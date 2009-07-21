@@ -6,7 +6,6 @@
 (defpackage :lisp-matrix
   (:use :cl
         :cffi
-	;; :fiveam
         :cl-utilities
         :org.middleangle.foreign-numeric-vector
         :org.middleangle.cl-blapack
@@ -116,19 +115,19 @@
    bind2
    
    diagonal! diagonalf
-   
    list-of-rows list-of-columns
    
-   list->vector-like
-   vector-like->list
-
    getrf getri getrs minv-lu msolve-lu;; LU, general
    potrf potri potrs minv-cholesky msolve-cholesky ;; cholesky, symm matrices
    geqrf ;; qr
 
-   trap2mat
 
    matrix-like-symmetric-p
+   cross-product
+
+   ;; data transforms
+   list->vector-like vector-like->list
+   trap2mat
    ))
 
 
