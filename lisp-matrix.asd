@@ -10,6 +10,16 @@
 
 (in-package :lisp-matrix-asd)
 
+(defparameter *fasl-directory*
+   (make-pathname :directory '(:relative
+			       #+sbcl "fasl-sbcl"
+			       #+openmcl "fasl-ccl"
+			       #+openmcl "fasl-ccl"
+			       #+cmu "fasl-cmucl"
+			       #+clisp "fasl-clisp"
+			       #-(or sbcl openmcl clisp cmucl) "fasl"
+			       )))
+
 (defsystem lisp-matrix
     :name "lisp-matrix"
     :version "0.0.1"
