@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-07-20 18:27:26 tony>
+;;; Time-stamp: <2009-07-21 08:33:06 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
 ;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -70,15 +70,16 @@ justify further processing and initial conditions."
   (list (length lol)
 	(length (map 'list (lambda (x) 1) lol))))
 
-(defparameter *lol-1*  (list (list 1 2 3 4)
+#|
+ (defparameter *lol-1*  (list (list 1 2 3 4)
 			     (list 5 6 7 8)))
-(map 'list #'list *lol-1*)
-(map 'list (lambda (x) x) *lol-1*)
-(listoflists-dimensions *lol-1*)
+ (map 'list #'list *lol-1*)
+ (map 'list (lambda (x) x) *lol-1*)
+ (listoflists-dimensions *lol-1*)
 
 
 
-(defun listoflists->matrix-like (lol &optional (coerce-to 'double-float))
+ (defun listoflists->matrix-like (lol &optional (coerce-to 'double-float))
   (let ((dims (loop lol counting number of subunits, first number is
 		 number in inside, second is nil if they don't all
 		 equal each other))
