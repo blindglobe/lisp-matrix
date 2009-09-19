@@ -13,7 +13,7 @@
 ;;; testing, not matrix/vector computation, which needf to be in sub
 ;;; functions. 
 
-;; (asdf:oos 'asdf:compile-op 'lift :force t)o
+;; (asdf:oos 'asdf:compile-op 'lift :force t)
 ;; (asdf:oos 'asdf:load-op 'lift)
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
