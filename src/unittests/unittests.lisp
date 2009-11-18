@@ -85,6 +85,11 @@ make-matrix initial contents, reproducible if we set seed initially."
   `(for-implementations ,(mapcar #'car *implementations*)
      ,@body))
 
+(defmacro def-m*-test (name a b)
+  `(addtest (lisp-matrix-ut-matrix-gemm) ,name
+     (for-all-implementations
+       (check-m* ,a ,b))))
+
 
 ;; from fiveam
 (defun gen-integer (&key (max (1+ most-positive-fixnum))

@@ -1,19 +1,32 @@
 ;;; -*- mode: lisp -*-
-;;; Copyright (c) 2007, by A.J. Rossini <blindglobe@gmail.com>
-;;; See COPYRIGHT file for any additional restrictions (BSD license).
-;;; Since 1991, ANSI was finally finished.  Edited for ANSI Common Lisp. 
+
+;;; Time-stamp: <2009-09-21 17:23:47 tony>
+;;; Creation:   <2009-03-12 17:14:56 tony>
+;;; File:       unittests-matrix-lapack.lisp
+;;; Author:     AJ Rossini <blindglobe@gmail.com>
+;;; Copyright:  (c)2007--, AJ Rossini.  BSD, LLGPL, or GPLv2, depending
+;;;             on how it arrives.  
+;;; Purpose:    Matrix/LAPACK unit-tests.
+
+;;; What is this talk of 'release'? Klingons do not make software
+;;; 'releases'.  Our software 'escapes', leaving a bloody trail of
+;;; designers and quality assurance people in its wake.
+
+;;; This organization and structure is new to the 21st Century
+;;; version..   Think, "21st Century Schizoid Man".
+
+
+(in-package :lisp-matrix-unittests)
+
 
 ;;; This is semi-external to lisp-matrix core package.  The dependency
 ;;; should be that lisp-matrix packages are dependencies for the unit
-;;; tests.  However, where they will end up is still to be
-;;; determined. 
+;;; tests.  However, where they will end up is still to be determined.
 
 ;; (asdf:oos 'asdf:compile-op 'lift :force t)
 ;; (asdf:oos 'asdf:load-op 'lift)
 ;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
 ;; (asdf:oos 'asdf:load-op 'lisp-matrix)
-
-(in-package :lisp-matrix-unittests)
 
 ;;(run-lisp-matrix-tests)
 ;;(describe (run-lisp-matrix-tests))
@@ -230,10 +243,6 @@
                                (43d0 50d0)))))
     (ensure (m= result (m* a b)))))
 
-(defmacro def-m*-test (name a b)
-  `(addtest (lisp-matrix-ut-matrix-gemm) ,name
-     (for-all-implementations
-       (check-m* ,a ,b))))
 
 (def-m*-test m*-basic-test
   (make-matrix 2 2 :initial-contents
