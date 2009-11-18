@@ -85,8 +85,6 @@
 					       "lapack-cholesky"
 					       "lapack-lu"
 					       "lapack-qr"))))
-
-
      (:module
       "api"
       :pathname #p"src/"
