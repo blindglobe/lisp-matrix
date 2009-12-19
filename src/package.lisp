@@ -21,7 +21,7 @@
    strides-class
    strides unit-strides-p
    window-class window
-   transpose-class transpose transposed-p
+   transpose-class transpose-matrix transposed-p
 	   
    zero-offset-p
    offset

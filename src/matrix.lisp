@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2009-07-14 11:51:31 tony>
+;;; Time-stamp: <2009-12-19 17:15:52 tony>
 
 (in-package :lisp-matrix)
 
@@ -511,7 +511,7 @@
   stride of MATRIX.")
   (:method ((matrix matrix-like)) 'strided-matview))
 
-(defgeneric transpose (matrix)
+(defgeneric transpose-matrix (matrix)
   (:documentation "Creates a transpose view of the given matrix-like
    object MATRIX.  Returns the original matrix if transposed two
    times.

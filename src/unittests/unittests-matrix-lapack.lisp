@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-09-21 17:23:47 tony>
+;;; Time-stamp: <2009-12-19 17:14:08 tony>
 ;;; Creation:   <2009-03-12 17:14:56 tony>
 ;;; File:       unittests-matrix-lapack.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -221,8 +221,8 @@
 				      ( 6d0 7d0 )))))
 
     (m* m3-fa m3-fa)
-    (m* m2-fa (transpose m2-fa))
-    (m* m3-fa (transpose m3-fa))))
+    (m* m2-fa (transpose-matrix m2-fa))
+    (m* m3-fa (transpose-matrix m3-fa))))
 
 ;;; Working, but needs to be extended for testing!
 (addtest (lisp-matrix-ut-matrix-gemm)
@@ -234,7 +234,7 @@
 		:initial-contents #2A(( 1d0 2d0 )
 				      ( 6d0 7d0 )))))
     (m* m3-la m3-la)
-    (m* m3-la (transpose m3-la))))
+    (m* m3-la (transpose-matrix m3-la))))
 
 
 (defun check-m* (a b)
@@ -253,7 +253,7 @@
                  (7d0 8d0))))
 
 (def-m*-test m*-transpose-a
-  (transpose
+  (transpose-matrix
    (make-matrix 2 2 :initial-contents
 		'((1d0 3d0)
 		  (2d0 4d0))))
@@ -265,14 +265,14 @@
   (make-matrix 2 2 :initial-contents
 	       '((1d0 2d0)
 		 (3d0 4d0)))
-  (transpose
+  (transpose-matrix
    (make-matrix 2 2 :initial-contents
                 '((5d0 7d0)
                   (6d0 8d0)))))
 
 (def-m*-test m*-double-transpose-a
-    (transpose
-     (transpose
+    (transpose-matrix
+     (transpose-matrix
       (make-matrix 2 2 :initial-contents
                    '((1d0 2d0)
                      (3d0 4d0)))))
@@ -281,11 +281,11 @@
                  (7d0 8d0))))
 
 (def-m*-test m*-transpose-a-b
-    (transpose
+    (transpose-matrix
      (make-matrix 2 2 :initial-contents
                   '((1d0 3d0)
                     (2d0 4d0))))
-  (transpose
+  (transpose-matrix
    (make-matrix 2 2 :initial-contents
                 '((5d0 7d0)
                   (6d0 8d0)))))
@@ -591,7 +591,7 @@
                 (col-offset (gen-integer :min 0 :max 10)
                             (<= col-offset (- m m2))))
         (test-copy (rand n m))
-        (test-copy (transpose (rand n m)))
+        (test-copy (transpose-matrix (rand n m)))
         (test-copy (window (rand n m)
                            :nrows n2 :ncols m2
                            :row-offset row-offset

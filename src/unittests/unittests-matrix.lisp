@@ -204,8 +204,8 @@
   (for-all-implementations
     (let ((m (make-matrix 3 3)))
       (ensure (zero-offset-p m))
-      (ensure (zero-offset-p (transpose m)))
-      (ensure (zero-offset-p (transpose (transpose m))))
+      (ensure (zero-offset-p (transpose-matrix m)))
+      (ensure (zero-offset-p (transpose-matrix (transpose-matrix m))))
       (ensure (zero-offset-p (window m :nrows 1)))
       (ensure (zero-offset-p (strides m :ncols 1)))
       (ensure (not (zero-offset-p (window m :row-offset 1 :nrows 1))))
@@ -219,8 +219,8 @@
   (for-all-implementations
     (let ((m (make-matrix 3 3)))
       (ensure (unit-strides-p m))
-      (ensure (unit-strides-p (transpose m)))
-      (ensure (unit-strides-p (transpose (transpose m))))
+      (ensure (unit-strides-p (transpose-matrix m)))
+      (ensure (unit-strides-p (transpose-matrix (transpose-matrix m))))
       (ensure (unit-strides-p (window m :nrows 1)))
       (ensure (unit-strides-p (strides m :ncols 1)))
       (ensure (unit-strides-p (window m :row-offset 1 :nrows 1)))
@@ -228,7 +228,7 @@
       (ensure (unit-strides-p (strides m :row-offset 1 :nrows 1)))
       (ensure (unit-strides-p (strides m :col-offset 1 :ncols 1)))
       (ensure (not (unit-strides-p (strides m :row-stride 2 :nrows 2))))
-      (ensure (not (unit-strides-p (transpose (strides m :row-stride 2 :nrows 2)))))
+      (ensure (not (unit-strides-p (transpose-matrix (strides m :row-stride 2 :nrows 2)))))
       (ensure (not (unit-strides-p (window (strides m :row-stride 2 :nrows 2)))))
       (ensure (not (unit-strides-p (strides (strides m :row-stride 2 :nrows 2))))))))
 
