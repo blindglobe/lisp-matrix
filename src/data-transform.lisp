@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-07-21 08:33:06 tony>
+;;; Time-stamp: <2010-02-03 16:19:12 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
 ;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -28,7 +28,8 @@
 
 ;;; LIST <-> VECTOR-LIKE
 
-(defun list->vector-like (listvar &key
+(defun list->vector-like (listvar
+			  &key
 			  (coerce-to 'double-float)
 			  (orientation :row))
   "Create a vector-like using default implementation. Use globals to
@@ -53,46 +54,6 @@ convert to column."
     (dotimes (i (nelts vecvar))
       (setf (aref result i) (vref vecvar i)))
     result))
-
-;;; LISTOFLIST <-> MATRIX-LIKE
-
-
-(defun listsoflists-consistent-dimensions-p (&rest list-of-list-names)
-  "Check if the lengths of the lists are equal (T, otherwise NIL), to
-justify further processing and initial conditions."
-  (if (< 0  (reduce #'(lambda (x y) (if  (= x y) y -1))
-		    (mapcar #'length list-of-list-names)))
-      T nil))
-
-
-(defun listoflists-dimensions (lol)
-  "We assume row-major, that is each sublist denotes a row, and columns are formed by taking the jth element from each list to form the jth column"
-  (list (length lol)
-	(length (map 'list (lambda (x) 1) lol))))
-
-#|
- (defparameter *lol-1*  (list (list 1 2 3 4)
-			     (list 5 6 7 8)))
- (map 'list #'list *lol-1*)
- (map 'list (lambda (x) x) *lol-1*)
- (listoflists-dimensions *lol-1*)
-
-
-
- (defun listoflists->matrix-like (lol &optional (coerce-to 'double-float))
-  (let ((dims (loop lol counting number of subunits, first number is
-		 number in inside, second is nil if they don't all
-		 equal each other))
-	)
-    (let ((result (apply #'make-matrix dims))
-	  )
-      (loop-over-lol counting i j and setting value, and
-	   (setf (mref result i j) value)))  )  )
-
- (defun matrix-like->listoflists ())
- (defun matrix-like->array ())
- (defun array->matrix-like ())
-|#
 
 
 ;; FIXME: this function needs to be:
@@ -125,5 +86,3 @@ of the rectangle."
  (assert (matrix-like-symmetric-p (trap2mat *trap2mat-test1* :type :upper)))
  (assert (matrix-like-symmetric-p (trap2mat *trap2mat-test1* :type :lower)))
 |#
-
-;;; ListOfList functions
