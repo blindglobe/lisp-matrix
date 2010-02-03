@@ -16,7 +16,7 @@
 ;; (asdf:oos 'asdf:compile-op 'cffi :force t)
 
 (in-package :lisp-matrix-unittests)
-;; Tests = 69, Failures = 0, Errors = 2 ;; 26.2.2009
+;; Tests = 69, Failures = 0, Errors = 12 ;; 26.2.2009
 (run-tests :suite 'lisp-matrix-ut)
 (describe (run-tests :suite 'lisp-matrix-ut))
 ;; or simply...
@@ -63,6 +63,15 @@
 
 (progn  ;;#FIXME: writing out R matrices -- as strings and via RCLG
 
+  (defparameter *x-temp*
+    (make-matrix 4 5
+		 :implementation :lisp-array
+		 :element-type 'double-float
+		 :initial-contents #2A((11d0 12d0 13d0 14d0 15d0)
+				       (21d0 22d0 23d0 24d0 25d0)
+				       (31d0 32d0 33d0 34d0 35d0)
+				       (41d0 42d0 43d0 44d0 45d0))))
+
   ;; bad:  (min (values (list 4d0 2d0 3d0 5d0 3d0)))
   (reduce #'min (list 4d0 2d0 3d0 5d0 3d0))
   (reduce #'min (list 2d0 4d0 3d0 5d0 3d0))
@@ -92,11 +101,6 @@ Used for creating verfication scripts and test cases."
 
   (lispmatrix2R *x-temp*)
 
-  (concatenate 'string
-	       (format nil "~%~s <- matrix ( data = c(" "testme")
-	       (values-list (list "test" "test" "test")))
-
-  (apply #'concatenate  'string (list "test" "test" "test"))
 
   (let ((result (make-array (list 3 5) :element-type 'string)))
     (dotimes (i 3)
@@ -104,6 +108,7 @@ Used for creating verfication scripts and test cases."
 	(format t "~s ~s ~%" i j)
 	(setf (aref result i j) (format t "(~d ~d)," i j))))
     (reverse result))
+
   )
 
 
