@@ -105,14 +105,18 @@
        (:file "unittests-vector" :depends-on ("unittests")))))
 
        ;; (:file "tests")
-;;     :in-order-to ((test-op (load-op lisp-matrix)))
-;;     :perform (test-op :after (op c)
-;;                       (funcall (intern "RUN!" 'fiveam)
-;;                                (intern "TESTS" 'lisp-matrix)))
+#|
+     :in-order-to ((test-op (load-op lisp-matrix)))
+     :perform (test-op :after (op c)
+                       (funcall (intern "RUN!" 'fiveam)
+                                (intern "TESTS" 'lisp-matrix)))
+|#
     )
 
 ;;;; keep ASDF thinking that the test operation hasn't been done
-;; (defmethod operation-done-p 
-;;            ((o test-op)
-;;             (c (eql (find-system 'lisp-matrix))))
-;;   (values nil))
+#|
+ (defmethod operation-done-p 
+            ((o test-op)
+             (c (eql (find-system 'lisp-matrix))))
+   (values nil))
+|#
