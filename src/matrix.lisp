@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2009-12-19 17:15:52 tony>
+;;; Time-stamp: <2010-01-22 08:00:54 tony>
 
 (in-package :lisp-matrix)
 
@@ -37,8 +37,6 @@
 
 ;;; So object instantiation, access, special common objects (random,
 ;;; identity matrices) go here.   But numerical methods do not.
-
-
 
 (defclass matrix-like ()
   ((nrows :initarg :nrows
