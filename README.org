@@ -59,10 +59,8 @@ These dependencies need to be better worked out.
 **** xarray (generic array-like accessors)
 
 * Documentation
-
   Need to autogenerate approach for documenting what we can do with
   this. Until then, simple reference:
-
 #+begin_src common-lisp
 (make-matrix)  instantiates any supported matrix type:
 	         = lisp/foriegn
@@ -79,7 +77,6 @@ These dependencies need to be better worked out.
 (m- mat1 mat3)
 (axpy a mat1 mat2) => (scalar * matrix) + matrix
 #+end_src
-
 * Usage
 ** Demo (broken things)
 #+begin_src common-lisp
@@ -584,6 +581,12 @@ Used for creating verfication scripts and test cases."
 
 TODO.lisp    : things that don't work but should
 lm-demo.lisp : things that might work but should
+** Demo (getting started)
+#+begin_src common-lisp
+  (in-package :cl-user)
+  (asdf:oos 'asdf:load-op :lisp-matrix)
+#+end_src
+
 ** Demo (more working things)
 #+begin_src common-lisp
 ;;; This file illustrates some common actions in the course of working
