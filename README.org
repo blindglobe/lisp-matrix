@@ -1171,13 +1171,16 @@ m01b
     (make-matrix 3 1 :initial-contents '((5d0) (15d0) (25d0))))
 
 #+end_src
-* Tasks
-** TODO Refactor src into "lisp-matrix", "support", etc...
+* Tasks [1/3]
+** TODO [#B] Migrate DITZ issues into this file.
+   - State "TODO"       from ""           [2010-06-07 Mon 16:53]
+** TODO [#B] Refactor src into "lisp-matrix", "support", etc.
    - State "TODO"       from ""           [2010-06-07 Mon 16:39]
-** DONE Lisp-matrix in own package
+** DONE [#B] Lisp-matrix in own package
    - State "DONE"       from "CURR"       [2010-06-07 Mon 16:39] \\
      Finished a while back.
    - State "CURR"       from "TODO"       [2010-06-07 Mon 16:39]
    - State "TODO"       from ""           [2010-06-07 Mon 16:39]
    supports a lisp-matrix-user playground.
 * Disserata
+  say what.
