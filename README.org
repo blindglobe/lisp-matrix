@@ -58,6 +58,28 @@ These dependencies need to be better worked out.
 *** Others (AJR?)
 **** xarray (generic array-like accessors)
 
+* Documentation
+
+  Need to autogenerate approach for documenting what we can do with
+  this. Until then, simple reference:
+
+#+begin_src common-lisp
+(make-matrix)  instantiates any supported matrix type:
+	         = lisp/foriegn
+		 = single/double/complex-single/complex-double/integer
+
+(mref mat x y) get/set
+
+(bind2 mat1 mat2 :by [:row|:column] )
+
+(diagonal mat)
+
+(m* mat1 mat2) => selection of the correct ZYYmm type (gemm for general mat mult)
+(m+ mat1 mat2)
+(m- mat1 mat3)
+(axpy a mat1 mat2) => (scalar * matrix) + matrix
+#+end_src
+
 * Usage
 ** Demo (broken things)
 #+begin_src common-lisp
