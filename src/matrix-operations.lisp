@@ -152,6 +152,33 @@
 ;;; also on the list would be outer-product, but that should come from
 ;;; LAPACK?
 
+(defgeneric cross-product (mata matb))
+
+(defgeneric outer-product (mata matb &optional op)
+  (:documentation "compute outer product of 2 arrays.")
+  (:method ((mata t) (matb t) &optional (op t))
+    (error
+     "Outer Product not implemented for objects of type ~S and ~S"
+     mata matb))
+  (:method ((mata matrix-like)
+	    (matb matrix-like)
+	    &optional
+	    (op t))
+
+    (let ((resultdims  (list (dims 1 mata)
+			     (dims 2 mata)
+			     (dims 1 matb)
+			     (dims 2 matb)))
+	  (mresult (make-array resultdims)))
+      (loop 
+	 over i j k l in resultdims
+	   (setf (xref mresult i j k l)
+		 (funcall op
+			  (xref mata i j) (xref matb j k))))
+      mresult)))
+
+
+
 
 
 ;;; Element-wide operations.  API is similar to matlisp
