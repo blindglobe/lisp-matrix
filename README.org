@@ -8,29 +8,63 @@
   (code, design, code, testing, code, benchmarks, code, and more
   code).
 
+  Some of them continued on other projects, but I took this one on. 
+
   I'm just a dwarf standing on the shoulders of giants.
+
 ** Design
+
    Basic approach:
 
    Storage can be done at the lisp or external level.  Selection is
    user-specific, since you might have various people doing one or
    either, depending oupon the nature of the computations that are
-   required.  For exmpel large LAPACK-ish computatiosn are required to
-   be done externally whereas stuff which is more lisp-cerntreic culd
-   be done internally.
+   required.  For example, large LAPACK-ish computations are required
+   to be done externally whereas stuff which is more lisp-centric
+   culd be done internally.
 
    We avoid deep copying whenever possible.  current scablability of
    storage is not nearly as great as the storgeage required to do
    interesting things with biomedical data or economic data.  Whoops.
-   This means tht we spend time on strucutres where copying is
-   optional, done when needed to break the connectino from the initial
+   This means that we spend time on structures when copying is
+   optional, done when needed to break the connection from the initial
    data storage.
 
    We, of course, means "them".
 * Requirements:
+
 ** Common Lisp Systems
-   Works with: SBCL
-   Others: not clear (though CLISP is targetted)
+
+   Currently being developed under SBCL
+
+*** DONE [#A] compiles and runs with SBCL
+    - State "DONE"       from "CURR"       [2010-10-09 Sat 14:48] \\
+      verified a while back.
+    - State "CURR"       from "TODO"       [2010-10-09 Sat 14:48]
+    - State "TODO"       from ""           [2010-10-09 Sat 14:46]
+
+*** CURR [#B] compiles and runs with CLISP
+    - State "CURR"       from "TODO"       [2010-10-09 Sat 14:48]
+      in progress, Tony checking it from time to time.
+    - State "TODO"       from ""           [2010-10-09 Sat 14:46]
+     
+*** TODO [#C] compiles and runs with CMUCL
+    - State "TODO"       from ""           [2010-10-09 Sat 14:46]
+      Definitely of interest, of slightly less interest only because
+      SBCL is supported and CMUCL is closely related (unlike CCL).
+
+*** TODO [#B] compiles and runs with ClozureCL
+    - State "TODO"       from ""           [2010-10-09 Sat 14:46]
+      Definitely of interest
+
+*** TODO [#B] compiles and runs with Franz Lisp
+    - State "TODO"       from ""           [2010-10-09 Sat 14:46]
+      Definitely of interest
+
+*** TODO [#B] compiles and runs with Allegro CL
+    - State "TODO"       from ""           [2010-10-09 Sat 14:46]
+      Definitely of interest
+
 ** Packages:
 *** From Rif:
 **** org.middleangle.cl-blapack
@@ -56,15 +90,68 @@ In general:
 These dependencies need to be better worked out.
 
 *** Others (AJR?)
+**** lift (unit testing)
 **** xarray (generic array-like accessors)
 
+
 * Documentation
+
+
+#+srcname: loadit
+#+begin_src lisp
+  (asdf:oos 'asdf:load-op :lisp-matrix)
+#+end_src
+
+
+
   Need to autogenerate approach for documenting what we can do with
-  this. Until then, simple reference:
-#+begin_src common-lisp
-(make-matrix)  instantiates any supported matrix type:
-	         = lisp/foriegn
-		 = single/double/complex-single/complex-double/integer
+  this. Until then, simple reference.
+
+  Instantiates a supported matrix type:
+  - lisp/foriegn
+  - single/double/complex-single/complex-double/integer
+  by:
+#+srcname: 
+#+begin_src lisp
+  (make-matrix   )
+#+end_src
+
+  right now, we are being numerical analysts, and only allow for a
+  single modality, i.e. lisp-integer, foriegn-doubleFloat, etc.
+
+  Referencing elements is done using the xarray system.  
+
+#+srcname: 
+#+begin_src lisp
+  (xref mat
+        x
+        y
+        :return-as 'matrix)               ; for a single mat[x,y] value
+  (xref mat
+        (rows x1 x2 x3)
+        (columns y1 y2 y3))               ; for a 3x3 matrix restricted
+                                          ; to the appropriate rows and
+                                          ; columns
+  
+  (xref mat
+        (except-for-rows x1 x2 x3)
+        (except-for-columns x1 x2 x3))
+  
+  ;; 1-d 1x4 array
+  (xref mat
+        (shaped-return (list (list x1 y1) (list x2 y2) (list x3 y3) (list x4 y4)))) 
+  
+  ;; 2-d 2x2 array
+  (xref mat
+        (shaped-return (list (list (list x1 y1) (list x2 y2))
+                             (list (list x3 y3) (list x4 y4)))))
+#+end_src
+
+
+
+
+#+begin_src lisp
+
 
 (mref mat x y) get/set
 
