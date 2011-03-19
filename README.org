@@ -1,14 +1,16 @@
 	-*- mode: org -*-
 
 * Introduction
-  Lisp-Matrix is a reasonably modern, flexible system for numeric
-  algebra in Lisp.
+
+  Lisp-Matrix intends to be a reasonably modern, flexible system for
+  numeric algebra in Lisp.
 
   Rif, Tomas Papp, and Mark H contributed various critical pieces
   (code, design, code, testing, code, benchmarks, code, and more
   code).
 
-  Some of them continued on other projects, but I took this one on. 
+  Some of them continued on other projects and left this behind, a gem
+  in the rough, so I took this one on.
 
   I'm just a dwarf standing on the shoulders of giants.
 
@@ -102,14 +104,13 @@ These dependencies need to be better worked out.
   (asdf:oos 'asdf:load-op :lisp-matrix)
 #+end_src
 
-
-
   Need to autogenerate approach for documenting what we can do with
   this. Until then, simple reference.
 
   Instantiates a supported matrix type:
-  - lisp/foriegn
+  - lisp/foreign
   - single/double/complex-single/complex-double/integer
+  - (TODO: need to consider normal or mmap'd structures as well) 
   by:
 #+srcname: 
 #+begin_src lisp
@@ -119,7 +120,11 @@ These dependencies need to be better worked out.
   right now, we are being numerical analysts, and only allow for a
   single modality, i.e. lisp-integer, foriegn-doubleFloat, etc.
 
-  Referencing elements is done using the xarray system.  
+  A different package, based on this, should manage mixed-data type
+  typed matrices/arrays.
+
+  Referencing elements is done using the xarray system, so that needs
+  to be a dependency of this.
 
 #+srcname: 
 #+begin_src lisp

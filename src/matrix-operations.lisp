@@ -165,16 +165,18 @@
 	    &optional
 	    (op t))
 
-    (let ((resultdims  (list (dims 1 mata)
-			     (dims 2 mata)
-			     (dims 1 matb)
-			     (dims 2 matb)))
+    (let ((resultdims  (list (xdims 1 mata)
+			     (xdims 2 mata)
+			     (xdims 1 matb)
+			     (xdims 2 matb)))
 	  (mresult (make-array resultdims)))
+#|
       (loop 
 	 over i j k l in resultdims
 	   (setf (xref mresult i j k l)
 		 (funcall op
 			  (xref mata i j) (xref matb j k))))
+|#
       mresult)))
 
 

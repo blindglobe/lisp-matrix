@@ -1,10 +1,24 @@
-;;;; lisp-matrix package definition.
-;;;; Author: mfh
+;;; -*- mode: lisp -*-
+
+;;; Time-stamp: <2011-03-17 11:59:42 tony>
+;;; Creation:   ??
+;;; File:       package.lisp
+;;; Author:     mfh
+;;; Maintainer: AJ Rossini <blindglobe@gmail.com>
+;;; Copyright:  (c)2009--2011, AJ Rossini.  Currently licensed under MIT
+;;;             license.  See file LICENSE.mit in top-level directory
+;;;             for information.
+;;; Purpose:    lisp-matrix package definition.
+
+;;; What is this talk of 'release'? Klingons do not make software
+;;; 'releases'.  Our software 'escapes', leaving a bloody trail of
+;;; designers and quality assurance people in its wake.
 
 (in-package :cl-user)
 
 (defpackage :lisp-matrix
   (:use :cl
+	:xarray
         :cffi
         :cl-utilities
         :org.middleangle.foreign-numeric-vector
