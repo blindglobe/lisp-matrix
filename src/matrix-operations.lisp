@@ -165,11 +165,11 @@
 	    &optional
 	    (op t))
 
-    (let ((resultdims  (list (xdims 1 mata)
-			     (xdims 2 mata)
-			     (xdims 1 matb)
-			     (xdims 2 matb)))
-	  (mresult (make-array resultdims)))
+    (let* ((resultdims  (list (xdims 1 mata)
+                              (xdims 2 mata)
+                              (xdims 1 matb)
+                              (xdims 2 matb)))
+           (mresult (make-array resultdims)))
 #|
       (loop 
 	 over i j k l in resultdims
