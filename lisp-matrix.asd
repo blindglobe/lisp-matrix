@@ -35,7 +35,7 @@
     :depends-on (:cffi
 		 :cl-utilities
 		 
-		 ;; :xarray ; we will use this for general indexing
+		 :xarray ; we will use this for general indexing
 
                  ;; :fiveam  ;;see below for its replacement...
 		 :lift ;; yes, Tony (me) is a PITA...

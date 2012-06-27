@@ -24,7 +24,8 @@
         :org.middleangle.foreign-numeric-vector
         :org.middleangle.cl-blapack
 	:ffa)
-  (:import-from :fnv) ;; do we really need this?  We are using it!
+  (:import-from :fnv-utils
+                #:complex-float #:complex-double)
   (:export
 
    ;; base classes (need we export more?) and informtion
