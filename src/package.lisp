@@ -24,7 +24,6 @@
         :org.middleangle.foreign-numeric-vector
         :org.middleangle.cl-blapack
 	:ffa)
-  (:import-from :fnv) ;; do we really need this?  We are using it!
   (:export
 
    ;; base classes (need we export more?) and informtion
@@ -135,15 +134,13 @@
    potrf potri potrs minv-cholesky msolve-cholesky ;; cholesky, symm matrices
    geqrf ;; qr
 
-
    matrix-like-symmetric-p
 
    cross-product ;; outer-product
 
    ;; data transforms
    list->vector-like vector-like->list
-   trap2mat
-   ))
+   trap2mat ))
 
 
 (defpackage :lisp-matrix-user
