@@ -108,10 +108,8 @@
 
 (def-lisp-matrix-type single single-float :cffi-type :float)
 (def-lisp-matrix-type double double-float :cffi-type :double)
-(def-lisp-matrix-type complex-single (complex single-float)
-  :cffi-type :complex-float)
-(def-lisp-matrix-type complex-double (complex double-float)
-  :cffi-type :complex-double)
+(def-lisp-matrix-type complex-single (complex single-float) :cffi-type fnv:cffi-fnv-complex-float)
+(def-lisp-matrix-type complex-double (complex double-float) :cffi-type fnv:cffi-fnv-complex-double)
 (def-lisp-matrix-type fixnum fixnum)
 (def-lisp-matrix-type integer integer)
 (def-lisp-matrix-type t t)
