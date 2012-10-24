@@ -138,7 +138,7 @@
 
    matrix-like-symmetric-p
 
-   cross-product outer-product
+   cross-product ;; outer-product
 
    ;; data transforms
    list->vector-like vector-like->list

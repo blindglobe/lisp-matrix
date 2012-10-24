@@ -154,6 +154,8 @@
 
 (defgeneric cross-product (mata matb))
 
+#|
+
 (defgeneric outer-product (mata matb &optional op)
   (:documentation "compute outer product of 2 arrays.")
   (:method ((mata t) (matb t) &optional (op t))
@@ -165,19 +167,18 @@
 	    &optional
 	    (op t))
 
-    (let ((resultdims  (list (xdims 1 mata)
+    (let* ((resultdims (list (xdims 1 mata)
 			     (xdims 2 mata)
 			     (xdims 1 matb)
 			     (xdims 2 matb)))
-	  (mresult (make-array resultdims)))
-#|
+	   (mresult (make-array resultdims)))
       (loop 
 	 over i j k l in resultdims
 	   (setf (xref mresult i j k l)
 		 (funcall op
 			  (xref mata i j) (xref matb j k))))
-|#
       mresult)))
+|#
 
 
 
