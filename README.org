@@ -191,6 +191,9 @@ In general:
 
    1. instantiating matrices and vectors
    2. inversion using BLAS/LAPACK
+
+   <2012-10-25 Thu> except that transpose and the last example (geqrf)
+   are broken.
  
 #+begin_src common-lisp
   (in-package :lisp-matrix-user)
@@ -366,7 +369,7 @@ In general:
                            (6d0)
                            (7d0)
                            (8d0))))
-    (transpose *y2*)
+    (transpose *y2*) ;; ERROR: not in lisp-matrix-user?
   
   
   
@@ -424,10 +427,9 @@ In general:
     ;; release notes).
   
     (let ((a (rand 10 5)))
-      (geqrf a)))
+      (geqrf a))) ;; error, something not being properly passed.
 #+end_src
 
-TODO.lisp    : things that don't work but should
 lm-demo.lisp : things that might work but should
 ** Demo (getting started)
 #+begin_src common-lisp
