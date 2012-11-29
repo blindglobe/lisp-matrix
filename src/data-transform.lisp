@@ -1,11 +1,11 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2010-02-03 16:19:12 tony>
+;;; Time-stamp: <2012-11-29 13:33:26 tony>
 ;;; Creation:   <2008-12-02 17:28:08 tony>
 ;;; File:       data-transform.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
-;;; Copyright:  (c)2008--, AJ Rossini.  BSD, LLGPL, or GPLv2, depending
-;;;             on how it arrives.  
+;;; Copyright:  (c)2008--, AJ Rossini.
+;;; License:    MIT
 ;;; Purpose:    conversion functions:
 ;;;             +  lists <-> vector-like 
 ;;;                lists of lists <-> matrix-like
