@@ -22,7 +22,7 @@
 
 (defsystem lisp-matrix
     :name "lisp-matrix"
-    :version "0.0.1"
+    :version "0.2"
     :author "Mark Hoemmen <mhoemmen@cs.berkeley.edu>"
     :license "BSD sans advertising clause"
     :description "linear algebra library"
@@ -35,7 +35,7 @@
     :depends-on (:cffi
 		 :cl-utilities
 		 
-		 ;; :xarray ; we will use this for general indexing
+		 :xarray ; we will use this for general indexing
 
                  ;; :fiveam  ;;see below for its replacement...
 		 :lift ;; yes, Tony (me) is a PITA...
