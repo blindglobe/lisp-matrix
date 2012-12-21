@@ -32,6 +32,7 @@
    data storage.
 
    We, of course, means "them".
+
 * Requirements:
 
 ** Common Lisp Systems
@@ -81,20 +82,26 @@
 *** From Tomas:
 
 **** ffa
+     
+     This provides lisp stored matrices
 
 **** array-operations
+
+     general actions for these matrices.
 
 *** From Mark:
 
 **** lisp-matrix integration (also found in ffa and cl-blapack).
 
-In general:
+     Mark initially put it all together.
 
 *** From Others
 
     These are dependencies that arise from the original authors.
 
 **** cffi  (depends on babel, alexandria )
+
+     
 **** cl-utilities
 **** iterate
 **** metabang-bind
@@ -106,13 +113,19 @@ In general:
      Am not sure that this is still the case (trivial-timeout dependency)
 
 *** Others (AJR?)
+
 **** lift (unit testing)
+
+     lift has become the canonical unit-testing framework for this
+     system.  There could also be an argument for lisp-unit, which is
+     more popular.
+
 **** xarray (generic array-like accessors)
 
-     This is not so much a dependency as an enhancer.
+     This is not so much a dependency as an enhancer.  It provides a
+     single common API for access of elements in array-like objects.
 
 * Documentation
-
 
 #+NAME: loadit
 #+BEGIN_SRC lisp
@@ -131,7 +144,7 @@ In general:
 
 #+NAME: matrixExData
 #+BEGIN_SRC lisp
-  (make-matrix   )
+  (make-matrix  )
 #+END_SRC
 
   right now, we are being numerical analysts, and only allow for a
@@ -172,6 +185,7 @@ In general:
                              (list (list x3 y3) (list x4 y4)))))
 #+end_src
 
+And then there is the older stuff.
 
 #+NAME: OldNativeAPI
 #+begin_src lisp
@@ -184,8 +198,10 @@ In general:
 (axpy a mat1 mat2) => (scalar * matrix) + matrix
 #+end_src
 
+which we need to consider, perhaps through some sort of macro package?
+
 * Usage
-** Demo (working things)
+** COMMENT Demo (working things)
    Demos for Lisp Matrix (encoded within progn's)
 
    1. instantiating matrices and vectors
@@ -193,70 +209,66 @@ In general:
 
    <2012-10-25 Thu> except that transpose and the last example (geqrf)
    are broken.
- 
-#+begin_src common-lisp
+
+   In Common lisp, it is useful, sometimes overkill, to properly
+   define the precision and form of the numbers (i.e. single, double, rational,
+   or complex).  
+
+   Here is the approach for creating matrices which satisfy the
+   default (preset) storage and framework, as well as how one might
+   retrieve the documentation string.
+
+#+name: CreatingDefaultMatrices
+#+begin_src lisp
   (in-package :lisp-matrix-user)
-  
-  (progn ;; data object instantiation
-  
-    (defparameter *m01*
-      (make-matrix
-       6 5
-       :initial-contents '((11d0 12d0 13d0 14d0 15d0)
-                           (21d0 22d0 23d0 24d0 25d0)
-                           (31d0 32d0 33d0 34d0 35d0)
-                           (41d0 42d0 43d0 44d0 45d0)
-                           (51d0 52d0 53d0 54d0 55d0)
-                           (61d0 62d0 63d0 64d0 65d0)))
-      "6x5 matrix with entries representing row+1,col+1 values, for
+  (defparameter *m01*
+    (make-matrix
+     6 5
+     :initial-contents '((11d0 12d0 13d0 14d0 15d0)
+                         (21d0 22d0 23d0 24d0 25d0)
+                         (31d0 32d0 33d0 34d0 35d0)
+                         (41d0 42d0 43d0 44d0 45d0)
+                         (51d0 52d0 53d0 54d0 55d0)
+                         (61d0 62d0 63d0 64d0 65d0)))
+    "6x5 matrix with entries representing row+1,col+1 values, for
        test purposes.")
-  
-    (documentation  '*m01* 'variable)
-  
-    (defparameter *m1-ex*  (make-matrix 2 5
-                             :implementation :lisp-array  ;; :foreign-array
-                             :element-type 'double-float)
-      "quick variable initialized to zeros")
+  (documentation  '*m01* 'variable)
+#+end_src
+
+   We can also create matrices which follow a specified framework, for
+   example using lisp-based storage, in CL arrays (TODO: verify!  but
+   I think this claim is true):
+
+#+name: CreatingLispArrayMatrices
+#+begin_src lisp
+  (in-package :lisp-matrix-user)
+
+  (defparameter *m1-ex*
+    (make-matrix
+     2 5
+     :implementation :lisp-array  ;; :foreign-array
+     :element-type 'double-float)
+    "quick variable initialized to zeros")
+
+  (defparameter *m2-la*
+    (make-matrix
+     2 5
+     :implementation :lisp-array 
+     :element-type 'double-float
+     :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+                           ( 6d0 7d0 8d0 9d0 10d0)))
+    "placeholder 2")
       
-    (defparameter *m2-la-int*
-      (make-matrix 2 5
-                   :implementation :lisp-array  ;; :foreign-array
-                   :element-type 'integer ; 'double-float
-                   ;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
-                   :initial-contents #2A((1 2 3 4 5)
-                                         (6 7 8 9 10)))
-      "placeholder 2")
-  
-    ;; Currently we can make a foriegn matrix of doubles, but not a
-    ;; foriegn matrix of integers.
-    (defparameter *m2-fa*
-      (make-matrix
-       2 5
-       :implementation :foreign-array 
-       :element-type 'double-float
-       :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
-                             ( 6d0 7d0 8d0 9d0 10d0)))
-      "placeholder 2")
-  
-    (defparameter *m2-la*
-      (make-matrix
-       2 5
-       :implementation :lisp-array 
-       :element-type 'double-float
-       :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
-                             ( 6d0 7d0 8d0 9d0 10d0)))
-      "placeholder 2")
-  
-  
-    (defparameter *m3-fa*
-      (make-matrix
-       2 2
-       :implementation :foreign-array 
-       :element-type 'double-float
-       :initial-contents #2A(( 1d0 2d0 )
-                             ( 6d0 7d0 )))
-      "placeholder 2")
-  
+  (defparameter *m2-la-int*
+    (make-matrix
+     2 5
+     :implementation :lisp-array  ;; :foreign-array
+     :element-type 'integer ; 'double-float
+     ;; :initial-contents (list 1 2 3 4 5 6 7 8 9 10)
+     :initial-contents #2A((1 2 3 4 5)
+                           (6 7 8 9 10)))
+    "placeholder 2")
+
     (defparameter *m3-la*
       (make-matrix
        2 2
@@ -265,21 +277,61 @@ In general:
        :initial-contents #2A(( 1d0 2d0 )
                              ( 6d0 7d0 )))
       "placeholder 2")
+#+end_src
+
+   At times, it can be optimal to store data in foreign (C/Fortran)
+   native structures.  Then, we create matrices which use foreign
+   array storage:
+
+   Currently we can make a foriegn matrix of doubles, but not a
+   foreign matrix of integers.  This is a implementation gap, not a
+   fundamental error, and we just need to fix it.
+
+#+name: CreatingForeignArrayMatrices
+#+begin_src lisp
+  (defparameter *m2-fa*
+    (make-matrix
+     2 5
+     :implementation :foreign-array 
+     :element-type 'double-float
+     :initial-contents #2A(( 1d0 2d0 3d0 4d0 5d0)
+                           ( 6d0 7d0 8d0 9d0 10d0)))
+    "placeholder 2")
   
-      
-    (defparameter *m01b*
-      (strides *m01* :nrows 2 :ncols 3
-               :row-stride 2
-               :row-offset 1 :col-offset 1))
-    
-    (defparameter *m01c* 
-      (window *m01*
-              :nrows 2 :ncols 3
-              :row-offset 2 :col-offset 1))
-                                          ; EVAL BELOW TO SETUP DATA
+  (defparameter *m3-fa*
+    (make-matrix
+     2 2
+     :implementation :foreign-array 
+     :element-type 'double-float
+     :initial-contents #2A(( 1d0 2d0 )
+                           ( 6d0 7d0 )))
+    "placeholder 2")
+#+end_src
+
+We can subset matrices without copying, though it is always possible
+to copy if one would like to:
+
+#+begin_src lisp
+  (defparameter *m01b*
+    (strides *m01* :nrows 2 :ncols 3
+             :row-stride 2
+             :row-offset 1 :col-offset 1))
   
-  
-    ;; data for lls estimation
+  (defparameter *m01c* 
+    (window *m01*
+            :nrows 2 :ncols 3
+            :row-offset 2 :col-offset 1))
+#+end_src
+
+And we are allowed to, with vectors, specify orientation.  This is a
+controversial point -- should vectors always be orientation-free, with
+1xN and Mx1 matrices represent row and column "vectors", i.e. 1-d
+matrices? 
+
+The following sets up data for linear least squares estimation:
+
+#+name LinearLeastSquaresEx  
+#+begin_src lisp
     (defparameter *xv*
       (make-vector
        8
@@ -427,6 +479,7 @@ In general:
   
     (let ((a (rand 10 5)))
       (geqrf a))) ;; error, something not being properly passed.
+  
 #+end_src
 
 lm-demo.lisp : things that might work but should
