@@ -1,0 +1,123 @@
+
+* Overview
+
+  This is technically the TODO file, used as a live testing ground as
+  well.
+
+
+* Tasks
+
+** TODO [#B] M Maul's request, GEMM for foriegn arrays
+   DEADLINE: <2013-02-03 Sun> SCHEDULED: <2012-12-21 Fri>
+   
+   <2012-12-21 Fri>
+
+   How hard would it be to implement support for foreign-array in M*?
+
+#+begin_src lisp
+(M* (ones 2 2 :implementation :foreign-array)
+    (ones 2 2 :implementation :foreign-array))
+#+end_src
+
+   results with:
+
+#+begin_example
+There is no applicable method for the generic function:
+  #<STANDARD-GENERIC-FUNCTION GEMM #x19E7786E>
+when called with arguments:
+  (1.0 #<FA-SIMPLE-MATRIX-DOUBLE  2 x 2
+ 1.0 1.0
+ 1.0 1.0>
+   #<FA-SIMPLE-VECTOR-DOUBLE (2 x 1)
+ 1.0
+ 1.0>
+   0.0 #<LA-SIMPLE-VECTOR-DOUBLE (2 x 1)
+ 0.0
+ 0.0>)
+   [Condition of type SIMPLE-ERROR]
+#+end_example
+
+   Well in all the M functions for that matter. There is functionality
+   needed in blas libraries which require foreign-arrays.
+
+   Consequently I am using copy* do to conversions back and forth
+   between lisp-array and foreign-array which is slows things down
+   quite a drastically.
+
+   On the plus side when copy's are not necessary performance is not
+   too bad. In fact it is about 4x faster then interpreted
+   lush. Compiled lush is 14 times faster, but compiled lush is mostly
+   syntatic sugar over C and there is tight integration with lush and
+   it's matrix code which is mostly implemented in C.
+
+   If your interested here is my code I've been using to evaluate
+   lisp-matrix:
+
+#+begin_src lisp
+  (in-package :lisp-matrix-user) ; not sure if this is right (Tony)
+  (defparameter *ex1data2-array* (csv-file->array "ex1data2.txt" ))
+  (defparameter *ex1data2-matrix*
+    (make-matrix 47 3 :implementation :lisp-array ;:foreign-array
+                 :element-type 'double-float
+                 :initial-contents *ex1data2-array*))
+  (defparameter *ex1data1*
+    (make-matrix 97 3 :implementation :lisp-array ;:foreign-array
+                 :element-type 'double-float
+                 :initial-contents (csv-file->array "ex1data1.txt" :oness 1)))
+  (defparameter theta (zeros 2 1))
+  (defparameter X (strides *ex1data1* :ncols 2))
+  (defparameter y (strides *ex1data1* :ncols 1 :col-offset 2))
+  (defparameter iterations 1500)
+  (defparameter alpha 0.01)
+  (defparameter theta1
+    (make-matrix 2 1 :implementation :lisp-array ;foreign-array
+                 :Initial-contents '((.2d0) (.2d0))))
+   
+  (defun cost (X y theta)
+    (let* ((h (M* X theta))
+           (h-y (M.- h y))
+           (h-y**2 (M.* h-y h-y))
+           (m (nrows X)))
+       (* (/ 1d0 (* 2d0 m))
+          (asum h-y**2))))
+  
+  (defun gradient (X y theta alpha)
+    (let* ((m (nrows X*))
+           (alpha*1/m (* alpha (/ 1 m)))
+           (h (M* X theta))
+           (h-y*X  (M* (transpose-matrix (M.- h y))  X)))
+      (M.- theta
+           (copy* (scal alpha*1/m
+                        (copy* h-y*X :foreign-array)) :lisp-array))))
+#+end_src
+
+   If you have any suggestions regarding my use of lisp-matrix I'd
+   love to hear them.
+
+   If you can give some hints for supporting foreign-array in the M
+   functions I'm not above implementing them.
+
+   In general I do like the interface. As a comparison below is
+   equivalent code in lush:
+
+#+begin_src lush
+(defun compute-cost-nc (X y theta)
+    (let* ((m (length X))
+  (h (idx-reshape (idx-m2dotm1 X theta) (list m 1)))
+  )
+      ((* (/ 1 (* 2 m)) (mat-sum (** (- h y) 2))) 0)
+      )
+    )
+
+(defun gradient-nc (X y theta alpha)
+  (let* ((m (idx-shape X 0))
+(alpha*1/m (* alpha (/ 1 m)))
+(h (idx-reshape (idx-m2dotm1 X  theta ) (list m 1)))
+(h-y*X  (mat-.* (mat-transpose (- h y))  X))
+)
+    (idx-flatten (- theta (* h-y*X alpha*1/m)))
+    )
+)
+#+end_src
+
+
