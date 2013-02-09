@@ -54,14 +54,19 @@ when called with arguments:
    lisp-matrix:
 
 #+begin_src lisp
+  ;; (ql:quickload :antik)
+  ;; (ql:quickload :lisp-matrix)
   (in-package :lisp-matrix-user) ; not sure if this is right (Tony)
   (defparameter *ex1data2-array* (csv-file->array "ex1data2.txt" ))
+  (defparameter *ex1data2-array* (make-array '(47 3) :initial-element 12.d0 :adjustable t))
   (defparameter *ex1data2-matrix*
-    (make-matrix 47 3 :implementation :lisp-array ;:foreign-array
+    (make-matrix 47 3
+                 :implementation :lisp-array ;:foreign-array
                  :element-type 'double-float
                  :initial-contents *ex1data2-array*))
   (defparameter *ex1data1*
-    (make-matrix 97 3 :implementation :lisp-array ;:foreign-array
+    (make-matrix 97 3
+                 :implementation :lisp-array ;:foreign-array
                  :element-type 'double-float
                  :initial-contents (csv-file->array "ex1data1.txt" :oness 1)))
   (defparameter theta (zeros 2 1))
@@ -70,7 +75,8 @@ when called with arguments:
   (defparameter iterations 1500)
   (defparameter alpha 0.01)
   (defparameter theta1
-    (make-matrix 2 1 :implementation :lisp-array ;foreign-array
+    (make-matrix 2 1
+                 :implementation :lisp-array ;foreign-array
                  :Initial-contents '((.2d0) (.2d0))))
    
   (defun cost (X y theta)
@@ -89,6 +95,7 @@ when called with arguments:
       (M.- theta
            (copy* (scal alpha*1/m
                         (copy* h-y*X :foreign-array)) :lisp-array))))
+  
 #+end_src
 
    If you have any suggestions regarding my use of lisp-matrix I'd
