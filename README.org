@@ -201,6 +201,11 @@ And then there is the older stuff.
 which we need to consider, perhaps through some sort of macro package?
 
 * Usage
+
+#+begin_src lisp
+(ql:quickload :lisp-matrix)
+#+end_src
+
 ** COMMENT Demo (working things)
    Demos for Lisp Matrix (encoded within progn's)
 
