@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2010-01-22 08:00:54 tony>
+;;; Time-stamp: <2013-02-09 12:28:46 tony>
 
 (in-package :lisp-matrix)
 
@@ -71,15 +71,17 @@
 
 (defgeneric nelts (matrix)
   (:documentation "Default method for computing the number of elements
-  of a matrix.  For obvious reasons, this will be overridden for
-  subclasses that implement sparse matrices.")
+   of a matrix.  For obvious reasons, this will be overridden for
+   subclasses that implement sparse matrices.  The main purpose of
+   this is to estimate size and memory requirements.")
   (:method ((matrix matrix-like)) (* (nrows matrix) (ncols matrix))))
 
-;; Is it worth subclassing a set of symbols or sub-range of integers
-;; to use here, so as to not have to worry about typing, and let CLOS
-;; do error checking?
 (defgeneric matrix-dimension (matrix axis-number)
-  (:documentation "Like ARRAY-DIMENSION for matrix-like objects.")
+  (:documentation "Like ARRAY-DIMENSION for matrix-like objects. 
+
+   Is it worth subclassing a set of symbols or sub-range of integers
+   to use here, so as to not have to worry about typing, and let CLOS
+   do error checking?")
   (:method ((matrix matrix-like) axis-number)
     (cond ((= axis-number 0) (nrows matrix))
           ((= axis-number 1) (ncols matrix))
@@ -88,12 +90,10 @@
           (t (error "Invalid AXIS-NUMBER for MATRIX ~A: ~A" matrix
                     axis-number)))))
 
-
 (defgeneric matrix-dimensions (matrix)
   (:documentation "Like ARRAY-DIMENSIONS for matrix-like objects.")
   (:method ((matrix matrix-like)) 
     (list (nrows matrix) (ncols matrix))))
-
 
 (defun assert-valid-matrix-index (matrix i j)
     (assert (< -1 i (matrix-dimension matrix 0)))
@@ -141,11 +141,15 @@
   corresponding to the default implementation of the generic function
   ORIENTATION.")
   (:method ((matrix matrix-like) i j)
-    (assert-valid-matrix-index matrix i j) ; FIXME! better idiot proofing needed
+    ;; FIXME! better idiot proofing needed
+    (assert-valid-matrix-index matrix i j)
     (+ i (* j (nrows matrix)))))
 
 (defun flatten-matrix-indices-1 (matrix i j)
-  (assert-valid-matrix-index matrix i j) ; FIXME! better idiot proofing needed
+  ;; FIXME! better idiot proofing needed.  This is the function form
+  ;; of the generic.  Do we really need both?  Speedwise, maybe, but
+  ;; then this one should be highly optimized.
+  (assert-valid-matrix-index matrix i j) 
   (ecase (orientation matrix)
     (:column (+ i (* j (nrows matrix))))
     (:row (+ j (* i (ncols matrix))))))
@@ -175,7 +179,10 @@
 ;;; I (AJR) think the intent of this was to consider that there is a
 ;;; mapping from the original matrix to the new one on an
 ;;; element-by-element basis; ideally, this would be a simple
-;;; specification. 
+;;; specification.  And this means that one can avoid copying, but
+;;; only work by reference.  However, modifications then are passed
+;;; through, perhaps we need to ensure that there is a flag for the
+;;; object to be read-only.
 
 (defclass matview (matrix-like) 
   ((parent :initarg :parent
@@ -422,8 +429,12 @@
       'double-float  'single-float  'complex-single-float
    but this list is probably incomplete.")
 
-(defgeneric make-matrix* (nrows ncols implementation &key element-type
-                                initial-element)
+(defgeneric make-matrix* (nrows
+			  ncols
+			  implementation
+			  &key
+			    element-type
+			    initial-element)
   (:documentation "Create a NROWS x NCOLS matrix with IMPLEMENTATION
   as underlying implementation.  ELEMENT-TYPE is the lisp type to be
   stored in the matrix, and INITIAL-ELEMENT an element that may be
@@ -453,8 +464,8 @@
 
   IMPLEMENTATION can be one of :LISP-ARRAY and :FOREIGN-ARRAY"
   (when (and initial-element-p initial-contents-p)
-    (error "Both INITIAL-ELEMENT and INITIAL-CONTENTS should not be ~
-    specified"))
+    (error
+     "Only one of INITIAL-ELEMENT and INITIAL-CONTENTS can be ~ specified"))
   (let ((matrix (apply #'make-matrix* nrows ncols implementation
                        :element-type element-type
                        (when initial-element-p
@@ -704,10 +715,14 @@
 
 ;;;; ** Copying
 
+;; maybe copy->  ??
+
 (defgeneric copy! (a b)
   (:documentation "Copy A into B if they are not the same object, and
   return B.  A and B should be matrices or vectors with the same
   dimensions, but not necessarily of the same implementation."))
+
+;; should we put the following methods into the method component of the generic specification? 
 
 (defmethod copy! ((a matrix-like) (b matrix-like))
   (unless (eq a b)
@@ -752,9 +767,10 @@ structure of the lists which are used for input."
   b)
 
 (declaim (inline copy))
+
 (defun copy (matrix)
-  "Return a deep copy of MATRIX with the same implementation and
-  element-type."
+  "Return a deep identical copy of MATRIX (same implementation and
+element-type)."
   (copy* matrix (implementation matrix)))
 
 (defgeneric copy* (matrix implementation)
@@ -769,11 +785,14 @@ structure of the lists which are used for input."
 (defun copy-maybe (matrix test)
   "Return a deep copy of MATRIX if TEST is satisfied, or return MATRIX
   itself.  TEST is a function of one argument that will be applied to
-  MATRIX."
+  MATRIX.  
+
+  Example use: copy if small enough, and use the original if too
+  large."
   (copy-maybe* matrix test (implementation matrix)))
 
 (defun copy-maybe* (matrix test implementation)
-  "Same as COPY-MAYBE but specify the implementation."
+  "Same as COPY-MAYBE but one can specify the implementation."
   (if (funcall test matrix)
       (copy* matrix implementation)
       matrix))
