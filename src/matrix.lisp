@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2013-02-09 12:28:46 tony>
+;;; Time-stamp: <2013-12-26 14:42:17 tony>
 
 (in-package :lisp-matrix)
 
@@ -38,7 +38,7 @@
 ;;; So object instantiation, access, special common objects (random,
 ;;; identity matrices) go here.   But numerical methods do not.
 
-(defclass matrix-like ()
+(defclass matrix-like (xarray-like)
   ((nrows :initarg :nrows
           :reader nrows
           :initform 0)
@@ -51,7 +51,10 @@
  
    There is NO DATA in the base class! (storage only comes with
    derived classes).  Matrix-like data only has nrows/ncols as
-   essential data -- derived classes will have additional slots."))
+   essential data -- derived classes will have additional slots.
+
+   However, we insist that the xarray API be usable here.
+   REQUIREMENT, not a suggestion."))
 
 (defgeneric nrows (matrix)
   (:documentation "Number of rows in the matrix."))
