@@ -1,4 +1,6 @@
 
+LICENSE: BSD sans advertising (Mark H)
+
 * Introduction
 
   Lisp-Matrix intends to be a reasonably modern, flexible system for
@@ -127,78 +129,99 @@
 
 * Documentation
 
-#+NAME: loadit
-#+BEGIN_SRC lisp
-  (asdf:oos 'asdf:load-op :lisp-matrix)
-  ;; (ql:quickload :lisp-matrix)
-#+END_SRC
+** API
 
-  Need to autogenerate approach for documenting what we can do with
-  this. Until then, simple reference.
+*** matrix-foreign-array
 
-  Instantiates a supported matrix type:
-  - lisp/foreign
-  - single/double/complex-single/complex-double/integer
-  - (TODO: need to consider normal or mmap'd structures as well) 
-  by:
+(defgeneric make-fa-matrix (nrows ncols fnv-type
 
-#+NAME: matrixExData
-#+BEGIN_SRC lisp
-  (make-matrix  )
-#+END_SRC
+*** matrix
 
-  right now, we are being numerical analysts, and only allow for a
-  single modality, i.e. lisp-integer, foriegn-doubleFloat, etc.
+(defgeneric nrows (matrix)
+(defgeneric ncols (matrix)
+(defgeneric data (matrix)
+(defgeneric nelts (matrix)
+(defgeneric matrix-dimension (matrix axis-number)
+(defgeneric matrix-dimensions (matrix)
+(defgeneric orientation (matrix)
+(defgeneric flatten-matrix-indices (matrix i j)
+(defgeneric mref (matrix i j)
+(defgeneric (setf mref) (value matrix i j)
+(defgeneric matview-p (matrix)
+(defgeneric parent (matrix)
+(defgeneric ancestor (matrix)
+(defgeneric real-nrows (matrix)
+(defgeneric real-ncols (matrix)
+(defgeneric transposed-p (matrix)
+(defgeneric zero-offset-p (matrix)
+(defgeneric offset (matrix)
+(defgeneric unit-strides-p (matrix)
+(defgeneric make-matrix* (nrows
+(defgeneric implementation (matrix)
+(defgeneric element-type (matrix)
+(defgeneric element-type-size (matrix)
+(defgeneric transpose-class (matrix)
+(defgeneric window-class (matrix)
+(defgeneric stride-class (matrix)
+(defgeneric transpose-matrix (matrix)
+(defgeneric window (matrix &key nrows ncols row-offset col-offset)
+(defgeneric strides (matrix &key nrows ncols row-offset col-offset row-stride
+(defgeneric copy! (a b)
+(defgeneric copy* (matrix implementation)
+(defgeneric fill-matrix (matrix fill-element)
+(defgeneric m= (a b)
 
-  A different package, based on this, should manage mixed-data type
-  typed matrices/arrays.
+*** matrix-operations
 
-  Referencing elements is done using the xarray system, so that needs
-  to be a dependency of this. (one can use the native system, but it
-  would be so much better to have a uniform table-access and
-  manipulation API, xarray or grid or affi or...)
+(defgeneric m* (a b)
+(defgeneric m+ (a b)
+(defgeneric m- (a b)
+(defgeneric sum (matrix)
+(defgeneric bind2 (m1 m2 &key by)
+(defgeneric cross-product (mata matb))
+(defgeneric outer-product (mata matb &optional op)
+(defgeneric m.+ (mata matb)
+(defgeneric m.- (mata matb)
+(defgeneric m.* (mata matb)
+(defgeneric m./ (mata matb)
 
-#+name: NewMetaAPI
-#+begin_src lisp
-  (xref mat   x    y
-        :return-as 'matrix)               ; for a single mat[x,y] value
-  (xref mat
-        (rows x1 x2 x3)
-        (columns y1 y2 y3))               ; for a 3x3 matrix restricted
-                                          ; to the appropriate rows and
-                                          ; columns.  A better approach
-                                          ; might be to use a
-                                          ; cross-product API, or
-                                          ; serial-list-then-row-or-column-major-fill-to-spec-d-format
-  
-  (xref mat
-        (except-for-rows x1 x2 x3)
-        (except-for-columns x1 x2 x3))
-  
-  ;; 1-d 1x4 array
-  (xref mat
-        (shaped-return (list (list x1 y1) (list x2 y2) (list x3 y3) (list x4 y4)))) 
-  
-  ;; 2-d 2x2 array
-  (xref mat
-        (shaped-return (list (list (list x1 y1) (list x2 y2))
-                             (list (list x3 y3) (list x4 y4)))))
-#+end_src
+;; (defgeneric map-matrix (withfn mat &key iterator result-type)
 
-And then there is the older stuff.
+*** numerical-linear-algebra
 
-#+NAME: OldNativeAPI
-#+begin_src lisp
-(mref mat x y) get/set
-(bind2 mat1 mat2 :by [:row|:column] )
-(diagonal mat)
-(m* mat1 mat2) => selection of the correct ZYYmm type (gemm for general mat mult)
-(m+ mat1 mat2)
-(m- mat1 mat3)
-(axpy a mat1 mat2) => (scalar * matrix) + matrix
-#+end_src
+(defgeneric factorized-matrix (a)
+(defgeneric factorize (a &key by)
+(defgeneric invert (a &optional by)
+(defgeneric least-squares (y x &key w)
+(defgeneric eigensystems (x)
+(defgeneric optimize (f data params &key method maximize-p)
+(defgeneric root-find (f data params &key method)
 
-which we need to consider, perhaps through some sort of macro package?
+*** vector
+
+(defgeneric vector-dimension (vector)
+(defgeneric vector-orientation (vector)
+(defgeneric col-vector-p (matrix)
+(defgeneric row-vector-p (matrix)
+(defgeneric check-invariant (vector)
+(defgeneric vref (vector i)
+(defgeneric (setf vref) (value vector i)
+(defgeneric vecview-p (vector)
+(defgeneric real-nelts (matrix)
+(defgeneric diagonal! (mat &key type)
+(defgeneric real-stride (vector)
+(defgeneric slice-class (matrix)
+(defgeneric slice (matrix &key offset stride nelts type)
+(defgeneric row (matrix i)
+(defgeneric col (matrix j)
+(defgeneric v= (x y)
+(defgeneric v=2 (&rest args)
+(defgeneric v+ (x y &optional return-type)
+(defgeneric v- (x y &optional return-type)
+(defgeneric v* (x y &optional return-type)
+(defgeneric v/ (x y &optional return-type)
+  (defgeneric v`op (x y &optional return-type)
+
 
 * Usage
 
@@ -1339,6 +1362,81 @@ Used for creating verfication scripts and test cases."
   (m- *x-temp* *x-temp*))
 
 #+end_src
+
+* Examples
+
+#+NAME: loadit
+#+BEGIN_SRC lisp
+  (asdf:oos 'asdf:load-op :lisp-matrix)
+  ;; (ql:quickload :lisp-matrix)
+#+END_SRC
+
+  Need to autogenerate approach for documenting what we can do with
+  this. Until then, simple reference.
+
+  Instantiates a supported matrix type:
+  - lisp/foreign
+  - single/double/complex-single/complex-double/integer
+  - (TODO: need to consider normal or mmap'd structures as well) 
+  by:
+
+#+NAME: matrixExData
+#+BEGIN_SRC lisp
+  (make-matrix  )
+#+END_SRC
+
+  right now, we are being numerical analysts, and only allow for a
+  single modality, i.e. lisp-integer, foriegn-doubleFloat, etc.
+
+  A different package, based on this, should manage mixed-data type
+  typed matrices/arrays.
+
+  Referencing elements is done using the xarray system, so that needs
+  to be a dependency of this. (one can use the native system, but it
+  would be so much better to have a uniform table-access and
+  manipulation API, xarray or grid or affi or...)
+
+#+name: NewMetaAPI
+#+begin_src lisp
+  (xref mat   x    y
+        :return-as 'matrix)               ; for a single mat[x,y] value
+  (xref mat
+        (rows x1 x2 x3)
+        (columns y1 y2 y3))               ; for a 3x3 matrix restricted
+                                          ; to the appropriate rows and
+                                          ; columns.  A better approach
+                                          ; might be to use a
+                                          ; cross-product API, or
+                                          ; serial-list-then-row-or-column-major-fill-to-spec-d-format
+  
+  (xref mat
+        (except-for-rows x1 x2 x3)
+        (except-for-columns x1 x2 x3))
+  
+  ;; 1-d 1x4 array
+  (xref mat
+        (shaped-return (list (list x1 y1) (list x2 y2) (list x3 y3) (list x4 y4)))) 
+  
+  ;; 2-d 2x2 array
+  (xref mat
+        (shaped-return (list (list (list x1 y1) (list x2 y2))
+                             (list (list x3 y3) (list x4 y4)))))
+#+end_src
+
+And then there is the older stuff.
+
+#+NAME: OldNativeAPI
+#+begin_src lisp
+(mref mat x y) get/set
+(bind2 mat1 mat2 :by [:row|:column] )
+(diagonal mat)
+(m* mat1 mat2) => selection of the correct ZYYmm type (gemm for general mat mult)
+(m+ mat1 mat2)
+(m- mat1 mat3)
+(axpy a mat1 mat2) => (scalar * matrix) + matrix
+#+end_src
+
+which we need to consider, perhaps through some sort of macro package?
 
 * Tasks [1/4]
 ** TODO [#B] Migrate DITZ issues into this file.
