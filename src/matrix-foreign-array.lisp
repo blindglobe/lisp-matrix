@@ -7,6 +7,10 @@
 ;;;; implementation will be named :FOREIGN-ARRAY, and specific
 ;;;; functions that we introduce will have "FA" in their name.
 
+;;; Tony sez: We need to describe that these are usually in
+;;; row-orientation (or column orientation?  What do I know??  Why
+;;; isn't it clear?  Why havn't I doc'd it :-)?
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (define-implementation :foreign-array "FA"))
 

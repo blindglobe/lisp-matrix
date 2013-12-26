@@ -1,8 +1,8 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-06-23 18:44:05 tony>
+;;; Time-stamp: <2013-12-26 13:17:21 tony>
 ;;; Creation:   <2009-02-05 11:18:51 tony>
-;;; File:       numerical.linear.algebra.lisp
+;;; File:       numerical-linear-algebra.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
 ;;; Copyright:  (c)2009--, AJ Rossini.  BSD, LLGPL, or GPLv2, depending
 ;;;             on how it arrives.  

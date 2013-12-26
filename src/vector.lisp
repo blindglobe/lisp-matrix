@@ -5,12 +5,16 @@
 ;;;; Vector can be viewed as matrices that happen to have one row (or
 ;;;; one column), or as a separate type.
 ;;;;
-;;; Tony comments: 1-d vectors are weird -- matrices, column vectors,
-;;; row vectors,  and scalars.  So we've got some overheard.  BUT, I
-;;; think we can afford this -- how many times do we do large scale
-;;; scalar arithmetic that can't be vectorized somehow to make it
-;;; faster/better?  However, Luke/Ross brought up some good arguments
-;;; for why we care about scalar computation.
+;;;
+;;; Tony comments: 1-d vectors are weird -- matrices seem to cover
+;;; everything, including column vectors, row vectors, and scalars.
+;;; But we've got some overheard if we let them handle everything.
+;;; BUT, I think we can afford this -- how many times do we do large
+;;; scale scalar arithmetic that can't be vectorized somehow to make
+;;; it faster/better?  However, Luke/Ross brought up some good
+;;; arguments for why we care about scalar computation -- it helps
+;;; clarify a few issues from time to time.
+;;; 
 ;;;; 
 ;;;; One advantage of having vectors be subtypes of matrices is that
 ;;;; we don't need to re-specialize many generic functions (e.g., m*,
@@ -31,10 +35,11 @@
 (defclass vector-like (matrix-like)
   ()
   (:documentation "Abstract base class for 1-D vectors and vector
-  views."))
+  views. Subclasses from the matrix-like superclass"))
 
 (defgeneric vector-dimension (vector)
-  (:documentation "Like ARRAY-DIMENSION for vector-like objects.")
+  (:documentation "Like ARRAY-DIMENSION for vector-like objects.  One
+  can also used ARRAY-DIMENSION as well")
   (:method ((vector vector-like))
     (nelts vector)))
 
