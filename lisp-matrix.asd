@@ -10,7 +10,8 @@
 
 (in-package :lisp-matrix-asd)
 
-(defparameter *fasl-directory*
+#|
+ (defparameter *fasl-directory*
    (make-pathname :directory '(:relative
 			       #+sbcl "fasl-sbcl"
 			       #+openmcl "fasl-ccl"
@@ -19,18 +20,20 @@
 			       #+clisp "fasl-clisp"
 			       #-(or sbcl openmcl clisp cmucl) "fasl"
 			       )))
+|#
+
 
 (defsystem lisp-matrix
     :name "lisp-matrix"
-    :version "0.2"
+    :version "0.3"
     :author "Mark Hoemmen <mhoemmen@cs.berkeley.edu>"
-    :license "BSD sans advertising clause"
+    :license "BSD sans advertising clause" ;; sort of MIT
     :description "linear algebra library"
     :long-description "Linear algebra library for ANSI Common Lisp;
     implemented at the lowest level using CFFI to call the BLAS and
     LAPACK.  Should run on any ANSI CL implementation that supports
-    CFFI.  Also considers lisp-centric and foreign-centric storage, in
-    a manner friendly to the other storage facility."
+    CFFI.  Uses both lisp-centric and foreign-centric storage, in a
+    manner friendly to the complimentary other storage facility."
     :serial t
     :depends-on (:cffi
 		 :cl-utilities
