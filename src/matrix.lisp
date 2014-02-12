@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2013-12-26 14:42:17 tony>
+;;; Time-stamp: <2014-02-09 15:21:03 tony>
 
 (in-package :lisp-matrix)
 
@@ -38,7 +38,7 @@
 ;;; So object instantiation, access, special common objects (random,
 ;;; identity matrices) go here.   But numerical methods do not.
 
-(defclass matrix-like (xarray-like)
+(defclass matrix-like () ;; possible to inherit from xarray-like?  
   ((nrows :initarg :nrows
           :reader nrows
           :initform 0)
