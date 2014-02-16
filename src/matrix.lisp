@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
 ;;;
-;;; Time-stamp: <2014-02-09 15:21:03 tony>
+;;; Time-stamp: <2014-02-16 16:37:44 tony>
 
 (in-package :lisp-matrix)
 
@@ -8,7 +8,7 @@
 
 ;;;; This is a rewrite of the matrix class interface, in order to
 ;;;; allow both foreign arrays and lisp arrays as underlying
-;;;; implementation.
+;;;; implementation, ideally in a simultaneous fashion.
 ;;;;
 ;;;; * The base MATRIX-LIKE class
 ;;;; 
@@ -718,14 +718,38 @@
 
 ;;;; ** Copying
 
-;; maybe copy->  ??
+;;; Copying is one of the most critical activities, since it provides
+;;; efficiency and correctness if done right.  We want to deep copy
+;;; for correctness, and simply pass-through without copy for
+;;; algorithm speed.
+
+;;; COPY   - Return a deep identical copy of MATRIX (same implementation
+;;;          and element-type).  (function)
+;;;
+;;; COPY*  - Same as COPY but specify the implementation.
+;;;
+;;; COPY!  - Copy A into B if they are not the same object, and return
+;;;          B.  A and B should be matrices or vectors with the same
+;;;          dimensions, but not necessarily of the same
+;;;          implementation.     (generic function)
+;;;
+;;; COPY-MAYBE  - Return a deep copy of MATRIX if TEST is satisfied, or
+;;;               return MATRIX itself.  TEST is a function of one
+;;;               argument that will be applied to MATRIX.
+;;;
+;;; COPY-MAYBE* - like COPY-MAYBE but the implementation of the
+;;;               returned copy is specificed a deep copy of MATRIX if
+;;;               TEST is satisfied, or return MATRIX itself.  TEST is
+;;;               a function of one argument that will be applied to
+;;;               MATRIX.
 
 (defgeneric copy! (a b)
   (:documentation "Copy A into B if they are not the same object, and
   return B.  A and B should be matrices or vectors with the same
   dimensions, but not necessarily of the same implementation."))
 
-;; should we put the following methods into the method component of the generic specification? 
+;; should we put the following methods into the method component of
+;; the generic specification?
 
 (defmethod copy! ((a matrix-like) (b matrix-like))
   (unless (eq a b)
@@ -790,8 +814,9 @@ element-type)."
   itself.  TEST is a function of one argument that will be applied to
   MATRIX.  
 
-  Example use: copy if small enough, and use the original if too
-  large."
+  Example uses:
+  1. copy if small enough, and use the original if too large.
+  2. copy if a particular implementation, use original if correct implementation."
   (copy-maybe* matrix test (implementation matrix)))
 
 (defun copy-maybe* (matrix test implementation)
@@ -838,10 +863,8 @@ element-type)."
         (write-char #\space stream)
         (write (mref object i j) :stream stream)))))
 
-
-;;; REFACTOR ME PLEASE!
 (defun matrix-like-symmetric-p (m)
-  "FIXME: basically right, but too long."
+  "FIXME REFACTOR-ME: basically right, but too inefficient."
   (check-type m matrix-like)
   (assert (= (nrows m) (ncols m)))
   (dotimes (i (matrix-dimension m 0))
@@ -849,7 +872,6 @@ element-type)."
       (unless (= (mref m i j) (mref m j i))
 	(return-from matrix-like-symmetric-p nil))))
     t)
-
 
 ;;; Local Variables:
 ;;; outline-regexp: ";;;; \\*\\|("

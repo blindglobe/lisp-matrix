@@ -46,7 +46,7 @@
                          (matrix-implementation (eql :lisp-array))
                          &key element-type
                          (initial-element nil initial-element-p))
-  (if (or (= nrows 1) (= ncols 1))
+  (if (or (= nrows 1) (= ncols 1)) ;; make a vector if 1-dim
       (make-instance
        (la-vector-class element-type)
        :nrows nrows

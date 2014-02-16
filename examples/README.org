@@ -4,7 +4,6 @@
   This is technically the TODO file, used as a live testing ground as
   well.
 
-
 * Tasks
 
 ** TODO [#B] M Maul's request, GEMM for foriegn arrays

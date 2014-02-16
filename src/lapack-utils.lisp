@@ -3,7 +3,7 @@
 ;;;; This file contains functions and macros to help build LAPACK
 ;;;; wrapper methods.
 ;;;;
-;;;; Time-stamp: <2009-06-24 07:52:04 tony>
+;;;; Time-stamp: <2014-02-14 19:14:56 tony>
 ;;;;
 ;;;;
 ;;;;
@@ -34,7 +34,6 @@
 ;;;; Note: for the matrix C, we cannot define the orientation of the
 ;;;; matrix, so transposed matrices would have to be copied anyway if
 ;;;; the orientation is not :COLUMN.
-;;;;
 ;;;;
 ;;;; I am not sure if there are other restrictions for when we can
 ;;;; copy matrices for use with LAPACK functions, except the need to

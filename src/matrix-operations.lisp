@@ -27,7 +27,7 @@
 
   Better approach would be to consider lowest-common-type?")
   (:method ((a matrix-like) (b matrix-like))
-    (assert (= (ncols a) (nrows b)))
+    (assert (= (ncols a) (nrows b))) ;; insist on squareness...
     (with-typed-values ((one 1)
                         (zero 0)) a
       (let ((c (make-matrix (nrows a) (ncols b)
