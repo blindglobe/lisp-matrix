@@ -7,35 +7,20 @@
 ;;; This is part of the unittests package.   See unittests.lisp for
 ;;; general philosophy.
 
-;; (asdf:oos 'asdf:compile-op 'lift :force t)
-;; (asdf:oos 'asdf:load-op 'lift)
-;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
-;; (asdf:oos 'asdf:load-op 'lisp-matrix)
 
 (in-package :lisp-matrix-unittests)
 
-;; EVERYTHING
-;; (run-lisp-matrix-tests)
-;; (describe (run-lisp-matrix-tests))
+;; See file:test.lisp in this directory for debugging with LIFT.
 
-;; VECTOR TESTS
-;; (run-tests :suite 'lisp-matrix-ut-vectors)
-;; (describe (run-tests :suite 'lisp-matrix-ut-vectors))
-
-;; REMINDER IF NEEDED
-;; (remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
-
-;;; TEST SUITES in file.
+;;; TEST SUITES 
 
 (deftestsuite lisp-matrix-ut-matrix  (lisp-matrix-ut) ())
 
 ;;; SUPPORT FUNCTIONS
 
-;; (see unittests.lisp)
-
 ;;; TESTS: MATRICES toplevel/general
 
-;;; Current error -- NEED TO FIX!
+;;; FIXME
 (addtest (lisp-matrix-ut-matrix)
   matrix-foreign-array-integer-values
   ;; FIXME: integer-valued foreign arrays. (bug: matrix-2)
@@ -181,12 +166,12 @@
   (for-all-implementations
     (let ((m (make-matrix 2 2)))
       (ensure (null (transposed-p m)))
-      (ensure (transposed-p (transpose m)))
-      (ensure (transposed-p (window (transpose m))))
+      (ensure (transposed-p (transpose-matrix m)))
+      (ensure (transposed-p (window (transpose-matrix m))))
       ;; the last one was removed because now the transpose of a
       ;; transpose returns the original matrix
       #+(or)
-      (ensure (transposed-p (transpose (transpose m)))))))
+      (ensure (transposed-p (transpose-matrix (transpose-matrix m)))))))
 
 (addtest (lisp-matrix-ut-matrix)
   m=
@@ -338,7 +323,6 @@
       (ensure (m= (bind2 m3 m2 :by :row)
 		  (zeros 5 2))))))
 
-;; (describe (run-test :test-case 'bind2-dims-conditions))
 
 
 
@@ -353,4 +337,3 @@
 	  (ensure (v= (nth i col-list)
 		      (ones 2 1))))))))
 
-;; (describe (run-test :test-case 'r-apply-columns))

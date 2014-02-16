@@ -1,6 +1,6 @@
 ;;; -*- mode: lisp -*-
 
-;;; Time-stamp: <2009-12-19 17:14:08 tony>
+;;; Time-stamp: <2014-02-16 17:21:40 tony>
 ;;; Creation:   <2009-03-12 17:14:56 tony>
 ;;; File:       unittests-matrix-lapack.lisp
 ;;; Author:     AJ Rossini <blindglobe@gmail.com>
@@ -15,23 +15,9 @@
 ;;; This organization and structure is new to the 21st Century
 ;;; version..   Think, "21st Century Schizoid Man".
 
-
 (in-package :lisp-matrix-unittests)
 
-
-;;; This is semi-external to lisp-matrix core package.  The dependency
-;;; should be that lisp-matrix packages are dependencies for the unit
-;;; tests.  However, where they will end up is still to be determined.
-
-;; (asdf:oos 'asdf:compile-op 'lift :force t)
-;; (asdf:oos 'asdf:load-op 'lift)
-;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
-;; (asdf:oos 'asdf:load-op 'lisp-matrix)
-
-;;(run-lisp-matrix-tests)
-;;(describe (run-lisp-matrix-tests))
-
-;;(remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
+;; See file:test.lisp in this directory for debugging with LIFT.
 
 ;;; EXTERNAL
 
@@ -203,8 +189,6 @@
 
 ;;;; GEMM tests
 
-
-;; Foreign array problems...  Currently error, not failure!
 (addtest (lisp-matrix-ut-matrix-gemm)
   sticky-matmult-cases
   (let ((m2-fa (make-matrix
@@ -236,13 +220,11 @@
     (m* m3-la m3-la)
     (m* m3-la (transpose-matrix m3-la))))
 
-
 (defun check-m* (a b)
   (let ((result (make-matrix 2 2 :initial-contents
                              '((19d0 22d0)
                                (43d0 50d0)))))
     (ensure (m= result (m* a b)))))
-
 
 (def-m*-test m*-basic-test
   (make-matrix 2 2 :initial-contents

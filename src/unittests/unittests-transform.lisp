@@ -7,32 +7,15 @@
 ;;; This is part of the unittests package.   See unittests.lisp for
 ;;; general philosophy.
 
-;; (asdf:oos 'asdf:compile-op 'lift :force t)
-;; (asdf:oos 'asdf:load-op 'lift)
-;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
-;; (asdf:oos 'asdf:load-op 'lisp-matrix)
-
 (in-package :lisp-matrix-unittests)
 
-;; EVERYTHING
-;; (run-lisp-matrix-tests)
-;; (describe (run-lisp-matrix-tests))
+;; See file:test.lisp in this directory for debugging with LIFT.
 
-;; VECTOR TESTS
-;; (run-tests :suite 'lisp-matrix-ut-vectors)
-;; (describe (run-tests :suite 'lisp-matrix-ut-vectors))
-;; (run-test :test-case '   :suite 'lisp-matrix-ut-vectors)
-
-;; REMINDER IF NEEDED
-;; (remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
-
-;;; TEST SUITES in file.
+;;; TEST SUITES
 
 (deftestsuite lisp-matrix-ut-datatrans      (lisp-matrix-ut) ())
 
 ;;; SUPPORT FUNCTIONS
-
-;; (in general, see unittests.lisp; any specific to vectors would be here...)
 
 ;;; TESTS: VECTORS
 
@@ -53,7 +36,4 @@
 			     :type :column )
 		(list->vector-like (list 0d0 0d0 0d0)
 				   :orientation :column)))))
-
-
-
 

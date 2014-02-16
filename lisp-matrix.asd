@@ -10,19 +10,6 @@
 
 (in-package :lisp-matrix-asd)
 
-#|
- (defparameter *fasl-directory*
-   (make-pathname :directory '(:relative
-			       #+sbcl "fasl-sbcl"
-			       #+openmcl "fasl-ccl"
-			       #+openmcl "fasl-ccl"
-			       #+cmu "fasl-cmucl"
-			       #+clisp "fasl-clisp"
-			       #-(or sbcl openmcl clisp cmucl) "fasl"
-			       )))
-|#
-
-
 (defsystem lisp-matrix
     :name "lisp-matrix"
     :version "0.3"
@@ -37,9 +24,7 @@
     :serial t
     :depends-on (:cffi
 		 :cl-utilities
-		 
 		 :xarray ; we will use this for general indexing
-
                  ;; :fiveam  ;;see below for its replacement...
 		 :lift ;; yes, Tony (me) is a PITA...
 		 :org.middleangle.foreign-numeric-vector
@@ -107,7 +92,6 @@
        (:file "unittests-matrix-lapack" :depends-on ("unittests" "unittests-matrix"))
        (:file "unittests-vector" :depends-on ("unittests")))))
 
-       ;; (:file "tests")
 #|
      :in-order-to ((test-op (load-op lisp-matrix)))
      :perform (test-op :after (op c)
@@ -115,11 +99,3 @@
                                 (intern "TESTS" 'lisp-matrix)))
 |#
     )
-
-;;;; keep ASDF thinking that the test operation hasn't been done
-#|
- (defmethod operation-done-p 
-            ((o test-op)
-             (c (eql (find-system 'lisp-matrix))))
-   (values nil))
-|#

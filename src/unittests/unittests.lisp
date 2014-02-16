@@ -13,18 +13,10 @@
 ;;; testing, not matrix/vector computation, which needf to be in sub
 ;;; functions. 
 
-;; (asdf:oos 'asdf:compile-op 'lift :force t)
-;; (asdf:oos 'asdf:load-op 'lift)
-;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
-;; (asdf:oos 'asdf:load-op 'lisp-matrix)
 
 (in-package :lisp-matrix-unittests)
 
-;;(run-lisp-matrix-tests)
-;;(describe (run-lisp-matrix-tests))
-
-;;(remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
-;;(remove-test :test-case 'test-2 :suite 'lisp-matrix-ut-matrix-gemm)
+;; See file:test.lisp in this directory for debugging with LIFT.
 
 ;;; EXTERNAL
 

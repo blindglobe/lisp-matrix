@@ -1,30 +1,15 @@
 ;;; -*- mode: lisp -*-
 ;;;
-;;; Copyright (c) 2007--2008, by A.J. Rossini <blindglobe@gmail.com>
+;;; Copyright (c) 2007--2014, by A.J. Rossini <blindglobe@gmail.com>
 ;;; See COPYRIGHT file for any additional restrictions (BSD license).
 ;;; Since 1991, ANSI was finally finished.  Edited for ANSI Common Lisp. 
 
 ;;; This is part of the unittests package.   See unittests.lisp for
 ;;; general philosophy.
 
-;; (asdf:oos 'asdf:compile-op 'lift :force t)
-;; (asdf:oos 'asdf:load-op 'lift)
-;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
-;; (asdf:oos 'asdf:load-op 'lisp-matrix)
-
 (in-package :lisp-matrix-unittests)
 
-;; EVERYTHING
-;; (run-lisp-matrix-tests)
-;; (describe (run-lisp-matrix-tests))
-
-;; VECTOR TESTS
-;; (run-tests :suite 'lisp-matrix-ut-vectors)
-;; (describe (run-tests :suite 'lisp-matrix-ut-vectors))
-;; (run-test :test-case '   :suite 'lisp-matrix-ut-vectors)
-
-;; REMINDER IF NEEDED
-;; (remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
+;; See file:test.lisp in this directory for debugging with LIFT.
 
 ;;; TEST SUITES in file.
 
@@ -32,8 +17,6 @@
 (deftestsuite lisp-matrix-ut-vectors-gemm (lisp-matrix-ut-vectors) ())
 
 ;;; SUPPORT FUNCTIONS
-
-;; (in general, see unittests.lisp; any specific to vectors would be here...)
 
 ;;; TESTS: VECTORS
 
@@ -51,13 +34,13 @@
     ;; transposed when we think of their storage.  But we cannot
     ;; transpose them without resorting to a TRANSPOSE-VECVIEW.  So it
     ;; would be best to introduce a function like STORAGE-TRANSPOSED-P
-    ;;   (ensure (not (transposed-p (transpose (make-matrix 1 10)))))
-    ;;   (ensure (not (transposed-p (transpose (make-matrix 10 1)))))
+    ;;   (ensure (not (transposed-p (transpose-matrix (make-matrix 1 10)))))
+    ;;   (ensure (not (transposed-p (transpose-matrix (make-matrix 10 1)))))
 
     ;; transpose should return the original matrix if dimensions are
     ;; 1 x 1
     (let ((m (rand 1 1)))
-      (ensure (eq m (transpose m))))))
+      (ensure (eq m (transpose-matrix m))))))
 
 (addtest (lisp-matrix-ut-vectors)
   matview-row-and-col-access-and-equiv
@@ -68,13 +51,12 @@
       (ensure (col-vector-p (window a :ncols 1))) 
       ;; column access and row access, matviews.
       (dotimes (i 7)
-	(ensure (v= (row a i) (col (transpose a) i)))
-	(ensure (not (m= (row a i) (col (transpose a) i))))
+	(ensure (v= (row a i) (col (transpose-matrix a) i)))
+	(ensure (not (m= (row a i) (col (transpose-matrix a) i))))
 	(ensure (row-vector-p (row a i)))
 	(ensure (col-vector-p (col a i)))
-	(ensure (row-vector-p (row (transpose a) i)))
-	(ensure (col-vector-p (col (transpose a) i)))))))
-
+	(ensure (row-vector-p (row (transpose-matrix a) i)))
+	(ensure (col-vector-p (col (transpose-matrix a) i)))))))
 
 
 (addtest (lisp-matrix-ut-vectors)
@@ -127,8 +109,8 @@
   v=-col-row-transpose
   (let ((a (rand 3 4)))
     (dotimes (i 2) 
-      (ensure (v= (row a i) (col (transpose a) i)))
-      (ensure (v= (col a i) (row (transpose a) i))))))
+      (ensure (v= (row a i) (col (transpose-matrix a) i)))
+      (ensure (v= (col a i) (row (transpose-matrix a) i))))))
 
 (addtest (lisp-matrix-ut-vectors)
   row-of-window
@@ -138,11 +120,11 @@
       (ensure (m= (row b i)
 		  (window a :row-offset (+ i 1) :nrows 1 :col-offset 2 :ncols 5)))))
   (let* ((a (rand 10 5 :element-type 'integer :value 10))
-         (b (window (transpose a) :row-offset 1 :nrows 4 :col-offset 2 :ncols 5)))
+         (b (window (transpose-matrix a) :row-offset 1 :nrows 4 :col-offset 2 :ncols 5)))
 
     (dotimes (i 4)
     (ensure (m= (row b i)
-            (window (transpose a) :row-offset (+ i 1)  :nrows 1 :col-offset 2
+            (window (transpose-matrix a) :row-offset (+ i 1)  :nrows 1 :col-offset 2
 		    :ncols 5))))))
 
 (addtest (lisp-matrix-ut-vectors)
@@ -150,8 +132,8 @@
   (ensure (= 1 (real-stride (zeros 2 2))))
   (ensure (= 2 (real-stride (row (zeros 2 2) 0))))
   (ensure (= 1 (real-stride (col (zeros 2 2) 0))))
-  (ensure (= 1 (real-stride (row (transpose (zeros 2 2)) 0))))
-  (ensure (= 2 (real-stride (col (transpose (zeros 2 2)) 0))))
+  (ensure (= 1 (real-stride (row (transpose-matrix (zeros 2 2)) 0))))
+  (ensure (= 2 (real-stride (col (transpose-matrix (zeros 2 2)) 0))))
   (ensure (null (real-stride (window (zeros 4 4) :nrows 2)))))
 
 
@@ -197,11 +179,11 @@
 			   :type :column)))
       (ensure (m= (diagonal! a)
  		  b))
-      (ensure (m= (diagonal! (transpose a))
+      (ensure (m= (diagonal! (transpose-matrix a))
  		  b))
       (ensure (v= (diagonal! a)
 		  b))
-      (ensure (v= (diagonal! (transpose a))
+      (ensure (v= (diagonal! (transpose-matrix a))
 		  b)))))
 
 
@@ -224,16 +206,12 @@
 			   :type :column)))
       (ensure (m= (diagonalf a)
  		  b))
-      (ensure (m= (diagonalf (transpose a))
+      (ensure (m= (diagonalf (transpose-matrix a))
  		  b))
       (ensure (v= (diagonalf a)
 		  b))
-      (ensure (v= (diagonalf (transpose a))
+      (ensure (v= (diagonalf (transpose-matrix a))
 		  b)))))
-
-;; (describe (run-test :test-case 'diagonalf-vectors))
-;; (describe (run-test :test-case 'diagonal!-vectors))
-
 
 ;;;; Vectors
 

@@ -8,22 +8,11 @@
 ;;; tests.  However, where they will end up is still to be
 ;;; determined. 
 
-;; (asdf:oos 'asdf:compile-op 'lift :force t)o
-;; (asdf:oos 'asdf:load-op 'lift)
-;; (asdf:oos 'asdf:compile-op 'lisp-matrix)
-;; (asdf:oos 'asdf:load-op 'lisp-matrix)
-
 (in-package :lisp-matrix-unittests)
 
-;;(run-lisp-matrix-tests)
-;;(describe (run-lisp-matrix-tests))
-
-;;(remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
+;; See file:test.lisp in this directory for debugging with LIFT.
 
 ;;; EXTERNAL
-
-
-
 
 ;;; TEST SUITES
 
@@ -31,14 +20,13 @@
 
 ;;; SUPPORT FUNCTIONS
 
-
 ;;; TESTS: MATRIX-VIEWS
 
 (addtest (lisp-matrix-ut-matrix-views)
   fun-transpose
   (for-all-implementations
     (let ((a (rand 3 4)))
-      (ensure (eq a (transpose (transpose a)))))))
+      (ensure (eq a (transpose-matrix (transpose-matrix a)))))))
 
 (addtest (lisp-matrix-ut-matrix-views)
   fun-window
@@ -68,7 +56,7 @@
 						  (26d0 27d0 28d0 29d0 30d0))))
 	 (m4 (strides m3 :nrows 2 :row-stride 2)))
     (ensure (v= (row m4 1)
-		(col (transpose m4) 1) ))
-    (ensure (v= (col m3 1) (row (transpose m3) 1)) )
-    (ensure (v= (row m3 1) (col (transpose m3) 1)))))
+		(col (transpose-matrix m4) 1) ))
+    (ensure (v= (col m3 1) (row (transpose-matrix m3) 1)) )
+    (ensure (v= (row m3 1) (col (transpose-matrix m3) 1)))))
 
