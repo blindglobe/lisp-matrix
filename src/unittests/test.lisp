@@ -1,16 +1,16 @@
 
-
 ;;; This file is used to support interactive testing for LISP-MATRIX
 ;;; it manages to remind (me) how to stage the development.
 
-(ql:quickload :lift)
 (ql:quickload :lisp-matrix)
 
 (in-package :lisp-matrix-unittests)
 
 (describe (run-lisp-matrix-tests))           ; long summary
+;; current: 69 tests, 2 errors
 
 
+;;;; code for memory
 
 ;; (run-lisp-matrix-tests)                      ; quick summary
 ;;(remove-test :test-case 'data-initialize :suite 'lisp-matrix-ut)
