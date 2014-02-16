@@ -1,6 +1,31 @@
 
 LICENSE: BSD sans advertising (Mark H)
 
+* QuickStart
+
+  Use QuickLisp to load
+
+#+BEGIN_SRC lisp
+(ql:quickload :lisp-matrix)
+#+END_SRC
+
+  and create some data
+
+#+BEGIN_SRC lisp
+  
+  (in-package :lisp-matrix-user)
+  
+  (M* (ones 2 2 :implementation :foreign-array)
+      (ones 2 2 :implementation :foreign-array))
+  
+  (M* (ones 2 2 :implementation :lisp-array)
+      (ones 2 2 :implementation :lisp-array))
+  
+  (M* (ones 2 2 :implementation :lisp-array)
+      (ones 2 2 :implementation :foriegn-array))
+  
+#+END_SRC
+
 * Introduction
 
   Lisp-Matrix intends to be a reasonably modern, flexible system for
@@ -221,7 +246,6 @@ LICENSE: BSD sans advertising (Mark H)
 (defgeneric v* (x y &optional return-type)
 (defgeneric v/ (x y &optional return-type)
   (defgeneric v`op (x y &optional return-type)
-
 
 * Usage
 
