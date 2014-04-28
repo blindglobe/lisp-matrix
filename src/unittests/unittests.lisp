@@ -258,11 +258,11 @@ are discarded \(that is, the body is an implicit PROGN)."
 
   (defmacro our-let (binds &body body)
     "test let"
-    ‘((lambda ,(mapcar #’(lambda (x)
+    `((lambda ,(mapcar #’(lambda (x)
 			   (if (consp x) (car x) x))
 			 binds)
 	,@body)
-      ,@(mapcar #’(lambda (x)
+      ,@(mapcar #'(lambda (x)
 		    (if (consp x) (cadr x) nil))
 		  binds)))
 
