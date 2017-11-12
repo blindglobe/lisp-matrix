@@ -259,8 +259,7 @@ LICENSE: BSD sans advertising (Mark H)
    1. instantiating matrices and vectors
    2. inversion using BLAS/LAPACK
 
-   <2012-10-25 Thu> except that transpose and the last example (geqrf)
-   are broken.
+   <2012-10-25 Thu> except that the last example (geqrf) is broken.
 
    In Common lisp, it is useful, sometimes overkill, to properly
    define the precision and form of the numbers (i.e. single, double, rational,
@@ -472,7 +471,7 @@ The following sets up data for linear least squares estimation:
                            (6d0)
                            (7d0)
                            (8d0))))
-    (transpose *y2*) ;; ERROR: not in lisp-matrix-user?
+    (transpose-matrix *y2*)
   
   
   
@@ -514,9 +513,9 @@ The following sets up data for linear least squares estimation:
     ;; Cholesky
     (let ((myrand (rand 4 4)))
       (princ myrand)
-      (princ (matrix-like-symmetric-p (m* (transpose myrand) myrand)))
-      (princ (m*  (m* (transpose myrand) myrand)
-                  (minv-cholesky  (m* (transpose myrand) myrand))))))
+      (princ (matrix-like-symmetric-p (m* (transpose-matrix myrand) myrand)))
+      (princ (m*  (m* (transpose-matrix myrand) myrand)
+                  (minv-cholesky  (m* (transpose-matrix myrand) myrand))))))
   
   
   (progn  
@@ -635,18 +634,18 @@ lm-demo.lisp : things that might work but should
 
   (mref *m2b* 0 2) ;; => 3
   *m2b*
-  (transpose *m2b*)
+  (transpose-matrix *m2b*)
 
   ;; simple subsetting is simple
   (m= (row *m2b* 0)
-      (col (transpose *m2b*) 0)) ; => nil, orientation
+      (col (transpose-matrix *m2b*) 0)) ; => nil, orientation
   (v= (row *m2b* 0)
-      (col (transpose *m2b*) 0)) ; => T, no orientation worries
+      (col (transpose-matrix *m2b*) 0)) ; => T, no orientation worries
 
   (m= (col *m2b* 0)
-      (row (transpose *m2b*) 0))
+      (row (transpose-matrix *m2b*) 0))
   (v= (col *m2b* 0)
-      (row (transpose *m2b*) 0))
+      (row (transpose-matrix *m2b*) 0))
 
 
   (defvar *m3*
@@ -663,13 +662,13 @@ lm-demo.lisp : things that might work but should
 
 
   (= (mref *m3* 0 1)
-     (mref (transpose *m3*) 1 0))
+     (mref (transpose-matrix *m3*) 1 0))
 
   (=  (mref *m3* 2 2)
-      (mref (transpose *m3*) 2 2))
+      (mref (transpose-matrix *m3*) 2 2))
 
   *m3*
-  (transpose *m3*)
+  (transpose-matrix *m3*)
 
   ;;; Now we play with striding and slicing subsets.  These work well
   ;;; for simple subsetting which can be done by counting/enumeration
@@ -697,8 +696,8 @@ lm-demo.lisp : things that might work but should
   (m= (col *m4* 1)
       (make-matrix 2 1 :initial-contents '((2d0) (12d0))))
 
-  (v= (row *m4* 0) (col (transpose *m4*) 0))
-  (v= (col *m4* 0) (row (transpose *m4*) 0))
+  (v= (row *m4* 0) (col (transpose-matrix *m4*) 0))
+  (v= (col *m4* 0) (row (transpose-matrix *m4*) 0))
 
   *m4*
   (row *m4* 0)
@@ -953,48 +952,48 @@ m01b
   (col m01 3)
 
   m01
-  (transpose m01)
-  (row (transpose m01) 0)
-  (row (transpose m01) 1) ; wrong: grab bad column, AND by 1 (pushed up)
-  (row (transpose m01) 2) ; ditto, wrong by 2
-  (row (transpose m01) 3) ; etc...wrong by 3
+  (transpose-matrix m01)
+  (row (transpose-matrix m01) 0)
+  (row (transpose-matrix m01) 1) ; wrong: grab bad column, AND by 1 (pushed up)
+  (row (transpose-matrix m01) 2) ; ditto, wrong by 2
+  (row (transpose-matrix m01) 3) ; etc...wrong by 3
 
-  (row (transpose m01) 0)
-  (transpose (row (transpose m01) 0))
+  (row (transpose-matrix m01) 0)
+  (transpose-matrix (row (transpose-matrix m01) 0))
 
   m01
-  (transpose m01)
-  (col (transpose m01) 0)
-  (col (transpose m01) 1) ; last rather than first
-  (col (transpose m01) 2) ;
-  (col (transpose m01) 3) ; ditto above
+  (transpose-matrix m01)
+  (col (transpose-matrix m01) 0)
+  (col (transpose-matrix m01) 1) ; last rather than first
+  (col (transpose-matrix m01) 2) ;
+  (col (transpose-matrix m01) 3) ; ditto above
 
 
   (v= (row m01 0)
-      (col (transpose m01) 0)) ;; works
+      (col (transpose-matrix m01) 0)) ;; works
   
   (m= (row m01 0)
-      (col (transpose m01) 0)) ;; fails, since dims unequal
+      (col (transpose-matrix m01) 0)) ;; fails, since dims unequal
   
   m01
-  (transpose m01)
+  (transpose-matrix m01)
   ;; given the above...
   ;; FIXME: Big Barf!
   (v= (row m01 1)
-      (col (transpose m01) 1) ) ;; fails badly.  Real badly.
+      (col (transpose-matrix m01) 1) ) ;; fails badly.  Real badly.
   
   (v= (col m01 1)
-      (row (transpose m01) 1) ) ;; fails, but closer...
+      (row (transpose-matrix m01) 1) ) ;; fails, but closer...
   
   (col m01 1)
-  (col (transpose m01) 1) ;; this is the problem, indexing issue...
+  (col (transpose-matrix m01) 1) ;; this is the problem, indexing issue...
   
   
   ;; and the same problem.
   m3 
-  (transpose m3)
-  (v= (col m3 1) (row (transpose m3) 1))
-  (v= (row m3 1) (col (transpose m3) 1))
+  (transpose-matrix m3)
+  (v= (col m3 1) (row (transpose-matrix m3) 1))
+  (v= (row m3 1) (col (transpose-matrix m3) 1))
 	  
   ;; Striding and Slicing issues:
   ;; Strides provide matrix sections; slicing provides vector'd sections.
@@ -1014,22 +1013,22 @@ m01b
   (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
 
 
-  (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :row)
+  (slice (transpose-matrix m01) :offset 5 :stride  2 :nelts 3 :type :row)
   (slice m01
 	 :offset 5
 	 :stride  2
 	 :nelts 3
 	 :type :row)
-  (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :row)
+  (slice (transpose-matrix m01) :offset 5 :stride  2 :nelts 3 :type :row)
 
   ;; slicing isn't affected by transposition -- doesn't affect the
   ;; counting.  Would have suggested that column-major or row-major.
   ;; Should this be the case?  (need to migrate to unit-tests).
 
   (v=  (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
-       (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :row))
+       (slice (transpose-matrix m01) :offset 5 :stride  2 :nelts 3 :type :row))
   (v=  (slice m01 :offset 5 :stride  2 :nelts 3 :type :row)
-       (slice (transpose m01) :offset 5 :stride  2 :nelts 3 :type :column))
+       (slice (transpose-matrix m01) :offset 5 :stride  2 :nelts 3 :type :column))
   ;; and note the above -- vector equality doesn't depend on orientation...
 
   (slice m01 :offset 1 :stride  2 :nelts 3 :type :column)
@@ -1073,9 +1072,9 @@ m01b
   
   ;; FIXME: the following has no applicable method -- only for
   ;; doubles, not integers.  
-  (m* m2 (transpose m2))
+  (m* m2 (transpose-matrix m2))
   ;; but we can multiple doubles, but...
-  (m* m01 (transpose m01))
+  (m* m01 (transpose-matrix m01))
 
 
 
